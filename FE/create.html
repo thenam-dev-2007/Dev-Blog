@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <title>Viết Bài - Mạng Lưới Blog</title>
+</head>
+<body>
+    <header>
+        <h1>Mạng Lưới Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="index.html">Trang chủ</a></li>
+                <li><a href="about.html">Giới thiệu</a></li>
+                <li><a href="auth.html">Đăng nhập / Đăng ký</a></li>
+                <li><a href="create.html">Viết bài mới</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <main>
+        <h2>Tạo bài viết mới</h2>
+        
+        <form action="#" method="POST" enctype="multipart/form-data">
+            <label for="post_title">Tiêu đề bài viết:</label><br>
+            <input type="text" id="post_title" name="post_title" size="60"><br><br>
+
+            <fieldset>
+                <legend>Thanh công cụ định dạng (Mô phỏng)</legend>
+                <select name="font_size">
+                    <option value="small">Chữ nhỏ</option>
+                    <option value="normal" selected>Chữ thường</option>
+                    <option value="large">Chữ lớn</option>
+                </select>
+                <button type="button"><b>B</b></button>
+                <button type="button"><i>I</i></button>
+                <button type="button"><u>U</u></button>
+                <label for="upload_media"> | Thêm tệp (Ảnh/Video): </label>
+                <input type="file" id="upload_media" name="upload_media" accept="image/*,video/*">
+            </fieldset>
+            
+            <br>
+            
+            <label for="post_content">Nội dung bài viết:</label><br>
+            <textarea id="post_content" name="post_content" rows="15" cols="80" placeholder="Bắt đầu viết những điều bạn muốn chia sẻ..."></textarea><br><br>
+
+            <label for="tag_users">Gắn thẻ người dùng khác (@username):</label><br>
+            <input type="text" id="tag_users" name="tag_users" placeholder="@nguoidung1, @nguoidung2" size="40"><br><br>
+
+            <button type="submit">Đăng bài viết</button>
+            <button type="reset">Làm lại</button>
+        </form>
+    </main>
+</body>
+</html>
