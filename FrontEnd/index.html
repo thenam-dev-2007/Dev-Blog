@@ -1,58 +1,99 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="vi">
 <head>
     <meta charset="UTF-8">
-    <title>Trang Chủ</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Trang Chủ - Hệ Thống Blog Cộng Đồng LGBT</title>
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
     <header>
-        <h1>Mạng Lưới Blog</h1>
-        <nav>
-            <ul>
-                <li><a href="index.html">Trang chủ</a></li>
-                <li><a href="about.html">Giới thiệu</a></li>
-                <li><a href="auth.html">Đăng nhập / Đăng ký</a></li>
-                <li><a href="create.html">Viết bài mới</a></li>
-            </ul>
-        </nav>
+        <div class="header-container">
+            <a class="logo" href="index.html">BLOG LOGO</a>
+            <nav class="header-nav">
+                <a href="index.html">Home</a><span class="separator">|</span>
+                <a href="categories.html">Categories</a><span class="separator">|</span>
+                <a href="faq.html">FAQ</a><span class="separator">|</span>
+                <a href="about.html">About</a><span class="separator">|</span>
+                <a href="contact.html">Contact</a>
+            </nav>
+            <div class="header-right">
+                <input class="search-input" type="text" placeholder="Tìm kiếm...">
+                <button class="button" type="button">Tìm</button>
+                <a href="auth.html"><img class="profile-icon" src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRQvbBkan9f5Y_lGtjeuDAU_GHcoaHBhd9GEw&s" alt="Avatar"></a>
+            </div>
+        </div>
     </header>
 
     <main>
-        <section>
-            <h2>Tìm kiếm</h2>
-            <form action="#" method="GET">
-                <label for="search">Tìm kiếm bài viết / Người dùng:</label>
-                <input type="text" id="search" name="search" placeholder="Nhập từ khóa...">
-                <button type="submit">Tìm</button>
-                <br><br>
-                <input type="radio" id="type_blog" name="type" value="blog" checked>
-                <label for="type_blog">Bài viết</label>
-                <input type="radio" id="type_user" name="type" value="user">
-                <label for="type_user">Người dùng</label>
-            </form>
+        <section class="section-card page-banner">
+            <h1>Blog cộng đồng LGBT</h1>
+            <p>Khám phá nội dung mới nhất, thảo luận và chia sẻ kinh nghiệm say gex từ cộng đồng Phúc Mai.</p>
         </section>
 
-        <hr>
-
-        <section>
-            <h2>Bài viết mới nhất</h2>
-            
-            <article>
-                <h3><a href="post.html">Làm thế nào để quản lý thời gian hiệu quả?</a></h3>
-                <p><strong>Tác giả:</strong> Người Ẩn Danh 1 - <strong>Ngày đăng:</strong> 10/05/2026</p>
-                <p>Trong cuộc sống bận rộn ngày nay, việc quản lý thời gian trở thành một kỹ năng quan trọng giúp bạn cân bằng công việc và cuộc sống...</p>
-                <a href="post.html">Đọc tiếp...</a>
-            </article>
-
-            <br>
-
-            <article>
-                <h3><a href="post.html">10 cuốn sách đáng đọc trong năm nay</a></h3>
-                <p><strong>Tác giả:</strong> Bạn Đọc Yêu Sách - <strong>Ngày đăng:</strong> 08/05/2026</p>
-                <p>Dưới đây là danh sách những cuốn sách có thể thay đổi cách nhìn của bạn về thế giới, từ tiểu thuyết đến sách khoa học...</p>
-                <a href="post.html">Đọc tiếp...</a>
-            </article>
-        </section>
+        <div class="content-grid">
+            <div>
+                <section class="article-grid">
+                    <article class="section-card article-card">
+                        <img src="https://via.placeholder.com/400x200" alt="Thumbnail">
+                        <div>
+                            <h3><a href="post.html">Liệu quan hệ đồng giới có bị HIV?</a></h3>
+                            <p>Em vừa quan hệ đồng giới và lo lắng về khả năng bị lây nhiễm HIV. Xin hỏi có nguy cơ không?</p>
+                        </div>
+                        <footer>
+                            <small>Tác giả: <b>Phuc Mai</b> | 11/05/2026</small>
+                            <div class="article-actions">
+                                <button type="button">❤️ 120</button>
+                                <button type="button">🔗 Share</button>
+                                <button type="button">💬 15</button>
+                            </div>
+                        </footer>
+                    </article>
+                    <article class="section-card article-card">
+                        <img src="https://via.placeholder.com/400x250" alt="Thumbnail">
+                        <div>
+                            <h3><a href="post.html">Làm top hay bot sướng hơn?</a></h3>
+                            <p>Theo mọi người thì làm top hay bot sướng hơn?</p>
+                        </div>
+                        <footer>
+                            <small>Tác giả: <b>Phuc Mai</b> | 14/05/2026</small>
+                            <div class="article-actions">
+                                <button type="button">❤️ 85</button>
+                                <button type="button">🔗 Share</button>
+                                <button type="button">💬 4</button>
+                            </div>
+                        </footer>
+                    </article>
+                </section>
+                <section class="section-card">
+                    <div style="display:flex; justify-content:center; align-items:center; gap:12px; flex-wrap:wrap;">
+                        <button type="button">Previous</button>
+                        <span>Trang 1 / 10</span>
+                        <button type="button">Next</button>
+                    </div>
+                </section>
+            </div>
+            <aside class="aside section-card">
+                <div>
+                    <h3>Danh mục</h3>
+                    <ul>
+                        <li><a href="#">Đồ chơi</a></li>
+                        <li><a href="#">Đời sống LGBT</a></li>
+                        <li><a href="#">Nghệ thuật đánh lừa thị giác</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h3>Xu hướng (#Trending)</h3>
+                    <p class="list-links">
+                        <a href="#">#tophaybot</a><br>
+                        <a href="#">#missgayuniverses8</a><br>
+                        <a href="#">#3some</a>
+                    </p>
+                </div>
+            </aside>
+        </div>
     </main>
+
+    <footer class="footer">© 2026 Blog Platform. All rights reserved.</footer>
 </body>
 </html>

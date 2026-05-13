@@ -1,76 +1,48 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="vi">
 <head>
     <meta charset="UTF-8">
-    <title>Đọc Bài Viết - Mạng Lưới Blog</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chi tiết bài viết</title>
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
     <header>
-        <h1>Mạng Lưới Blog</h1>
-        <nav>
-            <ul>
-                <li><a href="index.html">Trang chủ</a></li>
-                <li><a href="about.html">Giới thiệu</a></li>
-                <li><a href="auth.html">Đăng nhập / Đăng ký</a></li>
-                <li><a href="create.html">Viết bài mới</a></li>
-            </ul>
-        </nav>
+        <div class="header-container">
+            <a class="logo" href="index.html">BLOG LOGO</a>
+            <nav class="header-nav">
+                <a href="index.html">Home</a><span class="separator">|</span>
+                <a href="categories.html">Categories</a><span class="separator">|</span>
+                <a href="faq.html">FAQ</a><span class="separator">|</span>
+                <a href="about.html">About</a><span class="separator">|</span>
+                <a href="contact.html">Contact</a>
+            </nav>
+            <div class="header-right">
+                <input class="search-input" type="text" placeholder="Tìm kiếm...">
+                <button class="button" type="button">Tìm</button>
+                <a href="auth.html"><img class="profile-icon" src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRQvbBkan9f5Y_lGtjeuDAU_GHcoaHBhd9GEw&s" alt="Avatar"></a>
+            </div>
+        </div>
     </header>
 
     <main>
-        <article>
-            <h2>Làm thế nào để quản lý thời gian hiệu quả?</h2>
-            <p>
-                <strong>Tác giả:</strong> Người Ẩn Danh 1 
-                <form action="#" method="POST" style="display:inline;">
-                    <button type="submit">+ Theo dõi tác giả</button>
-                </form>
-            </p>
-            <p><em>Ngày đăng: 10/05/2026</em></p>
-            
-            <div>
-                <p>Trong cuộc sống bận rộn ngày nay, việc quản lý thời gian trở thành một kỹ năng quan trọng giúp bạn cân bằng công việc và cuộc sống. Dưới đây là một vài bước cơ bản:</p>
-                <ol>
-                    <li>Lập danh sách công việc cần làm mỗi sáng.</li>
-                    <li>Sắp xếp thứ tự ưu tiên cho từng công việc.</li>
-                    <li>Loại bỏ những yếu tố gây xao nhãng xung quanh.</li>
-                </ol>
-                <p>Hãy thử áp dụng và bạn sẽ thấy sự khác biệt rõ rệt trong năng suất làm việc của mình!</p>
+        <section class="section-card page-banner">
+            <h1>Làm chủ HTML trong 7 ngày</h1>
+            <p>Tìm hiểu cách xây dựng trang web đơn giản, rõ ràng và hiệu quả mà không cần framework phức tạp.</p>
+        </section>
+        <section class="section-card">
+            <p><i>Tác giả: TechMaster - Đăng ngày 14/05/2026</i></p>
+            <img src="https://via.placeholder.com/800x400" alt="Header Image">
+            <div style="margin-top:20px; line-height:1.8; color:#334155;">
+                <p>Nội dung bài viết chi tiết...</p>
             </div>
-            
-            <hr>
-            
-            <div>
-                <form action="#" method="POST" style="display:inline;">
-                    <button type="submit">👍 Thích (42)</button>
-                </form>
-                <form action="#" method="POST" style="display:inline;">
-                    <button type="submit">🔗 Chia sẻ</button>
-                </form>
-                <form action="#" method="POST" style="display:inline;">
-                    <button type="submit">🚩 Báo cáo vi phạm</button>
-                </form>
+            <div style="display:flex; justify-content:flex-end; gap:12px; flex-wrap:wrap; margin-top:18px;">
+                <button type="button">❤️ Yêu thích</button>
+                <button type="button">🔗 Chia sẻ</button>
             </div>
-        </article>
-
-        <br>
-
-        <section>
-            <h3>Bình luận (2)</h3>
-            
-            <div style="border: 1px solid black; padding: 10px; margin-bottom: 10px;">
-                <strong>Người Dùng A:</strong> Bài viết rất hữu ích, cảm ơn tác giả.
-            </div>
-            <div style="border: 1px solid black; padding: 10px; margin-bottom: 10px;">
-                <strong>Thành Viên Mới:</strong> Mình sẽ thử áp dụng cách số 2 xem sao.
-            </div>
-
-            <form action="#" method="POST">
-                <label for="comment_box">Viết bình luận của bạn:</label><br>
-                <textarea id="comment_box" name="comment_box" rows="4" cols="50"></textarea><br>
-                <button type="submit">Gửi bình luận</button>
-            </form>
         </section>
     </main>
+
+    <footer class="footer">© 2026 Blog Platform. All rights reserved.</footer>
 </body>
 </html>
