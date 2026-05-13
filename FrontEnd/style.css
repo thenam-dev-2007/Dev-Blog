@@ -223,6 +223,51 @@ textarea {
   font-weight: 600;
 }
 
+.filter-group {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.filter-group label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  color: #334155;
+  font-weight: 400;
+}
+
+.filter-group input[type="checkbox"] {
+  cursor: pointer;
+  width: 16px;
+  height: 16px;
+}
+
+select {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  background: #fff;
+  color: #111827;
+  font-size: 0.95rem;
+  cursor: pointer;
+}
+
+select:hover {
+  border-color: #a8b0bc;
+}
+
+button:disabled {
+  background: #cbd5e1;
+  cursor: not-allowed;
+}
+
+button:disabled:hover {
+  background: #cbd5e1;
+}
+
 .footer {
   text-align: center;
   padding: 22px 0;

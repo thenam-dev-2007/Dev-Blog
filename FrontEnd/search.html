@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kết quả tìm kiếm</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <header>
+        <div class="header-container">
+            <a class="logo" href="index.html">BLOG LOGO</a>
+            <nav class="header-nav">
+                <a href="index.html">Home</a><span class="separator">|</span>
+                <a href="categories.html">Categories</a><span class="separator">|</span>
+                <a href="faq.html">FAQ</a><span class="separator">|</span>
+                <a href="about.html">About</a><span class="separator">|</span>
+                <a href="contact.html">Contact</a>
+            </nav>
+            <div class="header-right">
+                <input class="search-input" type="text" placeholder="Tìm kiếm..." id="searchInput">
+                <button class="button" type="button" id="searchBtn">Tìm</button>
+                <a href="auth.html"><img class="profile-icon" src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRQvbBkan9f5Y_lGtjeuDAU_GHcoaHBhd9GEw&s" alt="Avatar"></a>
+            </div>
+        </div>
+    </header>
+
+    <main>
+        <section class="section-card page-banner">
+            <h1>Kết quả tìm kiếm</h1>
+            <p id="searchQuery">Tìm kiếm: <strong></strong></p>
+        </section>
+
+        <div class="content-grid">
+            <div>
+                <section class="article-grid" id="searchResults">
+                    <!-- Search results will be populated here -->
+                    <div style="grid-column: 1 / -1; text-align: center; color: #64748b;">
+                        <p>Đang tải kết quả tìm kiếm...</p>
+                    </div>
+                </section>
+                <section class="section-card">
+                    <div style="display:flex; justify-content:center; align-items:center; gap:12px; flex-wrap:wrap;">
+                        <button type="button" id="prevBtn">Previous</button>
+                        <span id="pageInfo">Trang 1 / 1</span>
+                        <button type="button" id="nextBtn">Next</button>
+                    </div>
+                </section>
+            </div>
+            <aside class="aside section-card">
+                <div>
+                    <h3>Bộ lọc</h3>
+                    <div class="filter-group">
+                        <label>
+                            <input type="checkbox" name="category" value="health"> Sức khỏe
+                        </label>
+                        <label>
+                            <input type="checkbox" name="category" value="lifestyle"> Đời sống
+                        </label>
+                        <label>
+                            <input type="checkbox" name="category" value="art"> Nghệ thuật
+                        </label>
+                    </div>
+                </div>
+                <div>
+                    <h3>Sắp xếp</h3>
+                    <select id="sortBy">
+                        <option value="recent">Gần đây nhất</option>
+                        <option value="popular">Phổ biến nhất</option>
+                        <option value="trending">Xu hướng</option>
+                    </select>
+                </div>
+            </aside>
+        </div>
+    </main>
+
+    <footer class="footer">© 2026 Blog Platform. All rights reserved.</footer>
+
+    <script>
+        // Mock data for search results
+        const mockResults = [
+            {
+                id: 1,
+                title: "Liệu quan hệ đồng giới có bị HIV?",
+                description: "Em vừa quan hệ đồng giới và lo lắng về khả năng bị lây nhiễm HIV. Xin hỏi có nguy cơ không?",
+                author: "Phuc Mai",
+                date: "11/05/2026",
+                image: "https://via.placeholder.com/400x200",
+                likes: 120,
+                comments: 15,
+                shares: 8
+            },
+            {
+                id: 2,
+                title: "Làm top hay bot sướng hơn?",
+                description: "Theo mọi người thì làm top hay bot sướng hơn? Hãy chia sẻ kinh nghiệm của bạn.",
+                author: "Phuc Mai",
+                date: "14/05/2026",
+                image: "https://via.placeholder.com/400x250",
+                likes: 85,
+                comments: 4,
+                shares: 3
+            },
+            {
+                id: 3,
+                title: "Những điều cần biết về sức khỏe tình dục",
+                description: "Sức khỏe tình dục là một phần quan trọng của cuộc sống. Hãy tìm hiểu thêm về những vấn đề phổ biến.",
+                author: "Health Expert",
+                date: "13/05/2026",
+                image: "https://via.placeholder.com/400x200",
+                likes: 156,
+                comments: 22,
+                shares: 15
+            },
+            {
+                id: 4,
+                title: "Cộng đồng LGBT và sự chấp nhận xã hội",
+                description: "Một cuộc thảo luận sâu sắc về vai trò của cộng đồng LGBT trong xã hội hiện đại.",
+                author: "Social Commentator",
+                date: "12/05/2026",
+                image: "https://via.placeholder.com/400x200",
+                likes: 203,
+                comments: 31,
+                shares: 20
+            }
+        ];
+
+        let currentPage = 1;
+        const itemsPerPage = 2;
+
+        function getSearchQuery() {
+            const params = new URLSearchParams(window.location.search);
+            return params.get('q') || 'LGBT';
+        }
+
+        function filterResults(query) {
+            return mockResults.filter(result =>
+                result.title.toLowerCase().includes(query.toLowerCase()) ||
+                result.description.toLowerCase().includes(query.toLowerCase())
+            );
+        }
+
+        function displayResults(filteredResults) {
+            const start = (currentPage - 1) * itemsPerPage;
+            const end = start + itemsPerPage;
+            const pageResults = filteredResults.slice(start, end);
+
+            const resultsContainer = document.getElementById('searchResults');
+
+            if (pageResults.length === 0) {
+                resultsContainer.innerHTML = '<div style="grid-column: 1 / -1; text-align: center; color: #64748b;"><p>Không tìm thấy kết quả nào. Vui lòng thử từ khóa khác.</p></div>';
+                return;
+            }
+
+            resultsContainer.innerHTML = pageResults.map(result => `
+                <article class="section-card article-card">
+                    <img src="${result.image}" alt="Thumbnail">
+                    <div>
+                        <h3><a href="post.html?id=${result.id}">${result.title}</a></h3>
+                        <p>${result.description}</p>
+                    </div>
+                    <footer>
+                        <small>Tác giả: <b>${result.author}</b> | ${result.date}</small>
+                        <div class="article-actions">
+                            <button type="button">❤️ ${result.likes}</button>
+                            <button type="button">🔗 Share</button>
+                            <button type="button">💬 ${result.comments}</button>
+                        </div>
+                    </footer>
+                </article>
+            `).join('');
+        }
+
+        function updatePagination(filteredResults) {
+            const totalPages = Math.ceil(filteredResults.length / itemsPerPage);
+            document.getElementById('pageInfo').textContent = `Trang ${currentPage} / ${totalPages}`;
+            document.getElementById('prevBtn').disabled = currentPage === 1;
+            document.getElementById('nextBtn').disabled = currentPage === totalPages;
+        }
+
+        function performSearch(query) {
+            const filteredResults = filterResults(query);
+            currentPage = 1;
+            displayResults(filteredResults);
+            updatePagination(filteredResults);
+        }
+
+        function init() {
+            const query = getSearchQuery();
+            document.getElementById('searchQuery').innerHTML = `Tìm kiếm: <strong>"${query}"</strong>`;
+            document.getElementById('searchInput').value = query;
+
+            performSearch(query);
+
+            document.getElementById('searchBtn').addEventListener('click', () => {
+                const query = document.getElementById('searchInput').value;
+                if (query.trim()) {
+                    window.location.href = `search.html?q=${encodeURIComponent(query)}`;
+                }
+            });
+
+            document.getElementById('prevBtn').addEventListener('click', () => {
+                if (currentPage > 1) {
+                    currentPage--;
+                    const filteredResults = filterResults(getSearchQuery());
+                    displayResults(filteredResults);
+                    updatePagination(filteredResults);
+                    window.scrollTo(0, 0);
+                }
+            });
+
+            document.getElementById('nextBtn').addEventListener('click', () => {
+                const filteredResults = filterResults(getSearchQuery());
+                const totalPages = Math.ceil(filteredResults.length / itemsPerPage);
+                if (currentPage < totalPages) {
+                    currentPage++;
+                    displayResults(filteredResults);
+                    updatePagination(filteredResults);
+                    window.scrollTo(0, 0);
+                }
+            });
+
+            document.getElementById('sortBy').addEventListener('change', (e) => {
+                const sortType = e.target.value;
+                const filteredResults = filterResults(getSearchQuery());
+
+                if (sortType === 'popular') {
+                    filteredResults.sort((a, b) => b.likes - a.likes);
+                } else if (sortType === 'trending') {
+                    filteredResults.sort((a, b) => (b.likes + b.comments + b.shares) - (a.likes + a.comments + a.shares));
+                } else {
+                    performSearch(getSearchQuery());
+                    return;
+                }
+
+                currentPage = 1;
+                displayResults(filteredResults);
+                updatePagination(filteredResults);
+            });
+        }
+
+        document.addEventListener('DOMContentLoaded', init);
+    </script>
+</body>
+</html>
