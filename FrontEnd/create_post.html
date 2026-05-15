@@ -7,20 +7,33 @@
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <header>
+            <header>
         <div class="header-container">
             <a class="logo" href="index.html">BLOG LOGO</a>
+
+            <!-- Menu điều hướng -->
             <nav class="header-nav">
-                <a href="index.html">Home</a><span class="separator">|</span>
-                <a href="categories.html">Categories</a><span class="separator">|</span>
-                <a href="faq.html">FAQ</a><span class="separator">|</span>
-                <a href="about.html">About</a><span class="separator">|</span>
+                <a href="index.html">Home</a>
+                <a href="categories.html">Categories</a>
+                <a href="faq.html">FAQ</a>
+                <a href="about.html">About</a>
                 <a href="contact.html">Contact</a>
             </nav>
+
+            <!-- Phần bên phải: search, dark mode, đăng nhập -->
             <div class="header-right">
-                <input class="search-input" type="text" placeholder="Tìm kiếm...">
-                <button class="button" type="button">Tìm</button>
-                <a href="auth.html"><img class="profile-icon" src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRQvbBkan9f5Y_lGtjeuDAU_GHcoaHBhd9GEw&s" alt="Avatar"></a>
+                <!-- Thanh tìm kiếm thu gọn -->
+                <div class="search-wrapper">
+                    <input type="text" id="headerSearch" placeholder="Tìm kiếm...">
+                    <button class="btn-search-icon" onclick="toggleSearch()" title="Tìm kiếm">🔍</button>
+                </div>
+
+                <!-- Nút bật/tắt dark mode -->
+                <button class="btn-darkmode" onclick="toggleDarkMode()" id="btnDarkMode" title="Chế độ tối">🌙</button>
+
+                <!-- Nút đăng nhập và đăng ký tách riêng -->
+                <a href="login.html" class="btn-dangnhap">Đăng nhập</a>
+                <a href="register.html" class="btn-dangky">Đăng ký</a>
             </div>
         </div>
     </header>
@@ -45,6 +58,58 @@
         </section>
     </main>
 
-    <footer class="footer">© 2026 Blog Platform. All rights reserved.</footer>
+            <!-- Footer kiểu Medium: các link quan trọng nằm ở dưới -->
+    <footer class="footer">
+        <nav class="footer-nav">
+            <a href="index.html">Home</a>
+            <a href="about.html">Giới thiệu</a>
+            <a href="faq.html">FAQ</a>
+            <a href="contact.html">Liên hệ</a>
+            <a href="categories.html">Danh mục</a>
+            <a href="admin.html">Admin</a>
+            <a href="#">Điều khoản</a>
+            <a href="#">Quyền riêng tư</a>
+        </nav>
+        <p class="footer-copy">© 2026 Blog Platform. All rights reserved.</p>
+    </footer>
+    
+    <script>
+        // Khởi động: đọc theme đã lưu từ lần trước
+        if (localStorage.getItem("theme") === "dark") {
+            document.body.classList.add("dark");
+            document.getElementById("btnDarkMode").textContent = "☀️";
+        }
+
+        // Bật/tắt dark mode
+        function toggleDarkMode() {
+            document.body.classList.toggle("dark");
+            var btn = document.getElementById("btnDarkMode");
+            if (document.body.classList.contains("dark")) {
+                btn.textContent = "☀️";
+                localStorage.setItem("theme", "dark");
+            } else {
+                btn.textContent = "🌙";
+                localStorage.setItem("theme", "light");
+            }
+        }
+
+        // Mở / đóng thanh tìm kiếm
+        function toggleSearch() {
+            var input = document.getElementById("headerSearch");
+            input.classList.toggle("open");
+            if (input.classList.contains("open")) {
+                input.focus();
+            } else {
+                input.value = "";
+            }
+        }
+
+        // Nhấn Enter để tìm kiếm
+        document.getElementById("headerSearch").addEventListener("keydown", function(e) {
+            if (e.key === "Enter" && this.value.trim() !== "") {
+                window.location.href = "search.html?q=" + encodeURIComponent(this.value.trim());
+            }
+        });
+    </script>
 </body>
 </html>
