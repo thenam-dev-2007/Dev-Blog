@@ -1,5 +1,5 @@
-const PATH_ADMIN = "/admin";
+const PATH_API = "/api";
 
 module.exports = {
-    prefixAdmin: PATH_ADMIN,
+    prefixApi: PATH_API,
 }
