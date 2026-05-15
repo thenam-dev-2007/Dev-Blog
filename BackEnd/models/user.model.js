@@ -49,5 +49,5 @@ const userSchema = new mongoose.Schema({
 
 
 const User = mongoose.model("User", userSchema, "users");
-                               // Tên model               // tìm connection tên là products
+                            // Tên model      // tìm connection tên là products
 module.exports = User; // xuất file model
