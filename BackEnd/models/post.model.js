@@ -43,10 +43,24 @@ const postSchema = new mongoose.Schema({
         default: 0
     },
 
-    commentsCount: {
-        type: Number,
-        default: 0
-    }
+    comments: [{
+        user: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: "User",
+            required: true
+        },
+
+        content: {
+            type: String,
+            required: true
+        },
+
+        createdAt: {
+            type: Date,
+            default: Date.now
+        }
+    }]
+    // commentCount = comments.length
 },
 {
     timestamps: true
