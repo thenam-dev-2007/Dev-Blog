@@ -1,4 +1,4 @@
-document.addEventListener('DOMContentLoaded', function() {
+
     const form = document.getElementById('register-form');
     const submitBtn = form.querySelector('button[type="submit"]');
     const message = document.getElementById('message');
@@ -215,4 +215,3 @@ document.addEventListener('DOMContentLoaded', function() {
                 showError(data.message || 'Đăng ký thất bại. Vui lòng thử lại.');
         }       
     }
-});
