@@ -9,8 +9,8 @@ const app = express();
 const port = process.env.PORT;
 
 // Middleware
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
+app.use(express.json()); // Dùng để đọc dữ liệu dạng JSON.
+app.use(express.urlencoded({ extended: true })); // Dùng để đọc dữ liệu từ: form HTML, dữ liệu kiểu application/x-www-form-urlencoded
 
 // Kết nối database
 database.connect();
