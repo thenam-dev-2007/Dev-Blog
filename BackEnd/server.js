@@ -25,6 +25,9 @@ routeClient(app);
 // Middleware xử lý lỗi (phải đặt sau các route)
 app.use(errorHandler);
 
+// Cho phép truy cập file trong thư mục upload
+app.use("/upload", express.static("upload"));
+
 app.listen(port, () => {
     console.log(`Server is running on port ${port}`);
 });

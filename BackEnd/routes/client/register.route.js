@@ -4,6 +4,10 @@ const router = express.Router();
 const controller = require("../../controllers/client/user.controller.js");
 const validation = require("../../middlewares/validation.js");
 
-router.post("/", validation.validateCreateUser, controller.createUser);
+router.post(
+    "/", 
+    validation.validateCreateUser, 
+    controller.createUser
+); // Dấu : dùng để truyền data động
 
 module.exports = router;

@@ -7,7 +7,7 @@ module.exports.getUserById = async (req, res, next) => {
         const userId = req.params.id;
 
         // Bước 2: Kiểm tra xem id có được cung cấp không;
-        if(!userID) {
+        if(!userId) {
             return res.status(400).json({
                 success: false,
                 message: "User ID is required"
@@ -93,6 +93,70 @@ module.exports.createUser = async (req, res, next) => {
     }
     catch (error) {
         // Chuyển lỗi cho error handler middleware
+        next(error);
+    }
+}
+
+// [PUT] //
+module.exports.updateUser = async (req, res, next) => {
+    try {
+        // Bước 1: Lấy ID từ URL params 
+        const userId = req.params.id;
+
+        // Bước 2: Kiểm tra xem id có được cung cấp không;
+        if(!userId) {
+            return res.status(400).json({
+                success: false,
+                message: "User ID is required"
+            });
+        }
+
+        // Bước 3: Gọi model để tìm user
+        const user = await User.findById(userId);
+
+        // Bước 4: Kiểm tra xem user có tồn tại không
+        if(!user) {
+            // Nếu không, trả về lỗi 404 Not Found
+            return res.status(404).json({
+                success: false,
+                message: `User with ID ${userId} not found`
+            });
+        }
+
+        // Bước 5: Lấy dữ liệu từ body request
+        const { username, password, email, dateOfBirth } = req.body;
+
+        // Bước 6: Update dữ liệu
+        user.username = username;
+        user.email = email.toLowerCase();
+        user.dateOfBirth = dateOfBirth;
+
+        // Nếu có password mới
+        // pre('save') middleware sẽ tự hash
+        if (password) {
+            user.password = password;
+        }
+
+        // Nếu có upload avatar
+        if (req.file) {
+            user.avatar = `/upload/${req.file.filename}`;
+        }
+
+        // Bước 7: Save user
+        await user.save();
+        
+        // Không trả password về client
+        const userResponse = user.toObject();
+        delete userResponse.password;
+
+        // Bước 8: Response
+        return res.status(200).json({
+            success: true,
+            message: "Cập nhật dữ liệu thành công",
+            data: userResponse
+        });
+    }
+    catch (error) {
         next(error);
     }
 }
