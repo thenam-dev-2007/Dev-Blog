@@ -35,11 +35,7 @@ const storageMulter = (folder) => {
     });
 };
 const fileFilter = (req, file, cb) => {
-    const allowedTypes = [
-        'image/jpeg',
-        'image/png',
-        'image/webp'
-    ];
+    const allowedTypes = ['image/jpeg', 'image/png', 'image/webp'];
     if (!allowedTypes.includes(file.mimetype)) {
         // file.mimetype là kiểu mime của file upload. (ví dụ: avatar.png --> mimetype: image/png)
         return cb(new Error('Chỉ cho phép upload ảnh'));
@@ -59,15 +55,7 @@ const uploadAvatar = multer({
 const controller = require("../../controllers/client/user.controller.js");
 const validation = require("../../middlewares/validation.js");
 
-router.get(
-    "/:id", 
-    controller.getUserById
-);
-router.put(
-    "/:id", 
-    uploadAvatar.single('avatar'), 
-    validation.validateUpdateUser, 
-    controller.updateUser
-);
+router.get("/:id", controller.getUserById);
+router.put("/:id", uploadAvatar.single('avatar'), validation.validateUpdateUser, controller.updateUser);
 
 module.exports = router

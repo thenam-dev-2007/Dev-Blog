@@ -1,6 +1,7 @@
 const mongoose = require("mongoose");
-const slug = require("mongoose-slug-updater")
-mongoose.plugin(slug)
+const slug = require("mongoose-slug-updater");
+
+mongoose.plugin(slug);
 
 const postSchema = new mongoose.Schema({
     title: {
@@ -17,6 +18,7 @@ const postSchema = new mongoose.Schema({
 
     thumbnail: {
         type: String,
+        default: "/images/default-post.png"
     },
 
     author: {
@@ -31,12 +33,6 @@ const postSchema = new mongoose.Schema({
             trim: true
         }
     ],
-
-    slug: {
-            type: String,
-            slug: "title",
-            unique: true 
-        },
 
     likes: {
         type: Number,
@@ -59,13 +55,15 @@ const postSchema = new mongoose.Schema({
             type: Date,
             default: Date.now
         }
-    }]
-    // commentCount = comments.length
-},
+        }],
+
+    slug: {
+        type: String,
+        slug: "title",
+        unique: true}},
 {
     timestamps: true
-}
-);
+});
 
 const Post = mongoose.model("Post", postSchema, "posts");
 module.exports = Post;
