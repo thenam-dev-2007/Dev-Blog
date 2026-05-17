@@ -49,12 +49,15 @@ const userSchema = new mongoose.Schema({
             ref: "Post"
         }],
 
-        deleted: {
+        isDeleted: {
             type: Boolean,
             default: false
         },
 
-        deletedAt: Date
+        deletedAt: {
+            type: Date,
+            default: null
+        }
     }, 
     {
         timestamps: true
@@ -90,6 +93,16 @@ userSchema.methods.comparePassword = async function(candidatePassword) {
 // methods dùng để thêm hàm cho từng document của model.
     return await bcrypt.compare(candidatePassword, this.password);
     // candidatePassword: Là password người dùng nhập khi login.
+};
+
+// Static method: Tìm user chưa bị xóa
+userSchema.statics.findActive = function() {
+    return this.find({ isDeleted: false });
+};
+
+// Static method: Tìm user bao gồm cả đã xóa (cho admin)
+userSchema.statics.findAllIncludeDeleted = function() {
+    return this.find({});
 };
 
 const User = mongoose.model("User", userSchema, "users");
