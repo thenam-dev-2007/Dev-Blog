@@ -1,53 +1,57 @@
 const Post = require("../../models/post.model.js");
 const User = require("../../models/user.model.js");
+const paginationHelper = require("../../helper/pagination")
 
 // [GET] - Lấy tất cả bài viết (có phân trang)
-module.exports.getAllPosts = async (req, res) => {
+module.exports.getAllPosts = async (req, res, next) => {
   try {
-    const page = parseInt(req.query.page) || 1;
-    const limit = parseInt(req.query.limit) || 10;
-    const skip = (page - 1) * limit;
+    let find = {isDeleted: false};
 
-    const posts = await Post.find()
-      .populate("author", "username email avatar")
-      .populate("comments.user", "username avatar")
+    const countPosts = await Post.countDocuments(find); // countDocuments() => Dùng để đếm số document trong MongoDB
+
+    let objectPagination = paginationHelper({
+      currentPage: 1,
+      limitPost: 4,
+    }, 
+    req.query, 
+    countPosts
+    )
+
+    const posts = await Post.find(find)
       .sort({ createdAt: -1 })
-      .skip(skip)
-      .limit(limit)
-      .lean();
-
-    const total = await Post.countDocuments();
-
-    res.json({
-      code: 200,
-      message: "Lấy danh sách bài viết thành công",
-      data: {
-        posts,
-        pagination: {
-          total,
-          page,
-          limit,
-          pages: Math.ceil(total / limit),
-        },
+      .limit(objectPagination.limitPost)
+      .skip(objectPagination.skip)
+      .populate("author", "username avatar")
+      .populate("comments.user", "username avatar")
+      .lean(); // lean() --> trong Mongoose dùng để trả về object JavaScript thuần thay vì trả về Mongoose Document.
+      // Nên dùng GET API
+      // Không nên dùng UPDATE API vì cần dùng các method của Mongoose document. (ví dụ: .save())
+    res.status(200).json({
+      success: true,
+      message: "Lấy bài viết thành công",
+      pagination: {
+        currentPage: objectPagination.currentPage,
+        totalPage: objectPagination.totalPage,
+        totalPosts: countPosts
+        // limit: objectPagination.limit,
       },
-    });
-  } catch (error) {
-    console.error("Lỗi:", error);
-    res.status(500).json({
-      code: 500,
-      message: "Lỗi server: " + error.message,
-    });
+      data: posts
+    })
+  } 
+  catch (error) {
+    next(error)
   }
 };
 
 // [GET] - Lấy bài viết theo slug
-module.exports.getPostBySlug = async (req, res) => {
+module.exports.getPostBySlug = async (req, res, next) => {
   try {
     const { slug } = req.params;
 
     const post = await Post.findOne({ slug })
-      .populate("author", "username email avatar")
-      .populate("comments.user", "username avatar");
+      .populate("author", "username avatar")
+      .populate("comments.user", "username avatar")
+      .lean();
 
     if (!post) {
       return res.status(404).json({
@@ -56,17 +60,14 @@ module.exports.getPostBySlug = async (req, res) => {
       });
     }
 
-    res.json({
-      code: 200,
+    res.status(200).json({
+      success: true,
       message: "Lấy bài viết thành công",
       data: post,
     });
-  } catch (error) {
-    console.error("Lỗi:", error);
-    res.status(500).json({
-      code: 500,
-      message: "Lỗi server: " + error.message,
-    });
+  } 
+  catch (error) {
+    next(error)
   }
 };
 

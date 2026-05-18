@@ -39,28 +39,35 @@ const postSchema = new mongoose.Schema({
         default: 0
     },
 
-    comments: [{
-        user: {
-            type: mongoose.Schema.Types.ObjectId,
-            ref: "User",
-            required: true
-        },
+    comments: [
+        new mongoose.Schema({
+            user: {
+                type: mongoose.Schema.Types.ObjectId,
+                ref: "User",
+                required: true
+            },
 
-        content: {
-            type: String,
-            required: true
+            content: {
+                type: String,
+                required: true
+            }
         },
-
-        createdAt: {
-            type: Date,
-            default: Date.now
-        }
-        }],
+        {
+            timestamps: true
+        })
+    ],
 
     slug: {
         type: String,
         slug: "title",
-        unique: true}},
+        unique: true
+    },
+    isDeleted: {
+        type: Boolean,
+        default: false
+    },
+    deletedAt: Date
+},
 {
     timestamps: true
 });
