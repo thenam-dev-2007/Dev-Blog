@@ -3,9 +3,6 @@ const router = express.Router(); // Tạo ra các router (Router() là hàm củ
 
 const controller = require("../../controllers/client/home.controller.js");
 
-router.get(
-    '/', 
-    controller.home
-);
+router.get('/', controller.home);
 
 module.exports = router;

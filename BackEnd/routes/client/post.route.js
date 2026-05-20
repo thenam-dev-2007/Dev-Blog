@@ -1,36 +1,9 @@
 const express = require("express");
 const router = express.Router();
 
-const multer = require("multer");
-
-// Cấu hình multer cho thumbnail
-const storageThumbnail = multer.diskStorage({
-  destination: (req, file, cb) => {
-    cb(null, "upload/thumbnail");
-  },
-  filename: (req, file, cb) => {
-    cb(null, Date.now() + "-" + file.originalname);
-  },
-});
-
-const fileFilter = (req, file, cb) => {
-  const allowedTypes = ["image/jpeg", "image/png", "image/webp"];
-  if (!allowedTypes.includes(file.mimetype)) {
-    return cb(new Error("Chỉ cho phép upload ảnh"));
-  }
-  cb(null, true);
-};
-
-const uploadThumbnail = multer({
-  storage: storageThumbnail,
-  fileFilter,
-  limits: {
-    fileSize: 10 * 1024 * 1024, // 10MB
-  },
-});
-
 const controller = require("../../controllers/client/post.controller.js");
 const validation = require("../../middlewares/validation.js");
+const upload = require("../../middlewares/upload.js");
 
 // [GET] - Lấy tất cả posts (có phân trang)
 router.get("/", controller.getAllPosts);
@@ -45,15 +18,10 @@ router.get("/tag/:tag", controller.getPostsByTag);
 router.get("/:slug", controller.getPostBySlug);
 
 // [POST] - Tạo post mới (cần authentication)
-router.post(
-  "/",
-  uploadThumbnail.single("thumbnail"),
-  validation.validateCreatePost,
-  controller.createPost,
-);
+router.post("/", validation.validateCreatePost, upload.uploadThumbnail.single("thumbnail"), controller.createPost);
 
 // [PUT] - Sửa post (cần authentication)
-router.put("/:id", uploadThumbnail.single("thumbnail"), controller.updatePost);
+router.put("/:id", upload.uploadThumbnail.single("thumbnail"), controller.updatePost);
 
 // [DELETE] - Xóa post (cần authentication)
 router.delete("/:id", controller.deletePost);
