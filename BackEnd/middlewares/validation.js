@@ -121,3 +121,57 @@ module.exports.validateUpdateUser = [
     handleValidationErrors
 ];
 
+// Middleware kiểm tra dữ liệu cho route POST /api/auth/login
+module.exports.validateLogin = [
+    // User
+    body('username')
+        .trim()
+        .notEmpty().withMessage('Username là bắt buộc'),
+
+    // Password
+    body('password')
+        .trim()
+        .notEmpty().withMessage('Mật khẩu là bắt buộc'),
+
+    handleValidationErrors
+];
+
+// Middleware kiểm tra dữ liệu cho comment
+module.exports.validateComment = [
+    body('content')
+        .trim()
+        .notEmpty().withMessage('Nội dung bình luận không được để trống')
+        .isLength({ max: 1000 }).withMessage('Nội dung bình luận không được vượt quá 1000 ký tự'),
+
+    handleValidationErrors
+];
+
+// Middleware kiểm tra dữ liệu cho create post
+module.exports.validateCreatePost = [
+    // Title
+    body('title')
+        .trim()
+        .notEmpty().withMessage('Tiêu đề là bắt buộc')
+        .isLength({ max: 200 }).withMessage('Tiêu đề không được vượt quá 200 ký tự'),
+        
+    // Content
+   body('content')
+        .trim()
+        .notEmpty().withMessage('Nội dung bài viết là bắt buộc')
+        .isLength({ min: 10 }).withMessage('Nội dung phải có ít nhất 10 ký tự'),
+
+    // Tags
+    body('tags')
+        .optional()
+        .isArray().withMessage('Tags phải là một mảng')
+        .custom((value) => {
+            if (value.length > 10 ) {
+                throw new Error('Không được vượt quá 10 tags');
+            }
+            return true;
+        }),
+
+
+    handleValidationErrors
+];
+        
