@@ -174,4 +174,43 @@ module.exports.validateCreatePost = [
 
     handleValidationErrors
 ];
-        
+
+/**
+ * Middleware: validateChangePassword
+ * Kiểm tra dữ liệu khi thay đổi mật khẩu
+ */
+module.exports.validateChangePassword = [
+    // Current Password
+    body('currentPassword')
+        .trim()
+        .notEmpty().withMessage('Mật khẩu hiện tại là bắt buộc'),
+
+    // New Password
+    body('newPassword')
+        .trim()
+        .notEmpty().withMessage('Mật khẩu mới là bắt buộc')
+        .isLength({ min: 8 }).withMessage('Mật khẩu phải có ít nhất 8 ký tự')
+        .matches(/[a-zA-Z]/).withMessage('Mật khẩu phải chứa ít nhất 1 chữ cái')
+        .matches(/[0-9]/).withMessage('Mật khẩu phải chứa ít nhất 1 số')
+        .matches(/[!@#$%^&*(),.?":{}|<>]/).withMessage('Mật khẩu phải chứa ít nhất 1 ký tự đặc biệt')
+        .custom((value, { req }) => {
+            // Kiểm tra mật khẩu mới không được trùng với mật khẩu hiện tại
+            if (value === req.body.currentPassword) {
+                throw new Error('Mật khẩu mới phải khác với mật khẩu hiện tại');
+            }
+            return true;
+        }),
+
+    // Confirm Password
+    body('confirmPassword')
+        .trim()
+        .notEmpty().withMessage('Xác nhận mật khẩu là bắt buộc')
+        .custom((value, { req }) => {
+            if (value !== req.body.newPassword) {
+                throw new Error('Xác nhận mật khẩu không trùng khớp');
+            }
+            return true;
+        }),
+
+    handleValidationErrors
+];
