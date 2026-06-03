@@ -1,46 +1,62 @@
-const User = require("../../models/user.model.js");
-const jwt = require("jsonwebtoken");
+const User = require("../../models/user.model");
+const generateToken = require("../../service/auth.service")
+
+module.exports.register = async (req, res, next) => {
+  try {
+    // Lấy dữ liệu từ request body
+    const { username, email, password, dateOfBirth} = req.body;
+
+    // Kiểm tra xem username hoặc email đã tồn tại chưa
+    const existingUser = await User.findOne({
+      // $or là toán tử của MongoDB dùng để kiểm tra: Chỉ cần một điều kiện đúng là document sẽ được tìm thấy.
+      $or: [
+        { username: username.toLowerCase() }, // Chuyển username thành chữ thường
+        { email: email.toLowerCase() },
+      ],
+    });
+
+    if (existingUser) {
+      // Nếu đã tồn tại, trả về lỗi 409 (Conflict)
+      return res.status(409).json({
+        success: false,
+        message: "Username hoặc email đã được sử dụng",
+        error: "DUPLICATE_USER",
+      });
+    }
+
+    // Tạo user mới trong database
+    const newUser = await User.create({
+      username: username.toLowerCase(), // Chuẩn hóa username
+      email: email.toLowerCase(),
+      password: password, // Sẽ được mã hóa tự động bởi pre-save middleware
+      dateOfBirth: dateOfBirth,
+      role: "user", // Mặc định là 'user' 
+    });
+
+    const token = generateToken(newUser);
+
+    // Trả về response thành công với status 201 (Created)
+    res.status(201).json({
+      success: true,
+      message: "Tạo user thành công",
+      data: {
+        user: {
+          id: newUser._id,
+          username: newUser.username,
+          email: newUser.email,
+          dateOfBirth: newUser.dateOfBirth,
+          role: newUser.role,
+        },
+        token
+      }
+    });
+  } catch (error) {
+    // Chuyển lỗi cho error handler middleware
+    next(error);
+  }
+} 
 
 /**
- * Hàm tiện ích: generateToken
- * 
- * Mục đích: Tạo JWT token cho user
- * 
- * @param {Object} user - Đối tượng user từ database
- *   - user._id: MongoDB object ID
- *   - user.username: Tên đăng nhập
- *   - user.email: Email người dùng
- *   - user.role: Vai trò (user hoặc admin)
- * 
- * @returns {String} JWT token đã mã hóa
- * 
- * Cấu trúc JWT token:
- * - Header: { "alg": "HS256", "typ": "JWT" }
- * - Payload: { _id, username, email, role, iat, exp }
- * - Signature: Mã hóa bằng JWT_SECRET
- * 
- * Thời gian hết hạn:
- * - Mặc định 24 giờ (từ JWT_EXPIRES_IN environment variable)
- * - Có thể cấu hình trong .env
- */
-const generateToken = (user) => {
-  return jwt.sign(
-    // Payload (dữ liệu được lưu trong token)
-    {
-      _id: user._id,
-      username: user.username,
-      email: user.email,
-      role: user.role,
-    },
-    // Secret (khóa bí mật để mã hóa token)
-    process.env.JWT_SECRET,
-    // Options (cùi chọn token)
-    { expiresIn: process.env.JWT_EXPIRES_IN || "24h" }
-  );
-};
-
-/**
- * Controller: login
  * 
  * [POST] /api/auth/login
  * 
@@ -81,59 +97,45 @@ const generateToken = (user) => {
 module.exports.login = async (req, res, next) => {
   try {
     // Bước 1: Lấy dữ liệu từ request body
-    const { username, password } = req.body;
+    const { email, password } = req.body;
 
-    // Bước 2: Kiểm tra dữ liệu yêu cầu
-    // (Validation từ middleware sẽ kiểm tra trước, nhưng ta kiểm tra lại để chắc chắn)
-    if (!username || !password) {
-      return res.status(400).json({
-        success: false,
-        message: "Username và mật khẩu là bắt buộc",
-        error: "MISSING_CREDENTIALS",
-      });
-    }
-
-    // Bước 3: Tìm user theo username
+    // Bước 2: Tìm user theo username
     // .select("+password"): Lấy password (vì model đã set select: false cho field password)
     const user = await User.findOne({
-      username: username.toLowerCase(), // Case-insensitive search
+      email: email.toLowerCase(), 
     }).select("+password"); // Thêm password vào kết quả query
 
-    // Bước 4: Kiểm tra user có tồn tại không
+    // Bước 3: Kiểm tra user có tồn tại không
     if (!user) {
       return res.status(401).json({
         success: false,
-        message: "Username hoặc mật khẩu không chính xác",
-        error: "INVALID_CREDENTIALS",
+        message: "Email hoặc mật khẩu không chính xác",
       });
     }
 
-    // Bước 5: Kiểm tra user có bị xóa không (soft delete)
+    // Bước 4: Kiểm tra user có bị xóa không (soft delete)
     if (user.isDeleted) {
       return res.status(401).json({
         success: false,
         message: "Tài khoản này đã bị xóa",
-        error: "ACCOUNT_DELETED",
       });
     }
 
-    // Bước 6: So sánh password
+    // Bước 5: So sánh password
     // comparePassword là instance method được định nghĩa trong User model
     // Nó dùng bcrypt.compare để so sánh password nhập vào với password hash trong DB
     const isPasswordValid = await user.comparePassword(password);
-
     if (!isPasswordValid) {
       return res.status(401).json({
         success: false,
-        message: "Username hoặc mật khẩu không chính xác",
-        error: "INVALID_CREDENTIALS",
+        message: "Email hoặc mật khẩu không chính xác",
       });
     }
 
-    // Bước 7: Tạo JWT token
+    // Bước 6: Tạo JWT token
     const token = generateToken(user);
 
-    // Bước 8: Trả về response thành công
+    // Bước 7: Trả về response thành công
     res.status(200).json({
       success: true,
       message: "Đăng nhập thành công",
@@ -142,15 +144,14 @@ module.exports.login = async (req, res, next) => {
           _id: user._id,
           username: user.username,
           email: user.email,
+          dateOfBirth: user.dateOfBirth,
           avatar: user.avatar,
           role: user.role,
         },
-        token,
-        expiresIn: process.env.JWT_EXPIRES_IN || "24h",
-      },
+        token
+      }
     });
   } catch (error) {
-    // Bắt lỗi không mong muốn (lỗi DB, lỗi server, v.v.)
     // Chuyển cho error handler middleware
     next(error);
   }

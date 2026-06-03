@@ -32,26 +32,20 @@ const jwt = require("jsonwebtoken");
  * - 403: Token không hợp lệ
  * - 500: Lỗi server
  */
-module.exports.authenticateToken = (req, res, next) => {
+module.exports.authenticateToken = async (req, res, next) => {
     try {
-        // Bước 1: Lấy token từ header Authorization
-        // Format: Authorization: Bearer <token>
-        const authHeader = req.headers['authorization'];
-        // authHeader sẽ là: "Bearer eyJhbGciOiJIUzI1NiIs..."
-        
-        // Bước 2: Tách token từ "Bearer <token>"
-        // authHeader && authHeader.split(' ')[1]
-        // - authHeader && --> Kiểm tra authHeader có tồn tại không
-        // - split(' ') --> Tách thành ["Bearer", "<token>"]
-        // - [1] --> Lấy phần thứ 2 (index 1) là token
-        const token = authHeader && authHeader.split(' ')[1];
+        let token;
 
-        // Bước 3: Kiểm tra token có tồn tại không
+        // Bước 1: Lấy token từ header Authorization
+        if (req.headers.authorization && req.headers.authorization.startsWith('Bearer')) {
+            token = req.headers.authorization.split(' ')[1];
+        }
+
+        // Bước 2: Kiểm tra token có tồn tại không
         if (!token) {
             return res.status(401).json({ 
                 success: false, 
                 message: "Bạn chưa đăng nhập",
-                error: "NO_TOKEN" 
             });
         }
 
@@ -60,41 +54,37 @@ module.exports.authenticateToken = (req, res, next) => {
         // - token: JWT token cần xác thực
         // - process.env.JWT_SECRET: Secret key để verify token
         // - callback(err, user): Hàm callback khi xác thực hoàn tất
-        jwt.verify(token, process.env.JWT_SECRET, (err, user) => {
-            if (err) {
-                // Bước 5a: Kiểm tra loại lỗi
-                if (err.name === 'TokenExpiredError') {
-                    // Token đã hết hạn
-                    return res.status(401).json({
-                        success: false,
-                        message: 'Token đã hết hạn, vui lòng đăng nhập lại',
-                        error: 'TOKEN_EXPIRED',
-                    });
-                }
-
-                // Bước 5b: Token không hợp lệ (bị thay đổi, sai format, v.v.)
-                return res.status(403).json({
-                    success: false,
-                    message: 'Token không hợp lệ',
-                    error: 'INVALID_TOKEN',
-                });
-            }
-
-            // Bước 6: Token hợp lệ, gắn user info vào req.user
-            // user = { _id, username, email, role, iat, exp }
-            // - iat (issued at): Thời điểm token được tạo
-            // - exp (expiration): Thời điểm token hết hạn
-            req.user = user;
-            
-            // Bước 7: Tiếp tục xử lý request
-            // Gọi next() để route handler tiếp theo được gọi
-            next();
+        const decoded = jwt.verify(token, process.env.JWT_SECRET);
+        // Tìm user từ decoded token
+        const user = await User.findById(decoded._id);
+        if (!user) {
+        return res.status(401).json({
+            success: false,
+            message: 'Token không hợp lệ. Người dùng không tồn tại.'
         });
-    } catch (error) {
-        // Bắt lỗi từ try block (ví dụ: lỗi từ process.env hoặc các lệnh khác)
+        }
+        // Gắn thông tin user vào request để sử dụng ở các middleware/controller tiếp theo
+        req.user = user;
+        next();
+    } 
+    catch (error) {
+        // Xử lý các lỗi JWT cụ thể
+        if (error.name === 'JsonWebTokenError') {
+        return res.status(401).json({
+            success: false,
+            message: 'Token không hợp lệ'
+        });
+        }
+        if (error.name === 'TokenExpiredError') {
+        return res.status(401).json({
+            success: false,
+            message: 'Token đã hết hạn. Vui lòng đăng nhập lại.'
+        });
+        }
+
         res.status(500).json({
             success: false,
-            message: 'Lỗi xác thực: ' + error.message,
+            message: 'Lỗi máy chủ' ,
         });
     }
 };

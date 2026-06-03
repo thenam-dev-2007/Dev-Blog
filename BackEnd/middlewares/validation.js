@@ -42,8 +42,8 @@ module.exports.validateCreateUser = [
 
     // Kiểm tra dateOfBirth (nếu có)
     body('dateOfBirth')
-        .optional() // Cho phép không cung cấp
-        .isISO8601().withMessage('Ngày sinh không hợp lệ') // isISO8601() dùng để kiểm tra định dạng ngày hợp lệ (YYYY-MM-DD)
+        .isISO8601()
+        .withMessage('Ngày sinh không hợp lệ') // isISO8601() dùng để kiểm tra định dạng ngày hợp lệ (YYYY-MM-DD)
         .custom((value) => {
             if (new Date(value) > new Date()) {
                 throw new Error('Ngày sinh không hợp lệ');
@@ -57,11 +57,6 @@ module.exports.validateCreateUser = [
             // express-validator sẽ đánh dấu validation failed
             // message lỗi sẽ là: Ngày sinh không hợp lệ
         .toDate(),
-
-    // Kiểm tra role (nếu có)
-    body('role')
-        .optional()
-        .isIn(['user', 'admin']).withMessage('Role chỉ được là "user" hoặc "admin"'),
 
     // Middleware xử lý kết quả validation
     handleValidationErrors
@@ -155,7 +150,7 @@ module.exports.validateCreatePost = [
         .isLength({ max: 200 }).withMessage('Tiêu đề không được vượt quá 200 ký tự'),
         
     // Content
-   body('content')
+    body('content')
         .trim()
         .notEmpty().withMessage('Nội dung bài viết là bắt buộc')
         .isLength({ min: 10 }).withMessage('Nội dung phải có ít nhất 10 ký tự'),
