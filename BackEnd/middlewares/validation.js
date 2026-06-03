@@ -66,43 +66,18 @@ module.exports.validateCreateUser = [
 module.exports.validateUpdateUser = [
     // Username
     body('username')
+        .optional()
         .trim()
-        .notEmpty().withMessage('Username là bắt buộc')
+        // .notEmpty().withMessage('Username là bắt buộc')
         .isLength({ min: 3, max: 30 })
         .withMessage('Username phải từ 3-30 ký tự')
         .matches(/^[a-zA-Z0-9_]+$/)
         .withMessage('Username chỉ được chứa chữ, số và dấu gạch dưới'),
 
-    // Email
-    body('email')
-        .trim()
-        .notEmpty().withMessage('Email là bắt buộc')
-        .isEmail().withMessage('Email không hợp lệ')
-        .normalizeEmail()
-        .custom(async (value, { req }) => {
-            //  { req } chính là Express request object --> có thể dùng req.params.id, req.body, req.user
-            const emailExists = await User.findOne({
-                email: value.toLowerCase(), // Tìm email giống email người dùng nhập. (tránh khác chữ hoa/thường.)
-                _id: { $ne: req.params.id } // $ne trong MongoDB nghĩa là: not equal (khác với) --> Tìm email giống nhưng khác id hiện tại
-            });
-            if (emailExists) {
-                throw new Error('Email đã tồn tại'); // express-validator sẽ tự thêm lỗi validation.
-            }
-            return true;
-        }),
-
-    // Password
-    body('password')
-        .optional()
-        .trim()
-        .isLength({ min: 6 }).withMessage('Mật khẩu phải có ít nhất 6 ký tự')
-        .matches(/[a-zA-Z]/).withMessage('Mật khẩu phải chứa ít nhất 1 chữ cái')
-        .matches(/[0-9]/).withMessage('Mật khẩu phải chứa ít nhất 1 số')
-        .matches(/[!@#$%^&*(),.?":{}|<>]/).withMessage('Mật khẩu phải chứa ít nhất 1 ký tự đặc biệt'),
-
     // Date of birth
     body('dateOfBirth')
-        .notEmpty().withMessage('Ngày sinh là bắt buộc')
+        .optional()
+        // .notEmpty().withMessage('Ngày sinh là bắt buộc')
         .isISO8601().withMessage('Ngày sinh không hợp lệ')
         .custom((value) => {
             if (new Date(value) > new Date()) {

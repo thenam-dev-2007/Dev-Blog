@@ -1,4 +1,6 @@
 const multer = require("multer"); // Thư viện uppload ảnh
+const crypto = require("crypto"); // module crypto dùng để tạo UUID
+const path = require("path"); // dùng để xử lý đường dẫn file/thư mục.
 
 // Hàm tạo storage theo folder
 const storageMulter = (folder) => {
@@ -7,7 +9,12 @@ const storageMulter = (folder) => {
             cb(null, folder);
         },
         filename: (req, file, cb) => {
-            cb(null, Date.now() + "-" + file.originalname);
+            // cb(null, Date.now() + "-" + file.originalname); // Dễ gây lỗi nếu upload nhiều file đồng thời
+            const uniqueName = crypto.randomUUID() + path.extname(file.originalname);
+                                                    // path.extname() lấy phần mở rộng của file
+                                                    // ví dụ: path.extname("avatar.png")
+                                                    // trả về: .png
+            cb(null, uniqueName);
         },
     });
 };
@@ -17,13 +24,12 @@ const fileFilter = (req, file, cb) => {
     const allowedTypes = [
         "image/jpeg",
         "image/png",
-        "image/webp",
     ];
 
     if (!allowedTypes.includes(file.mimetype)) {
         // file.mimetype là kiểu mime của file upload. (ví dụ: avatar.png --> mimetype: image/png)
         return cb(
-            new Error("Chỉ chấp nhận file ảnh JPEG, PNG, WebP")
+            new Error("Chỉ chấp nhận file ảnh JPEG, PNG")
         );
     }
 

@@ -31,7 +31,7 @@ const userSchema = new mongoose.Schema({
 
         avatar: {
             type: String,
-            default: "https://sloganhay.com/avatar-mac-dinh-facebook/"
+            default: "../upload/avatar/default-avatar.jpg"
         },
 
         dateOfBirth: {

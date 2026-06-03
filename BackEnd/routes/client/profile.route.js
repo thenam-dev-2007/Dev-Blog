@@ -6,16 +6,8 @@ const validation = require("../../middlewares/validation.js");
 const upload = require("../../middlewares/upload.js");
 const auth = require("../../middlewares/auth");
 
-/**
- * [GET] /api/profile/:id
- * Lấy thông tin profile của user (kèm số bài viết)
- */
-router.get("/:id", auth.authenticateToken, controller.getProfileInfo);
+router.get("/:id", auth.authenticateToken, controller.getProfile);
 
-/**
- * [GET] /api/profile/:id/posts
- * Lấy tất cả bài viết của user (có phân trang)
- */
 router.get("/:id/posts", auth.authenticateToken, controller.getUserPosts);
 
 /**
@@ -33,7 +25,7 @@ router.get("/:id/stats", controller.getUserStats);
  * - Middleware: validation.validateUpdateUser (kiểm tra dữ liệu)
  * - Middleware: upload.uploadAvatar (upload avatar)
  */
-router.put("/:id", auth.authenticateToken, validation.validateUpdateUser, upload.uploadAvatar.single('avatar'), controller.updateUser);
+router.patch("/:id", auth.authenticateToken, upload.uploadAvatar.single('avatar'), validation.validateUpdateUser, controller.updateUser);
 
 /**
  * [POST] /api/profile/:id/change-password

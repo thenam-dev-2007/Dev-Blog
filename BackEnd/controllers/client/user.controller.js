@@ -1,11 +1,16 @@
 const User = require("../../models/user.model");
 const Post = require("../../models/post.model");
 
-// [GET] - Lấy thông tin profile của user (kèm số bài viết)
-module.exports.getProfileInfo = async (req, res, next) => {
+const fs = require("fs/promises"); // file system (tạo, đọc, ghi, xóa, đổi tên file, ...)
+                                    // /promises: thêm phiên bản Promise của thư viện fs (để dùng async, await)
+const path = require("path"); // dùng để xử lý đường dẫn file/thư mục.
+
+// [GET] - Lấy thông tin profile của user 
+module.exports.getProfile = async (req, res, next) => {
   try {
     const { id } = req.params;
 
+    // 1. Kiểm tra user tồn tại
     const user = await User.findById(id).lean();
 
     if (!user) {
@@ -15,45 +20,75 @@ module.exports.getProfileInfo = async (req, res, next) => {
       });
     }
 
-    const postCount = await Post.countDocuments({ author: id });
+    // 2. Lấy thống kê bài viết
+    const status = await Post.aggregate([ // lấy toàn bộ collection posts.
+                              // aggregate() luôn trả về một mảng.
+      {
+        $match: { // $match: Lọc tất cả bài viết của user.
+          author: new mongoose.Types.ObjectId(id),
+        },
+      },
+      {
+        $group: { // $group: Gom tất cả bài viết thành một nhóm.
+          _id: null, // Nghĩa là: Gom toàn bộ document thành 1 nhóm duy nhất. => Chỉ có 1 document
+          totalPosts: { $sum: 1 }, // Mỗi document + 1.
+          totalLikes: { $sum: "$likes" }, // Tính tổng like
+          totalComments: { // Tính tổng comments
+            $sum: {
+              $size: { // Lấy số phần tử trong mảng.
+                $ifNull: ["$comments", []], // Nếu comments = null hoặc comments không tồn tại [] (tránh lỗi)
+              },
+            },
+          },
+        },
+      },
+    ]);
 
-    const userProfile = {
-      id: user._id,
-      username: user.username,
-      email: user.email,
-      avatar: user.avatar,
-      dateOfBirth: user.dateOfBirth,
-      postCount,
-      createdAt: user.createdAt,
+    const profileStatus = status[0] || { // Sau khi dùng $group để gom => chỉ còn 1 document => lấy phần tử đầu tiên
+      totalPosts: 0,
+      totalLikes: 0,
+      totalComments: 0,
     };
 
-    res.json({
+    // 3. Trả về profile
+    res.status(200).json({
       code: 200,
       message: "Lấy thông tin profile thành công",
-      data: userProfile,
+      data: {
+        id: user._id,
+        username: user.username,
+        email: user.email,
+        avatar: user.avatar,
+        dateOfBirth: user.dateOfBirth,
+
+        totalPosts: profileStatus.totalPosts,
+        totalLikes: profileStatus.totalLikes,
+        totalComments: profileStatus.totalComments,
+      },
     });
-  } catch (error) {
+  } 
+  catch (error) {
     next(error);
   }
 };
 
-// [PUT] //
+// [PATCH] //
 module.exports.updateUser = async (req, res, next) => {
   try {
     // Bước 1: Lấy ID từ URL params
     const userId = req.params.id;
     const currentUserId = req.user?._id.toString();
 
-    // Bước 2: Kiểm tra xem id có được cung cấp không;
-    if (!userId) {
+    // Bước 2: Validate ObjectId
+    if (!mongoose.Types.ObjectId.isValid(userId)) {
       return res.status(400).json({
         code: 400,
-        message: "User ID is required",
+        message: "ID không hợp lệ",
       });
     }
 
-    // Kiểm tra quyền (chỉ có thể sửa profile của chính mình hoặc là admin)
-    if (currentUserId !== userId && req.user?.role !== "admin") {
+    // Bước 3: Kiểm tra quyền (chỉ có thể sửa profile của chính mình)
+    if (currentUserId !== userId) {
       return res.status(403).json({
         code: 403,
         message: "Bạn không có quyền sửa profile này",
@@ -72,37 +107,53 @@ module.exports.updateUser = async (req, res, next) => {
     }
 
     // Bước 5: Lấy dữ liệu từ body request
-    const { username, password, email, dateOfBirth } = req.body;
+    const { username, dateOfBirth } = req.body;
 
     // Bước 6: Update dữ liệu
     if (username) user.username = username;
-    if (email) user.email = email.toLowerCase();
     if (dateOfBirth) user.dateOfBirth = dateOfBirth;
-
-    // Nếu có password mới, pre('save') middleware sẽ tự hash
-    if (password) {
-      user.password = password;
-    }
 
     // Nếu có upload avatar
     if (req.file) {
+      // Xóa avatar cũ (nếu có)
+      if (user.avatar && !user.avatar.includes("default-avatar.png")) {
+        try {
+          const oldAvatarPath = path.join( // Tạo biến chứa đường dẫn vật lý tới avatar cũ.
+            process.cwd(), // Trả về thư mục gốc của project hiện tại.
+            user.avatar.replace(/^\//, "") // Regex: /^\//
+                                          // ^   : đầu chuỗi
+                                          // \/  : dấu /
+            // ví dụ: "/upload/avatar/old-avatar.png" sẽ đổi thành upload/avatar/old-avatar.png
+            // Nếu không bỏ dấu / sẽ có thể tạo đường dẫn không đúng trên một số hệ điều hành.
+          );
+          await fs.unlink(oldAvatarPath); // Xóa file avatar cũ.
+        } 
+        catch (err) {
+          console.error(err.message);
+        }
+      }
+      // Cập nhật avatar mới
       user.avatar = `/upload/avatar/${req.file.filename}`;
     }
 
     // Bước 7: Save user
     await user.save();
 
-    // Không trả password về client
-    const userResponse = user.toObject();
-    delete userResponse.password;
-
     // Bước 8: Response
+    const userResponse = {
+      id: user._id,
+      username: user.username,
+      avatar: user.avatar,
+      dateOfBirth: user.dateOfBirth,
+    };
+
     return res.status(200).json({
       code: 200,
       message: "Cập nhật dữ liệu thành công",
       data: userResponse,
     });
-  } catch (error) {
+  } 
+  catch (error) {
     next(error);
   }
 };
@@ -124,7 +175,6 @@ module.exports.getUserPosts = async (req, res, next) => {
       });
     }
 
-    const Post = require("../../models/post.model.js");
     const posts = await Post.find({ author: id })
       .populate("author", "username email avatar")
       .sort({ createdAt: -1 })
@@ -150,86 +200,6 @@ module.exports.getUserPosts = async (req, res, next) => {
           limit,
           pages: Math.ceil(total / limit),
         },
-      },
-    });
-  } catch (error) {
-    next(error);
-  }
-};
-
-/**
- * Controller: getUserStats
- * 
- * [GET] /api/profile/:id/stats
- * 
- * Mục đích: Lấy thống kê của user (tổng bài viết, likes, comments)
- * 
- * Quy trình:
- * 1. Lấy user ID từ params
- * 2. Kiểm tra user có tồn tại
- * 3. Đếm tổng bài viết của user
- * 4. Tính tổng lượt like trên tất cả bài viết
- * 5. Đếm tổng comments trên tất cả bài viết
- * 6. Trả về thống kê
- * 
- * Response Success:
- * {
- *   success: true,
- *   data: {
- *     userId: string,
- *     username: string,
- *     totalPosts: number,
- *     totalLikes: number,
- *     totalComments: number,
- *     joinDate: ISO date string
- *   }
- * }
- */
-module.exports.getUserStats = async (req, res, next) => {
-  try {
-    const { id } = req.params;
-
-    // Bước 1: Kiểm tra user tồn tại
-    const user = await User.findById(id).lean();
-
-    if (!user) {
-      return res.status(404).json({
-        success: false,
-        message: "User không tồn tại",
-        error: "USER_NOT_FOUND",
-      });
-    }
-
-    // Bước 2: Đếm tổng bài viết
-    const totalPosts = await Post.countDocuments({ author: id });
-
-    // Bước 3: Tính tổng likes trên tất cả bài viết
-    // aggregate dùng để thực hiện các phép toán phức tạp trên dữ liệu
-    const likesAggregation = await Post.aggregate([
-      { $match: { author: new mongoose.Types.ObjectId(id) } },
-      { $group: { _id: null, totalLikes: { $sum: "$likes" } } },
-    ]);
-    const totalLikes = likesAggregation[0]?.totalLikes || 0;
-
-    // Bước 4: Đếm tổng comments trên tất cả bài viết
-    const commentsAggregation = await Post.aggregate([
-      { $match: { author: new mongoose.Types.ObjectId(id) } },
-      { $group: { _id: null, totalComments: { $sum: { $size: "$comments" } } } },
-    ]);
-    const totalComments = commentsAggregation[0]?.totalComments || 0;
-
-    // Bước 5: Trả về thống kê
-    res.status(200).json({
-      success: true,
-      message: "Lấy thống kê thành công",
-      data: {
-        userId: user._id,
-        username: user.username,
-        avatar: user.avatar,
-        totalPosts,
-        totalLikes,
-        totalComments,
-        joinDate: user.createdAt,
       },
     });
   } catch (error) {
