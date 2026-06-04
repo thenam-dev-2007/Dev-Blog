@@ -1,12 +1,75 @@
+const mongoose = require("mongoose");
 const User = require("../../models/user.model");
 const Post = require("../../models/post.model");
 
 const fs = require("fs/promises"); // file system (tạo, đọc, ghi, xóa, đổi tên file, ...)
                                     // /promises: thêm phiên bản Promise của thư viện fs (để dùng async, await)
 const path = require("path"); // dùng để xử lý đường dẫn file/thư mục.
+const getProfileStats = require("../../services/profile.service");
 
-// [GET] - Lấy thông tin profile của user 
-module.exports.getProfile = async (req, res, next) => {
+// [GET] - Lấy thông tin profile của user hiện tại
+module.exports.getMyProfile = async (req, res, next) => {
+  try {
+    // req.user đã được gắn bởi middleware authenticate
+    const user = req.user;
+    
+    // Cập nhật thời gian đăng nhập cuối
+    user.lastLogin = new Date();
+    await user.save();
+    
+    // Lấy thống kê bài viết
+    const status = await Post.aggregate([ // lấy toàn bộ collection posts.
+                              // aggregate() luôn trả về một mảng.
+      {
+        $match: { // $match: Lọc tất cả bài viết của user.
+          author: new mongoose.Types.ObjectId(user._id),
+        },
+      },
+      {
+        $group: { // $group: Gom tất cả bài viết thành một nhóm.
+          _id: null, // Nghĩa là: Gom toàn bộ document thành 1 nhóm duy nhất. => Chỉ có 1 document
+          totalPosts: { $sum: 1 }, // Mỗi document + 1.
+          totalLikes: { $sum: "$likes" }, // Tính tổng like
+          totalComments: { // Tính tổng comments
+            $sum: {
+              $size: { // Lấy số phần tử trong mảng.
+                $ifNull: ["$comments", []], // Nếu comments = null hoặc comments không tồn tại [] (tránh lỗi)
+              },
+            },
+          },
+        },
+      },
+    ]);
+
+    const profileStatus = status[0] || { // Sau khi dùng $group để gom => chỉ còn 1 document => lấy phần tử đầu tiên
+      totalPosts: 0,
+      totalLikes: 0,
+      totalComments: 0,
+    };
+
+    res.status(200).json({
+      code: 200,
+      message: "Lấy thông tin profile thành công",
+      data: {
+        id: user._id,
+        username: user.username,
+        email: user.email,
+        avatar: user.avatar,
+        dateOfBirth: user.dateOfBirth,
+
+        totalPosts: profileStatus.totalPosts,
+        totalLikes: profileStatus.totalLikes,
+        totalComments: profileStatus.totalComments,
+      },
+    });
+  } 
+  catch (error) {
+    next(error)
+  }
+}
+
+// [GET] - Lấy thông tin profile của user khác
+module.exports.getOtherProfile = async (req, res, next) => {
   try {
     const { id } = req.params;
 

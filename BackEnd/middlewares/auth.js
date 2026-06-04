@@ -1,45 +1,18 @@
 const jwt = require("jsonwebtoken");
 
-/**
- * === AUTHENTICATION & AUTHORIZATION MIDDLEWARE ===
- * Các middleware cho xác thực và phân quyền
- */
-
-/**
- * Middleware: authenticateToken
- * 
- * Mục đích: Kiểm tra JWT token từ header Authorization
- * 
- * Cách sử dụng:
- * - Thêm middleware này vào các route yêu cầu authentication
- * - Router.get("/protected", authenticateToken, controller.handler)
- * 
- * Header yêu cầu:
- * Authorization: Bearer <JWT_TOKEN>
- * 
- * Quy trình:
- * 1. Lấy token từ header Authorization
- * 2. Kiểm tra token có tồn tại không
- * 3. Xác thực token dùng JWT_SECRET
- * 4. Nếu thành công, gắn user info vào req.user
- * 5. Gọi next() để tiếp tục request
- * 
- * req.user sẽ chứa: { _id, username, email, role, iat, exp }
- * 
- * Có thể trả về:
- * - 401: Chưa đăng nhập (không có token)
- * - 401: Token hết hạn (TokenExpiredError)
- * - 403: Token không hợp lệ
- * - 500: Lỗi server
- */
-module.exports.authenticateToken = async (req, res, next) => {
+module.exports.authenticate = async (req, res, next) => {
     try {
-        let token;
-
         // Bước 1: Lấy token từ header Authorization
-        if (req.headers.authorization && req.headers.authorization.startsWith('Bearer')) {
-            token = req.headers.authorization.split(' ')[1];
+        // Format: "Bearer <token>"
+        const authHeader = req.headers.authorization;
+        if (!authHeader || !authHeader.startsWith('Bearer ')) {
+        return res.status(401).json({
+            success: false,
+            message: 'Không tìm thấy token xác thực. Vui lòng đăng nhập.'
+        });
         }
+        // Tách token từ chuỗi "Bearer <token>"
+        const token = authHeader.split(' ')[1];
 
         // Bước 2: Kiểm tra token có tồn tại không
         if (!token) {
@@ -50,13 +23,11 @@ module.exports.authenticateToken = async (req, res, next) => {
         }
 
         // Bước 4: Xác thực token
-        // jwt.verify(token, secret, callback)
-        // - token: JWT token cần xác thực
-        // - process.env.JWT_SECRET: Secret key để verify token
-        // - callback(err, user): Hàm callback khi xác thực hoàn tất
         const decoded = jwt.verify(token, process.env.JWT_SECRET);
+        
         // Tìm user từ decoded token
-        const user = await User.findById(decoded._id);
+        const user = await User.findById(decoded._id).select("_id username email role isActive"); // nếu không có select sẽ lấy toàn bộ document
+
         if (!user) {
         return res.status(401).json({
             success: false,
@@ -65,6 +36,22 @@ module.exports.authenticateToken = async (req, res, next) => {
         }
         // Gắn thông tin user vào request để sử dụng ở các middleware/controller tiếp theo
         req.user = user;
+        // req.user không phải thuộc tính có sẵn của Express. Đây là một thuộc tính mà middleware xác thực tự thêm vào object req
+        // Ví dụ: router.get("/profile", authenticateToken, (req, res) => {
+                //     console.log(req.user);
+                // });
+
+                // Nếu middleware gắn:
+                // req.user = {
+                //     _id: "123",
+                //     username: "nam"
+                // };
+
+                // thì controller sẽ nhận được:
+                // {
+                //     _id: "123",
+                //     username: "nam"
+                // }
         next();
     } 
     catch (error) {

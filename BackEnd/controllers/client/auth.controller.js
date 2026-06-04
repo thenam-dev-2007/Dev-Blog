@@ -10,7 +10,7 @@ module.exports.register = async (req, res, next) => {
     const existingUser = await User.findOne({
       // $or là toán tử của MongoDB dùng để kiểm tra: Chỉ cần một điều kiện đúng là document sẽ được tìm thấy.
       $or: [
-        { username: username.toLowerCase() }, // Chuyển username thành chữ thường
+        { username: username.toLowerCase() }, 
         { email: email.toLowerCase() },
       ],
     });
@@ -56,44 +56,15 @@ module.exports.register = async (req, res, next) => {
   }
 } 
 
-/**
- * 
- * [POST] /api/auth/login
- * 
- * Mục đích: Xác thực người dùng và cấp token JWT
- * 
- * Quy trình:
- * 1. Lấy username và password từ request body
- * 2. Kiểm tra username và password có được cung cấp
- * 3. Tìm user trong database theo username (case-insensitive)
- * 4. Kiểm tra user có tồn tại không
- * 5. Kiểm tra user có bị xóa không (soft delete)
- * 6. So sánh password dùng bcrypt
- * 7. Nếu tất cả ok, tạo JWT token
- * 8. Trả về token + user info
- * 
- * Request:
- * {
- *   username: "john_doe",
- *   password: "SecurePassword123!"
- * }
- * 
- * Response Success (200):
- * {
- *   success: true,
- *   message: "Đăng nhập thành công",
- *   data: {
- *     user: { _id, username, email, avatar, role },
- *     token: "eyJhbGciOiJIUzI1NiIs...",
- *     expiresIn: "24h"
- *   }
- * }
- * 
- * Response Error:
- * - 400: Thiếu username hoặc password
- * - 401: Username không tồn tại hoặc password sai
- * - 401: Tài khoản đã bị xóa
- */
+// Quy trình:
+//  1. Lấy email và password từ request body
+//  2. Kiểm tra email và password có được cung cấp
+//  3. Tìm user trong database theo email (case-insensitive)
+//  4. Kiểm tra user có tồn tại không
+//  5. Kiểm tra user có bị xóa không (soft delete)
+//  6. So sánh password dùng bcrypt
+//  7. Nếu tất cả ok, tạo JWT token
+//  8. Trả về token + user info
 module.exports.login = async (req, res, next) => {
   try {
     // Bước 1: Lấy dữ liệu từ request body

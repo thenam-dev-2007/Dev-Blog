@@ -16,7 +16,7 @@ const handleValidationErrors = (req, res, next) => {
 };
 
 // Middleware kiểm tra dữ liệu cho route POST /api/users
-module.exports.validateCreateUser = [
+module.exports.validateRegister = [
     // Kiểm tra username
     body('username')
         .trim()
@@ -93,14 +93,15 @@ module.exports.validateUpdateUser = [
 
 // Middleware kiểm tra dữ liệu cho route POST /api/auth/login
 module.exports.validateLogin = [
-    // User
-    body('username')
+    body('email')
         .trim()
-        .notEmpty().withMessage('Username là bắt buộc'),
+        .notEmpty().withMessage('Email là bắt buộc')
+        .bail() // bail() sẽ dừng validate nếu bước trước thất bại.
+        .isEmail().withMessage('Email không hợp lệ')
+        .normalizeEmail(), // Chuẩn hóa email 
+        // Ví dụ: USER@GMAIL.COM --> user@gmail.com
 
-    // Password
     body('password')
-        .trim()
         .notEmpty().withMessage('Mật khẩu là bắt buộc'),
 
     handleValidationErrors

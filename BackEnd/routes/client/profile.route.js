@@ -6,16 +6,11 @@ const validation = require("../../middlewares/validation.js");
 const upload = require("../../middlewares/upload.js");
 const auth = require("../../middlewares/auth");
 
-router.get("/:id", auth.authenticateToken, controller.getProfile);
+router.get("/me", auth.authenticate, controller.getMyProfile);
 
-router.get("/:id/posts", auth.authenticateToken, controller.getUserPosts);
+router.get("/:id", auth.authenticate, controller.getOtherProfile);
 
-/**
- * [GET] /api/profile/:id/stats
- * Lấy thống kê của user (tổng bài viết, likes, comments)
- * Công khai - không cần authentication
- */
-router.get("/:id/stats", controller.getUserStats);
+router.get("/:id/posts", auth.authenticate, controller.getUserPosts);
 
 /**
  * [PUT] /api/profile/:id
@@ -25,7 +20,7 @@ router.get("/:id/stats", controller.getUserStats);
  * - Middleware: validation.validateUpdateUser (kiểm tra dữ liệu)
  * - Middleware: upload.uploadAvatar (upload avatar)
  */
-router.patch("/:id", auth.authenticateToken, upload.uploadAvatar.single('avatar'), validation.validateUpdateUser, controller.updateUser);
+router.patch("/:id", auth.authenticate, upload.uploadAvatar.single('avatar'), validation.validateUpdateUser, controller.updateUser);
 
 /**
  * [POST] /api/profile/:id/change-password

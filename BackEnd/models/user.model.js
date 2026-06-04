@@ -49,18 +49,18 @@ const userSchema = new mongoose.Schema({
             ref: "Post"
         }],
 
-        isDeleted: {
+        isActive: {
             type: Boolean,
-            default: false
+            default: true
         },
-
-        deletedAt: {
+        
+        lastLogin: {
             type: Date,
             default: null
         }
     }, 
     {
-        timestamps: true
+        timestamps: true // Tự động thêm createdAt và updatedAt
     }
 )
 

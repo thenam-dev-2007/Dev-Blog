@@ -1,9 +1,7 @@
 const homeRoute = require("./home.route.js");
-const authRoute = require("./auth.route.js");
 const postRoute = require("./post.route.js");
 const profileRoute = require("./profile.route.js");
-const registerRoute = require("./register.route.js");
-const loginRoute = require("./login.route.js")
+const authRoute = require("./auth.route.js");
 const searchRoute = require("./search.route.js");
 
 module.exports = (app) => {
@@ -17,7 +15,5 @@ module.exports = (app) => {
 
   app.use(PATH_API + "/profile", profileRoute);
 
-  app.use(PATH_API + "/register", registerRoute);
-
-  app.use(PATH_API + "/login", loginRoute)
+  app.use(PATH_API + "/auth", authRoute);
 };

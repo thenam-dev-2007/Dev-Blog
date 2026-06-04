@@ -1,5 +1,5 @@
 // Middleware logging - ghi lại thông tin request
-module.exports.logger = (req, res, next) => {
+module.exports = (req, res, next) => {
     const start = Date.now(); // Lấy thời gian bắt đầu
     
     // Lắng nghe sự kiện khi response hoàn thành

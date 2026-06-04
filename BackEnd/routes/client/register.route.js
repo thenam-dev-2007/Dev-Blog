@@ -1,9 +1,0 @@
-const express = require("express");
-const router = express.Router();
-
-const controller = require("../../controllers/client/auth.controller");
-const validation = require("../../middlewares/validation");
-
-router.post("/", validation.validateCreateUser, controller.register); 
-
-module.exports = router;
