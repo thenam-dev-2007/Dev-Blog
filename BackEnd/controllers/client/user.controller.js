@@ -5,49 +5,29 @@ const Post = require("../../models/post.model");
 const fs = require("fs/promises"); // file system (tạo, đọc, ghi, xóa, đổi tên file, ...)
                                     // /promises: thêm phiên bản Promise của thư viện fs (để dùng async, await)
 const path = require("path"); // dùng để xử lý đường dẫn file/thư mục.
-const getProfileStats = require("../../services/profile.service");
+const getProfileStatus = require("../../services/profile.service");
 
 // [GET] - Lấy thông tin profile của user hiện tại
 module.exports.getMyProfile = async (req, res, next) => {
   try {
-    // req.user đã được gắn bởi middleware authenticate
-    const user = req.user;
-    
-    // Cập nhật thời gian đăng nhập cuối
-    user.lastLogin = new Date();
-    await user.save();
-    
-    // Lấy thống kê bài viết
-    const status = await Post.aggregate([ // lấy toàn bộ collection posts.
-                              // aggregate() luôn trả về một mảng.
-      {
-        $match: { // $match: Lọc tất cả bài viết của user.
-          author: new mongoose.Types.ObjectId(user._id),
-        },
-      },
-      {
-        $group: { // $group: Gom tất cả bài viết thành một nhóm.
-          _id: null, // Nghĩa là: Gom toàn bộ document thành 1 nhóm duy nhất. => Chỉ có 1 document
-          totalPosts: { $sum: 1 }, // Mỗi document + 1.
-          totalLikes: { $sum: "$likes" }, // Tính tổng like
-          totalComments: { // Tính tổng comments
-            $sum: {
-              $size: { // Lấy số phần tử trong mảng.
-                $ifNull: ["$comments", []], // Nếu comments = null hoặc comments không tồn tại [] (tránh lỗi)
-              },
-            },
-          },
-        },
-      },
+    const userId = req.user._id;
+
+    const [user, profileStatus] = await Promise.all([
+      User.findById(userId)
+        .select("username email avatar dateOfBirth")
+        .lean(),
+
+      getProfileStatus(userId),
     ]);
 
-    const profileStatus = status[0] || { // Sau khi dùng $group để gom => chỉ còn 1 document => lấy phần tử đầu tiên
-      totalPosts: 0,
-      totalLikes: 0,
-      totalComments: 0,
-    };
+    if (!user) {
+      return res.status(404).json({
+        code: 404,
+        message: "User not found",
+      });
+    }
 
-    res.status(200).json({
+    return res.status(200).json({
       code: 200,
       message: "Lấy thông tin profile thành công",
       data: {
@@ -62,19 +42,30 @@ module.exports.getMyProfile = async (req, res, next) => {
         totalComments: profileStatus.totalComments,
       },
     });
-  } 
-  catch (error) {
-    next(error)
+  } catch (error) {
+    next(error);
   }
-}
+};
 
 // [GET] - Lấy thông tin profile của user khác
 module.exports.getOtherProfile = async (req, res, next) => {
   try {
     const { id } = req.params;
 
-    // 1. Kiểm tra user tồn tại
-    const user = await User.findById(id).lean();
+    // Validate ObjectId
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return res.status(400).json({
+        code: 400,
+        message: "Invalid user id",
+      });
+    }
+
+    const [user, profileStatus] = await Promise.all([
+      User.findById(id)
+        .select("username avatar dateOfBirth")
+        .lean(),
+      getProfileStatus(id),
+    ]);
 
     if (!user) {
       return res.status(404).json({
@@ -83,44 +74,12 @@ module.exports.getOtherProfile = async (req, res, next) => {
       });
     }
 
-    // 2. Lấy thống kê bài viết
-    const status = await Post.aggregate([ // lấy toàn bộ collection posts.
-                              // aggregate() luôn trả về một mảng.
-      {
-        $match: { // $match: Lọc tất cả bài viết của user.
-          author: new mongoose.Types.ObjectId(id),
-        },
-      },
-      {
-        $group: { // $group: Gom tất cả bài viết thành một nhóm.
-          _id: null, // Nghĩa là: Gom toàn bộ document thành 1 nhóm duy nhất. => Chỉ có 1 document
-          totalPosts: { $sum: 1 }, // Mỗi document + 1.
-          totalLikes: { $sum: "$likes" }, // Tính tổng like
-          totalComments: { // Tính tổng comments
-            $sum: {
-              $size: { // Lấy số phần tử trong mảng.
-                $ifNull: ["$comments", []], // Nếu comments = null hoặc comments không tồn tại [] (tránh lỗi)
-              },
-            },
-          },
-        },
-      },
-    ]);
-
-    const profileStatus = status[0] || { // Sau khi dùng $group để gom => chỉ còn 1 document => lấy phần tử đầu tiên
-      totalPosts: 0,
-      totalLikes: 0,
-      totalComments: 0,
-    };
-
-    // 3. Trả về profile
-    res.status(200).json({
+    return res.status(200).json({
       code: 200,
       message: "Lấy thông tin profile thành công",
       data: {
         id: user._id,
         username: user.username,
-        email: user.email,
         avatar: user.avatar,
         dateOfBirth: user.dateOfBirth,
 

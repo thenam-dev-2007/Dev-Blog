@@ -85,7 +85,7 @@ module.exports.login = async (req, res, next) => {
     }
 
     // Bước 4: Kiểm tra user có bị xóa không (soft delete)
-    if (user.isDeleted) {
+    if (!user.isActive) {
       return res.status(401).json({
         success: false,
         message: "Tài khoản này đã bị xóa",
@@ -102,6 +102,10 @@ module.exports.login = async (req, res, next) => {
         message: "Email hoặc mật khẩu không chính xác",
       });
     }
+
+    // Cập nhật thời gian đăng nhập cuối
+    user.lastLogin = new Date();
+    await user.save();
 
     // Bước 6: Tạo JWT token
     const token = generateToken(user);
@@ -122,79 +126,9 @@ module.exports.login = async (req, res, next) => {
         token
       }
     });
-  } catch (error) {
+  } 
+  catch (error) {
     // Chuyển cho error handler middleware
-    next(error);
-  }
-};
-
-/**
- * Controller: getProfile
- * 
- * [GET] /api/auth/profile
- * 
- * Mục đích: Lấy thông tin profile của user hiện tại
- * 
- * Yêu cầu:
- * - Phải có token JWT hợp lệ trong header Authorization
- * - Middleware authenticateToken sẽ xác thực token và gắn user info vào req.user
- * 
- * Quy trình:
- * 1. Lấy user ID từ req.user._id (đã được xác thực)
- * 2. Tìm user trong database
- * 3. Trả về user info (không có password)
- * 
- * Response Success (200):
- * {
- *   success: true,
- *   message: "Lấy thông tin thành công",
- *   data: {
- *     _id: "507f1f77bcf86cd799439011",
- *     username: "john_doe",
- *     email: "john@example.com",
- *     avatar: "https://...",
- *     role: "user",
- *     dateOfBirth: "1995-01-15T00:00:00.000Z",
- *     createdAt: "2024-01-20T10:30:00.000Z"
- *   }
- * }
- * 
- * Response Error:
- * - 404: User không tồn tại trong database
- * (401, 403 sẽ được xử lý bởi authenticateToken middleware)
- */
-module.exports.getProfile = async (req, res, next) => {
-  try {
-    // Bước 1: Lấy user ID từ JWT token
-    // req.user được set bởi authenticateToken middleware
-    const userId = req.user._id;
-
-    // Bước 2: Tìm user trong database
-    const user = await User.findById(userId);
-
-    // Bước 3: Kiểm tra user có tồn tại không
-    if (!user) {
-      return res.status(404).json({
-        success: false,
-        message: "Người dùng không tồn tại",
-      });
-    }
-
-    // Bước 4: Trả về thông tin user (không có password)
-    res.status(200).json({
-      success: true,
-      message: "Lấy thông tin thành công",
-      data: {
-        _id: user._id,
-        username: user.username,
-        email: user.email,
-        avatar: user.avatar,
-        role: user.role,
-        dateOfBirth: user.dateOfBirth,
-        createdAt: user.createdAt,
-      },
-    });
-  } catch (error) {
     next(error);
   }
 };

@@ -82,8 +82,8 @@ module.exports.authenticate = async (req, res, next) => {
  * Mục đích: Kiểm tra xem user có phải admin không
  * 
  * Cách sử dụng:
- * - Thêm sau authenticateToken middleware
- * - Router.delete("/admin/users/:id", authenticateToken, authorizeAdmin, controller.handler)
+ * - Thêm sau authenticate middleware
+ * - Router.delete("/admin/users/:id", authenticate, authorizeAdmin, controller.handler)
  * 
  * Quy trình:
  * 1. Kiểm tra req.user có tồn tại không (phải có authenticateToken trước)
@@ -94,7 +94,7 @@ module.exports.authenticate = async (req, res, next) => {
  * Trả về:
  * - 403: Người dùng không có quyền admin
  */
-module.exports.authorizeAdmin = (req, res, next) => {
+module.exports.authorizeAdmin = async (req, res, next) => {
     if (!req.user || req.user.role !== 'admin') {
         return res.status(403).json({
             success: false,
@@ -130,18 +130,12 @@ module.exports.authorizeAdmin = (req, res, next) => {
  * Trả về:
  * - 403: Người dùng không có quyền sửa đổi tài nguyên
  */
-module.exports.authorizeOwnerOrAdmin = (req, res, next) => {
-    // Lấy ID của tài nguyên từ URL parameters
-    // Ví dụ: /api/posts/5 --> req.params.id = "5"
+module.exports.authorizeOwnerOrAdmin = async (req, res, next) => {
     const resourceOwnerId = req.params.id;
     
-    // Lấy ID của user hiện tại từ JWT token (đã được set bởi authenticateToken)
+    // Lấy ID của user hiện tại từ JWT token (đã được set bởi authenticate)
     const userId = req.user._id.toString();
     
-    // Kiểm tra:
-    // 1. userId !== resourceOwnerId: User không phải chủ sở hữu
-    // 2. req.user.role !== 'admin': User không phải admin
-    // Nếu cả 2 điều kiện đều đúng, thì user không có quyền
     if (userId !== resourceOwnerId && req.user.role !== 'admin') {
         return res.status(403).json({
             success: false,

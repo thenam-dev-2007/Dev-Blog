@@ -5,7 +5,7 @@ const controller = require("../../controllers/client/post.controller.js");
 const validation = require("../../middlewares/validation.js");
 const upload = require("../../middlewares/upload.js");
 
-// [GET] - Lấy tất cả posts (có phân trang)
+// [GET] - Lấy tất cả posts 
 router.get("/", controller.getAllPosts);
 
 // [GET] - Tìm kiếm posts
