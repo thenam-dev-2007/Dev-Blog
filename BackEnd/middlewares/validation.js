@@ -63,7 +63,7 @@ module.exports.validateRegister = [
 ];
 
 // Middleware kiểm tra dữ liệu cho route PUT /api/users
-module.exports.validateUpdateUser = [
+module.exports.validateUpdateMyProfile = [
     // Username
     body('username')
         .optional()

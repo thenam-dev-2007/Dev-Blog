@@ -259,39 +259,21 @@ module.exports.updatePost = async (req, res) => {
 // [DELETE] - Xóa bài viết
 module.exports.deletePost = async (req, res) => {
   try {
-    const { id } = req.params;
-    const userId = req.user?.id;
+        await req.post.deleteOne();
+        await User.findByIdAndUpdate(
+            post.author,
+            { $pull: { posts: post._id } } // $pull là một MongoDB update operator dùng để xóa phần tử khỏi mảng.
+        );
 
-    const post = await Post.findById(id);
+        return res.status(200).json({
+            success: true,
+            message: "Xóa bài viết thành công"
+        });
 
-    if (!post) {
-      return res.status(404).json({
-        code: 404,
-        message: "Bài viết không tồn tại",
-      });
     }
-
-    if (post.author.toString() !== userId) {
-      return res.status(403).json({
-        code: 403,
-        message: "Bạn không có quyền xóa bài viết này",
-      });
+    catch (error) {
+      next(error);
     }
-
-    await Post.findByIdAndDelete(id);
-    await User.findByIdAndUpdate(userId, { $pull: { posts: id } });
-
-    res.json({
-      code: 200,
-      message: "Xóa bài viết thành công",
-    });
-  } catch (error) {
-    console.error("Lỗi:", error);
-    res.status(500).json({
-      code: 500,
-      message: "Lỗi server: " + error.message,
-    });
-  }
 };
 
 // [POST] - Like bài viết

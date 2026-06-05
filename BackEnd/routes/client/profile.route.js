@@ -6,11 +6,11 @@ const validation = require("../../middlewares/validation.js");
 const upload = require("../../middlewares/upload.js");
 const auth = require("../../middlewares/auth");
 
-router.get("/me", auth.authenticate, controller.getMyProfile);
+router.get("/me", auth.authenticateToken, controller.getMyProfile);
 
-router.get("/:id", auth.authenticate, controller.getOtherProfile);
+router.get("/:id", auth.authenticateToken, controller.getOtherProfile);
 
-router.get("/:id/posts", auth.authenticate, controller.getUserPosts);
+router.get("/:id/posts", auth.authenticateToken, controller.getUserPosts);
 
 /**
  * [PUT] /api/profile/:id
@@ -20,7 +20,7 @@ router.get("/:id/posts", auth.authenticate, controller.getUserPosts);
  * - Middleware: validation.validateUpdateUser (kiểm tra dữ liệu)
  * - Middleware: upload.uploadAvatar (upload avatar)
  */
-router.patch("/:id", auth.authenticate, upload.uploadAvatar.single('avatar'), validation.validateUpdateUser, controller.updateUser);
+router.patch("/me", auth.authenticateToken, upload.uploadAvatar.single('avatar'), validation.validateUpdateMyProfile, controller.updateMyProfile);
 
 /**
  * [POST] /api/profile/:id/change-password

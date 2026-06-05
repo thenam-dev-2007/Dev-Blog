@@ -4,6 +4,8 @@ const router = express.Router();
 const controller = require("../../controllers/client/post.controller.js");
 const validation = require("../../middlewares/validation.js");
 const upload = require("../../middlewares/upload.js");
+const auth = require("../../middlewares/auth.js")
+const postMiddleware = require("../../middlewares/post.middleware.js")
 
 // [GET] - Lấy tất cả posts 
 router.get("/", controller.getAllPosts);
@@ -24,7 +26,7 @@ router.post("/", validation.validateCreatePost, upload.uploadThumbnail.single("t
 router.put("/:id", upload.uploadThumbnail.single("thumbnail"), controller.updatePost);
 
 // [DELETE] - Xóa post (cần authentication)
-router.delete("/:id", controller.deletePost);
+router.delete("/:id", auth.authenticateToken, postMiddleware.loadPost, postMiddleware.canDeletePost, controller.deletePost);
 
 // [POST] - Like post (cần authentication)
 router.post("/:id/like", controller.likePost);
