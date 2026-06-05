@@ -95,16 +95,6 @@ userSchema.methods.comparePassword = async function(candidatePassword) {
     // candidatePassword: Là password người dùng nhập khi login.
 };
 
-// Static method: Tìm user chưa bị xóa
-userSchema.statics.findActive = function() {
-    return this.find({ isDeleted: false });
-};
-
-// Static method: Tìm user bao gồm cả đã xóa (cho admin)
-userSchema.statics.findAllIncludeDeleted = function() {
-    return this.find({});
-};
-
 const User = mongoose.model("User", userSchema, "users");
                             // Tên model      // tìm connection tên là products
 module.exports = User; // xuất file model

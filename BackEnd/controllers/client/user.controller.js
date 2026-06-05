@@ -50,48 +50,28 @@ module.exports.getMyProfile = async (req, res, next) => {
 // [GET] - Lấy thông tin profile của user khác
 module.exports.getOtherProfile = async (req, res, next) => {
   try {
-    const { id } = req.params;
+    const user = req.targetUser;
 
-    // Validate ObjectId
-    if (!mongoose.Types.ObjectId.isValid(id)) {
-      return res.status(400).json({
-        code: 400,
-        message: "Invalid user id",
-      });
-    }
-
-    const [user, profileStatus] = await Promise.all([
-      User.findById(id)
-        .select("username avatar dateOfBirth")
-        .lean(),
-      getProfileStatus(id),
-    ]);
-
-    if (!user) {
-      return res.status(404).json({
-        code: 404,
-        message: "User not found",
-      });
-    }
+    const profileStatus = await getProfileStatus(user._id);
 
     return res.status(200).json({
-      code: 200,
-      message: "Lấy thông tin profile thành công",
-      data: {
-        id: user._id,
-        username: user.username,
-        avatar: user.avatar,
-        dateOfBirth: user.dateOfBirth,
+        code: 200,
+        message: "Lấy thông tin profile thành công",
+        data: {
+            id: user._id,
+            username: user.username,
+            avatar: user.avatar,
+            dateOfBirth: user.dateOfBirth,
 
-        totalPosts: profileStatus.totalPosts,
-        totalLikes: profileStatus.totalLikes,
-        totalComments: profileStatus.totalComments,
-      },
+            totalPosts: profileStatus.totalPosts,
+            totalLikes: profileStatus.totalLikes,
+            totalComments: profileStatus.totalComments,
+        },
     });
-  } 
-  catch (error) {
-    next(error);
-  }
+    } 
+    catch (error) {
+      next(error);
+    }
 };
 
 // [PATCH] //
@@ -179,53 +159,3 @@ module.exports.updateMyProfile = async (req, res, next) => {
     next(error);
   }
 };
-
-// [GET] - Lấy tất cả bài viết của user
-module.exports.getUserPosts = async (req, res, next) => {
-  try {
-    const { id } = req.params;
-    const page = parseInt(req.query.page) || 1;
-    const limit = parseInt(req.query.limit) || 10;
-    const skip = (page - 1) * limit;
-
-    const user = await User.findById(id);
-
-    if (!user) {
-      return res.status(404).json({
-        code: 404,
-        message: "User not found",
-      });
-    }
-
-    const posts = await Post.find({ author: id })
-      .populate("author", "username email avatar")
-      .sort({ createdAt: -1 })
-      .skip(skip)
-      .limit(limit)
-      .lean();
-
-    const total = await Post.countDocuments({ author: id });
-
-    res.json({
-      code: 200,
-      message: "Lấy bài viết của user thành công",
-      data: {
-        user: {
-          id: user._id,
-          username: user.username,
-          avatar: user.avatar,
-        },
-        posts,
-        pagination: {
-          total,
-          page,
-          limit,
-          pages: Math.ceil(total / limit),
-        },
-      },
-    });
-  } catch (error) {
-    next(error);
-  }
-};
-

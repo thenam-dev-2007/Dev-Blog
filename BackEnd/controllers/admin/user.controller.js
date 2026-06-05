@@ -1,4 +1,5 @@
 const User = require("../../models/user.model");
+const Post = require("../../models/post.model");
 
 // [GET] //
 module.exports.getAllUser = async () => {
@@ -18,45 +19,41 @@ module.exports.getAllUser = async () => {
 // [DELETE] - Xóa tài khoản
 module.exports.deleteUser = async (req, res, next) => {
     try {
-        const userId = req.params.id;
-        const currentUserId = req.user?.id;
+        const user = req.targetUser;
 
-        if (!userId) {
-        return res.status(400).json({
-            code: 400,
-            message: "User ID is required",
-        });
-        }
+        // Xóa toàn bộ bài viết của user
+        await Post.updateMany(
+            {
+                author: user._id
+            },
+            {
+                isDeleted: true,
+                deletedAt: new Date()
+            }
+        );
 
-        // Kiểm tra quyền
-        if (currentUserId !== userId && req.user?.role !== "admin") {
-        return res.status(403).json({
-            code: 403,
-            message: "Bạn không có quyền xóa account này",
-        });
-        }
-
-        const user = await User.findById(userId);
-
-        if (!user) {
-        return res.status(404).json({
-            code: 404,
-            message: "User not found",
-        });
-        }
-
-        // Xóa tất cả posts của user
-        const Post = require("../../models/post.model.js");
-        await Post.deleteMany({ author: userId });
+        // Gỡ like của user trên các bài viết khác
+        await Post.updateMany(
+            {
+                likes: user._id
+            },
+            {
+                $pull: {
+                    likes: user._id
+                }
+            },
+        );
 
         // Xóa user
-        await User.findByIdAndDelete(userId);
+        await user.deleteOne();
 
-        res.json({
-        code: 200,
-        message: "Xóa tài khoản thành công",
+        return res.status(200).json({
+            success: true,
+            message: "Xóa người dùng thành công"
         });
-    } catch (error) {
+
+    } 
+    catch (error) {
         next(error);
     }
 };

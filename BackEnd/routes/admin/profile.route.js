@@ -11,3 +11,5 @@ router.get('/admin/all', authenticate, authorize('admin'), async (req, res) => {
         res.status(500).json({ success: false, message: 'Lỗi máy chủ.' });
     }
 });
+
+router.delete("/:id", authenticateToken, authorizeRoles("admin"), loadUser(), controller.deleteUser);

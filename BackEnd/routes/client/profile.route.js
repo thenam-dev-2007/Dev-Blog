@@ -1,16 +1,17 @@
 const express = require("express");
 const router = express.Router();
 
-const controller = require("../../controllers/client/user.controller")
+const controller = require("../../controllers/client/user.controller.js")
 const validation = require("../../middlewares/validation.js");
 const upload = require("../../middlewares/upload.js");
-const auth = require("../../middlewares/auth");
+const auth = require("../../middlewares/auth.js");
+const userMiddleware = require("../../middlewares/user.middleware.js")
 
 router.get("/me", auth.authenticateToken, controller.getMyProfile);
 
 router.get("/:id", auth.authenticateToken, controller.getOtherProfile);
 
-router.get("/:id/posts", auth.authenticateToken, controller.getUserPosts);
+router.get("/:id/posts", auth.authenticateToken, userMiddleware.loadUser, controller.getUserPosts);
 
 /**
  * [PUT] /api/profile/:id

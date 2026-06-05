@@ -1,6 +1,7 @@
 const express = require("express");
 require("dotenv").config();
 
+const cookieParser = require('cookie-parser');
 const database = require("./config/database");
 const logger = require("./middlewares/logger");
 const errorHandler = require("./middlewares/errorHandler");
@@ -17,6 +18,7 @@ database.connect();
 // Middleware
 app.use(express.json()); // Dùng để đọc dữ liệu dạng JSON.
 app.use(express.urlencoded({ extended: true })); // Dùng để đọc dữ liệu từ: form HTML, dữ liệu kiểu application/x-www-form-urlencoded
+app.use(cookieParser())
 
 // Sử dụng middleware logger cho tất cả request
 app.use(logger);

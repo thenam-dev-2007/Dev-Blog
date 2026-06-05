@@ -6,6 +6,7 @@ const validation = require("../../middlewares/validation");
 const auth = require("../../middlewares/auth");
 
 router.post("/register", validation.validateRegister, controller.register); 
-router.post("/login", validation.validateLogin, auth.authenticateToken, controller.login); 
+router.post("/login", validation.validateLogin, controller.login); 
+router.post("/refresh-token", controller.refreshToken);
 
 module.exports = router;

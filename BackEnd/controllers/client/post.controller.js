@@ -473,3 +473,52 @@ module.exports.deleteComment = async (req, res) => {
     });
   }
 };
+
+// [GET] - Lấy tất cả bài viết của user
+module.exports.getPostsByUser = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 10;
+    const skip = (page - 1) * limit;
+
+    const user = await User.findById(id);
+
+    if (!user) {
+      return res.status(404).json({
+        code: 404,
+        message: "User not found",
+      });
+    }
+
+    const posts = await Post.find({ author: id })
+      .populate("author", "username email avatar")
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(limit)
+      .lean();
+
+    const total = await Post.countDocuments({ author: id });
+
+    res.json({
+      code: 200,
+      message: "Lấy bài viết của user thành công",
+      data: {
+        user: {
+          id: user._id,
+          username: user.username,
+          avatar: user.avatar,
+        },
+        posts,
+        pagination: {
+          total,
+          page,
+          limit,
+          pages: Math.ceil(total / limit),
+        },
+      },
+    });
+  } catch (error) {
+    next(error);
+  }
+};
