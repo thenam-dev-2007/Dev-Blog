@@ -1,11 +1,11 @@
 const User = require("../models/user.model");
 
 const jwt = require("jsonwebtoken");
-const { verifyAccessToken } = require("../service/auth.service")
+const { verifyAccessToken } = require("../service/token.service")
 
 module.exports.authenticateToken = async (req, res, next) => {
     try {
-        // Bước 1: Lấy token từ header Authorization
+        // Lấy token từ header Authorization
         // Format: "Bearer <token>"
         const authHeader = req.headers.authorization;
         if (!authHeader || !authHeader.startsWith('Bearer ')) {
@@ -17,15 +17,7 @@ module.exports.authenticateToken = async (req, res, next) => {
         // Tách token từ chuỗi "Bearer <token>"
         const token = authHeader.split(' ')[1];
 
-        // Bước 2: Kiểm tra token có tồn tại không
-        if (!token) {
-            return res.status(401).json({ 
-                success: false, 
-                message: "Bạn chưa đăng nhập",
-            });
-        }
-
-        // Bước 4: Xác thực token
+        // Xác thực token
         const decoded = verifyAccessToken(token);
 
         if (!decoded) {
@@ -77,9 +69,19 @@ module.exports.authenticateToken = async (req, res, next) => {
         //     User bị khóa vẫn dùng token được.
         //     User bị xóa vẫn dùng token được.
         //     Role thay đổi không có tác dụng ngay.
+        req.accessToken = token;
         next();
     } 
     catch (error) {
-        next(error)
+        // Xử lý các lỗi JWT cụ thể
+        if (
+            error.name === "JsonWebTokenError" ||
+            error.name === "TokenExpiredError"
+        ) {
+            return res.status(401).json({
+                success: false,
+                message: "Phiên đăng nhập đã hết hạn hoặc không hợp lệ"
+            });
+        }
     }
 };

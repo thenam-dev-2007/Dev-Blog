@@ -1,6 +1,8 @@
 const { body, validationResult } = require('express-validator');
 // express-validator: Cung cấp các hàm kiểm tra (validation chain) cho từng trường dữ liệu.
 // Validation chain: Mỗi trường có thể có nhiều điều kiện kiểm tra, được nối tiếp nhau bằng dấu chấm.
+const User = require("../models/user.model")
+const Post = require("../models/post.model")
 
 const handleValidationErrors = (req, res, next) => {
     const errors = validationResult(req);
@@ -15,7 +17,6 @@ const handleValidationErrors = (req, res, next) => {
     next(); // Không có lỗi, tiếp tục xử lý
 };
 
-// Middleware kiểm tra dữ liệu cho route POST /api/users
 module.exports.validateRegister = [
     // Kiểm tra username
     body('username')
@@ -35,7 +36,7 @@ module.exports.validateRegister = [
     body('password')
         .trim()
         .notEmpty().withMessage('Mật khẩu là bắt buộc')
-        .isLength({ min: 6 }).withMessage('Mật khẩu phải có ít nhất 6 ký tự')
+        .isLength({ min: 8 }).withMessage('Mật khẩu phải có ít nhất 8 ký tự')
         .matches(/[a-zA-Z]/).withMessage('Mật khẩu phải chứa ít nhất 1 chữ cái')
         .matches(/[0-9]/).withMessage('Mật khẩu phải chứa ít nhất 1 số')
         .matches(/[!@#$%^&*(),.?":{}|<>]/).withMessage('Mật khẩu phải chứa ít nhất 1 ký tự đặc biệt'),
@@ -62,7 +63,6 @@ module.exports.validateRegister = [
     handleValidationErrors
 ];
 
-// Middleware kiểm tra dữ liệu cho route PUT /api/users
 module.exports.validateUpdateMyProfile = [
     // Username
     body('username')
@@ -91,7 +91,6 @@ module.exports.validateUpdateMyProfile = [
     handleValidationErrors
 ];
 
-// Middleware kiểm tra dữ liệu cho route POST /api/auth/login
 module.exports.validateLogin = [
     body('email')
         .trim()
@@ -107,7 +106,6 @@ module.exports.validateLogin = [
     handleValidationErrors
 ];
 
-// Middleware kiểm tra dữ liệu cho comment
 module.exports.validateComment = [
     body('content')
         .trim()
@@ -117,7 +115,6 @@ module.exports.validateComment = [
     handleValidationErrors
 ];
 
-// Middleware kiểm tra dữ liệu cho create post
 module.exports.validateCreatePost = [
     // Title
     body('title')
@@ -146,10 +143,6 @@ module.exports.validateCreatePost = [
     handleValidationErrors
 ];
 
-/**
- * Middleware: validateChangePassword
- * Kiểm tra dữ liệu khi thay đổi mật khẩu
- */
 module.exports.validateChangePassword = [
     // Current Password
     body('currentPassword')
@@ -160,7 +153,7 @@ module.exports.validateChangePassword = [
     body('newPassword')
         .trim()
         .notEmpty().withMessage('Mật khẩu mới là bắt buộc')
-        .isLength({ min: 8 }).withMessage('Mật khẩu phải có ít nhất 8 ký tự')
+        .isLength({ min: 8, max: 128 }).withMessage('Mật khẩu phải có ít nhất 8 ký tự')
         .matches(/[a-zA-Z]/).withMessage('Mật khẩu phải chứa ít nhất 1 chữ cái')
         .matches(/[0-9]/).withMessage('Mật khẩu phải chứa ít nhất 1 số')
         .matches(/[!@#$%^&*(),.?":{}|<>]/).withMessage('Mật khẩu phải chứa ít nhất 1 ký tự đặc biệt')
@@ -179,6 +172,32 @@ module.exports.validateChangePassword = [
         .custom((value, { req }) => {
             if (value !== req.body.newPassword) {
                 throw new Error('Xác nhận mật khẩu không trùng khớp');
+            }
+            return true;
+        }),
+
+    handleValidationErrors
+];
+
+module.exports.validateChangeEmail = [
+    // New Password
+    body('newEmail')
+        .trim()
+        .notEmpty().withMessage('Email là bắt buộc')
+        .isEmail().withMessage('Email không hợp lệ')
+        .normalizeEmail()
+        .custom(async (value, { req }) => {
+            //  { req } chính là Express request object --> có thể dùng req.params.id, req.body, req.user
+            if (value.toLowerCase() === req.user.email.toLowerCase()) {
+                throw new Error(
+                    "Email mới phải khác email hiện tại"
+                );
+            }
+            const emailExists = await User.findOne({
+                email: value.toLowerCase() // Tìm email giống email người dùng nhập. (tránh khác chữ hoa/thường.)
+            });
+            if (emailExists) {
+                throw new Error("Email đã tồn tại");
             }
             return true;
         }),

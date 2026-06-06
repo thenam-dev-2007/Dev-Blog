@@ -1,7 +1,5 @@
 const mongoose = require("mongoose");
 const bcrypt = require("bcryptjs")
-const slug = require("mongoose-slug-updater");
-mongoose.plugin(slug);
 
 const userSchema = new mongoose.Schema({
         username: {
