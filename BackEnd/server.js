@@ -16,7 +16,7 @@ const port = process.env.PORT;
 database.connect();
 
 // Middleware
-app.use(express.json()); // Dùng để đọc dữ liệu dạng JSON.
+app.use(express.json({ limit: '10kb' })); // Dùng để đọc dữ liệu dạng JSON. Giới hạn kích thước body
 app.use(express.urlencoded({ extended: true })); // Dùng để đọc dữ liệu từ: form HTML, dữ liệu kiểu application/x-www-form-urlencoded
 app.use(cookieParser())
 

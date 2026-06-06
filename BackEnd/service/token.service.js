@@ -99,5 +99,6 @@ module.exports = {
     generateAccessToken,
     generateRefreshToken,
     verifyAccessToken,
-    refreshAccessToken
+    refreshAccessToken,
+    generateVerificationToken
 };

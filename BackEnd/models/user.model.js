@@ -1,5 +1,6 @@
 const mongoose = require("mongoose");
-const bcrypt = require("bcryptjs")
+const bcrypt = require("bcryptjs");
+const crypto = require("crypto");
 
 const userSchema = new mongoose.Schema({
         username: {
@@ -55,6 +56,25 @@ const userSchema = new mongoose.Schema({
         lastLogin: {
             type: Date,
             default: null
+        },
+
+        passwordChangedAt: Date, // Thời gian thay đổi mật khẩu lần cuối
+
+        resetPasswordToken: String, // Token đã băm
+
+        resetPasswordExpires: Date, // Thời gian hết hạn của token
+
+        isVerified: { 
+            type: Boolean, 
+            default: false 
+        },
+
+        verificationToken: { 
+            type: String 
+        },
+
+        verificationTokenExpires: { 
+            type: Date 
         }
     }, 
     {
@@ -91,6 +111,25 @@ userSchema.methods.comparePassword = async function(candidatePassword) {
 // methods dùng để thêm hàm cho từng document của model.
     return await bcrypt.compare(candidatePassword, this.password);
     // candidatePassword: Là password người dùng nhập khi login.
+};
+
+// Phương thức: Tạo reset token
+userSchema.methods.createPasswordResetToken = function() {
+    // Tạo token ngẫu nhiên
+    const resetToken = crypto.randomBytes(32).toString('hex'); 
+    // tạo 32 byte ngẫu nhiên, chuyển thành hex (64 ký tự) – đây là token chưa băm.
+    
+    // Băm token và lưu vào database
+    this.resetPasswordToken = crypto
+        .createHash('sha256') // băm token trước khi lưu vào database để tránh lộ token nếu database bị tấn công.
+        .update(resetToken)
+        .digest('hex');
+    
+    // Đặt thời gian hết hạn: 10 phút
+    this.resetPasswordExpires = Date.now() + 10 * 60 * 1000;
+    
+    // Trả về token chưa băm (sẽ được gửi qua email)
+    return resetToken;
 };
 
 const User = mongoose.model("User", userSchema, "users");
