@@ -5,7 +5,7 @@ const Post = require("../../models/post.model");
 const fs = require("fs/promises"); // file system (tạo, đọc, ghi, xóa, đổi tên file, ...)
                                     // /promises: thêm phiên bản Promise của thư viện fs (để dùng async, await)
 const path = require("path"); // dùng để xử lý đường dẫn file/thư mục.
-const getProfileStatus = require("../../services/profile.service");
+const getProfileStatus = require("../../service/profile.service");
 
 // [GET] - Lấy thông tin profile của user hiện tại
 module.exports.getMyProfile = async (req, res, next) => {

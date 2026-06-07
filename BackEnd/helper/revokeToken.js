@@ -1,4 +1,4 @@
-const { logoutAllDevices } = require("../../service/auth.service")
+const { logoutAllDevices } = require("../service/auth.service")
 
 const revokeToken = async (userId, res) => {
     await logoutAllDevices(userId);

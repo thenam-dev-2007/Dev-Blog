@@ -1,3 +1,4 @@
+const systemConfig = require("../../config/system.js")
 const homeRoute = require("./home.route.js");
 const postRoute = require("./post.route.js");
 const profileRoute = require("./profile.route.js");
