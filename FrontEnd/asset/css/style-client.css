@@ -1,0 +1,614 @@
+/* =====================
+   RESET CƠ BẢN
+   ===================== */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+/* =====================
+   BIẾN MÀU SẮC
+   ===================== */
+:root {
+    --mau-nen: #f5f5f5;
+    --mau-trang: #ffffff;
+    --mau-chu: #222222;
+    --mau-chu-nhat: #666666;
+    --mau-vien: #dddddd;
+    --mau-chinh: #1a8917;
+    --mau-nen-header: #ffffff;
+}
+
+body.dark {
+    --mau-nen: #1a1a1a;
+    --mau-trang: #2a2a2a;
+    --mau-chu: #eeeeee;
+    --mau-chu-nhat: #aaaaaa;
+    --mau-vien: #444444;
+    --mau-chinh: #22cc1e;
+    --mau-nen-header: #222222;
+}
+
+body {
+    font-family: Arial, sans-serif;
+    background-color: var(--mau-nen);
+    color: var(--mau-chu);
+}
+
+a {
+    color: var(--mau-chinh);
+    text-decoration: none;
+}
+a:hover {
+    text-decoration: underline;
+}
+
+/* =====================
+   HEADER
+   ===================== */
+header {
+    background-color: var(--mau-nen-header);
+    border-bottom: 2px solid var(--mau-vien);
+    position: sticky;
+    top: 0;
+    z-index: 100;
+}
+
+.header-container {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 12px 20px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.logo {
+    font-size: 1.4rem;
+    font-weight: bold;
+    color: var(--mau-chu);
+    text-decoration: none;
+}
+
+.header-nav {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    flex-wrap: wrap;
+}
+
+.header-nav a {
+    color: var(--mau-chu-nhat);
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-size: 0.9rem;
+    transition: background 0.2s;
+}
+
+.header-nav a:hover {
+    background-color: var(--mau-vien);
+    color: var(--mau-chu);
+    text-decoration: none;
+}
+
+.header-right {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+/* Thanh tìm kiếm */
+.search-wrapper {
+    display: flex;
+    align-items: center;
+}
+
+#headerSearch {
+    width: 0;
+    padding: 0;
+    border: none;
+    border-bottom: 2px solid transparent;
+    background: transparent;
+    color: var(--mau-chu);
+    font-size: 0.9rem;
+    outline: none;
+    transition: width 0.3s, padding 0.3s, border-color 0.3s;
+    overflow: hidden;
+}
+
+#headerSearch.open {
+    width: 180px;
+    padding: 6px 8px;
+    border-bottom-color: var(--mau-chinh);
+}
+
+.btn-search-icon {
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: var(--mau-chu-nhat);
+    font-size: 1.1rem;
+    padding: 6px 8px;
+    border-radius: 50%;
+    transition: background 0.2s;
+}
+.btn-search-icon:hover {
+    background-color: var(--mau-vien);
+    color: var(--mau-chu);
+}
+
+/* Nút dark mode */
+.btn-darkmode {
+    background: none;
+    border: 1px solid var(--mau-vien);
+    cursor: pointer;
+    color: var(--mau-chu-nhat);
+    font-size: 1rem;
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    transition: background 0.2s;
+}
+.btn-darkmode:hover {
+    background-color: var(--mau-vien);
+    color: var(--mau-chu);
+}
+
+/* Nút đăng nhập / đăng ký */
+.btn-dangnhap {
+    font-size: 0.85rem;
+    color: var(--mau-chu-nhat);
+    padding: 7px 14px;
+    border-radius: 20px;
+    border: none;
+    background: none;
+    cursor: pointer;
+    transition: background 0.2s;
+    text-decoration: none;
+}
+.btn-dangnhap:hover {
+    background-color: var(--mau-vien);
+    color: var(--mau-chu);
+    text-decoration: none;
+}
+
+.btn-dangky {
+    font-size: 0.85rem;
+    font-weight: bold;
+    color: white;
+    background-color: var(--mau-chu);
+    padding: 8px 18px;
+    border-radius: 20px;
+    border: none;
+    cursor: pointer;
+    transition: background 0.2s;
+    text-decoration: none;
+}
+.btn-dangky:hover {
+    background-color: var(--mau-chinh);
+    color: white;
+    text-decoration: none;
+}
+
+/* =====================
+   NỘI DUNG CHÍNH
+   ===================== */
+main {
+    max-width: 1100px;
+    margin: 24px auto;
+    padding: 0 20px 40px;
+}
+
+.section-card {
+    background-color: var(--mau-trang);
+    border: 1px solid var(--mau-vien);
+    border-radius: 10px;
+    padding: 24px;
+    margin-bottom: 20px;
+}
+
+.page-banner {
+    text-align: center;
+    padding: 50px 24px;
+    border-bottom: 3px solid var(--mau-chinh);
+}
+.page-banner h1 {
+    font-size: 2rem;
+    margin-bottom: 10px;
+}
+.page-banner p {
+    color: var(--mau-chu-nhat);
+    font-size: 1rem;
+}
+
+/* =====================
+   LƯỚI BÀI VIẾT + SIDEBAR
+   ===================== */
+.content-grid {
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    gap: 24px;
+}
+
+.article-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+}
+
+.article-card {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+.article-card img {
+    width: 100%;
+    border-radius: 8px;
+}
+.article-card h3 {
+    font-size: 1rem;
+    margin: 0;
+}
+.article-card h3 a {
+    color: var(--mau-chu);
+}
+.article-card h3 a:hover {
+    color: var(--mau-chinh);
+    text-decoration: none;
+}
+.article-card p {
+    font-size: 0.88rem;
+    color: var(--mau-chu-nhat);
+    line-height: 1.6;
+}
+
+/* Dùng div thay vì footer để tránh conflict với footer trang */
+.article-card .card-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-top: 10px;
+    border-top: 1px solid var(--mau-vien);
+    flex-wrap: wrap;
+    gap: 8px;
+}
+.article-card .card-footer small {
+    font-size: 0.78rem;
+    color: var(--mau-chu-nhat);
+}
+
+.article-actions {
+    display: flex;
+    gap: 6px;
+}
+.article-actions button {
+    background: none;
+    border: 1px solid var(--mau-vien);
+    color: var(--mau-chu-nhat);
+    font-size: 0.78rem;
+    padding: 4px 10px;
+    border-radius: 20px;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+.article-actions button:hover {
+    background-color: var(--mau-vien);
+    color: var(--mau-chu);
+}
+
+/* Sidebar */
+.aside h3 {
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: var(--mau-chu-nhat);
+    margin-bottom: 12px;
+}
+.aside ul {
+    list-style: none;
+    padding: 0;
+}
+.aside ul li {
+    margin-bottom: 8px;
+}
+.aside ul li a {
+    color: var(--mau-chu);
+    font-size: 0.9rem;
+}
+.aside ul li a:hover {
+    color: var(--mau-chinh);
+    text-decoration: none;
+}
+.list-links a {
+    display: block;
+    font-size: 0.88rem;
+    margin-bottom: 6px;
+    color: var(--mau-chinh);
+}
+
+/* =====================
+   PHÂN TRANG CLIENT
+   Sửa lại - có nút số trang, highlight trang đang xem
+   ===================== */
+.phan-trang {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 6px;
+    flex-wrap: wrap;
+    padding: 4px 0;
+}
+
+/* Dùng chung cho nút số trang lẫn nút Trước/Sau */
+.btn-trang {
+    background-color: var(--mau-trang);
+    color: var(--mau-chu);
+    border: 1px solid var(--mau-vien);
+    border-radius: 6px;
+    padding: 7px 13px;
+    font-size: 0.875rem;
+    cursor: pointer;
+    transition: background 0.2s;
+    min-width: 36px;
+    text-align: center;
+}
+.btn-trang:hover {
+    background-color: var(--mau-vien);
+}
+
+/* Trang đang chọn */
+.btn-trang.active {
+    background-color: var(--mau-chinh);
+    color: white;
+    border-color: var(--mau-chinh);
+    font-weight: bold;
+}
+
+/* Nút bị tắt (disabled) */
+.btn-trang:disabled {
+    color: var(--mau-chu-nhat);
+    cursor: not-allowed;
+    opacity: 0.4;
+}
+
+/* =====================
+   NÚT BẤM CHUNG
+   ===================== */
+.button {
+    background-color: var(--mau-chu);
+    color: var(--mau-nen);
+    border: none;
+    border-radius: 20px;
+    padding: 10px 20px;
+    font-size: 0.9rem;
+    font-weight: bold;
+    cursor: pointer;
+    transition: background 0.2s;
+    display: inline-block;
+    text-decoration: none;
+}
+.button:hover {
+    background-color: var(--mau-chinh);
+    color: white;
+    text-decoration: none;
+}
+
+/* =====================
+   FORM
+   ===================== */
+.card-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+}
+
+.form-card {
+    max-width: 700px;
+    margin: 0 auto;
+}
+
+.form-group {
+    margin-bottom: 16px;
+}
+.form-group label {
+    display: block;
+    margin-bottom: 6px;
+    font-size: 0.875rem;
+    font-weight: bold;
+    color: var(--mau-chu-nhat);
+}
+
+input[type="text"]:not(#headerSearch),
+input[type="email"],
+input[type="password"],
+textarea {
+    width: 100%;
+    padding: 10px 14px;
+    border: 1px solid var(--mau-vien);
+    border-radius: 8px;
+    background-color: var(--mau-nen);
+    color: var(--mau-chu);
+    font-size: 0.9rem;
+    outline: none;
+}
+input[type="text"]:not(#headerSearch):focus,
+input[type="email"]:focus,
+input[type="password"]:focus,
+textarea:focus {
+    border-color: var(--mau-chinh);
+}
+
+textarea {
+    min-height: 180px;
+    resize: vertical;
+}
+
+.form-card button[type="submit"] {
+    background-color: var(--mau-chu);
+    color: var(--mau-nen);
+    border: none;
+    border-radius: 20px;
+    padding: 10px 24px;
+    font-size: 0.9rem;
+    font-weight: bold;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+.form-card button[type="submit"]:hover {
+    background-color: var(--mau-chinh);
+    color: white;
+}
+
+select {
+    width: 100%;
+    padding: 9px 12px;
+    border: 1px solid var(--mau-vien);
+    border-radius: 8px;
+    background-color: var(--mau-nen);
+    color: var(--mau-chu);
+    font-size: 0.9rem;
+    cursor: pointer;
+}
+
+.filter-group {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+.filter-group label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.875rem;
+    color: var(--mau-chu-nhat);
+    cursor: pointer;
+}
+
+/* =====================
+   AUTH (login / register)
+   ===================== */
+.auth-page {
+    min-height: 80vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 40px 20px;
+}
+
+.auth-box {
+    background-color: var(--mau-trang);
+    border: 1px solid var(--mau-vien);
+    border-radius: 12px;
+    padding: 40px;
+    width: 100%;
+    max-width: 420px;
+}
+.auth-box h1 {
+    font-size: 1.6rem;
+    margin-bottom: 6px;
+}
+.auth-box .chu-nho {
+    font-size: 0.875rem;
+    color: var(--mau-chu-nhat);
+    margin-bottom: 28px;
+}
+
+.btn-full {
+    width: 100%;
+    text-align: center;
+    padding: 11px;
+}
+
+/* =====================
+   TOAST + LOADER
+   ===================== */
+.toast {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    padding: 12px 20px;
+    border-radius: 8px;
+    color: white;
+    font-size: 0.9rem;
+    z-index: 9999;
+    animation: hienLen 0.3s ease;
+}
+.toast-success { background-color: #1a8917; }
+.toast-error   { background-color: #e53e3e; }
+.toast-info    { background-color: #3182ce; }
+
+@keyframes hienLen {
+    from { opacity: 0; transform: translateY(10px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+
+.loader {
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    background: rgba(0,0,0,0.3);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 9998;
+}
+.loader p {
+    background: var(--mau-trang);
+    padding: 16px 28px;
+    border-radius: 10px;
+    font-weight: bold;
+}
+
+/* =====================
+   FOOTER
+   ===================== */
+footer.footer {
+    border-top: 1px solid var(--mau-vien);
+    padding: 28px 20px;
+    text-align: center;
+    background-color: var(--mau-nen);
+}
+.footer-nav {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 6px 18px;
+    margin-bottom: 12px;
+}
+.footer-nav a {
+    font-size: 0.8rem;
+    color: var(--mau-chu-nhat);
+}
+.footer-nav a:hover {
+    color: var(--mau-chu);
+    text-decoration: none;
+}
+.footer-copy {
+    font-size: 0.8rem;
+    color: var(--mau-chu-nhat);
+}
+
+/* =====================
+   RESPONSIVE
+   ===================== */
+@media (max-width: 900px) {
+    .content-grid,
+    .card-row,
+    .article-grid {
+        grid-template-columns: 1fr;
+    }
+    .header-nav {
+        display: none;
+    }
+}
+@media (max-width: 600px) {
+    .btn-dangnhap {
+        display: none;
+    }
+    #headerSearch.open {
+        width: 130px;
+    }
+}
