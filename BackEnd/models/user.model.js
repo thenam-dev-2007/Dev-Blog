@@ -69,12 +69,17 @@ const userSchema = new mongoose.Schema({
             default: false 
         },
 
-        verificationToken: { 
-            type: String 
+        emailOTP: {
+            type: String,
+            select: false
         },
 
-        verificationTokenExpires: { 
-            type: Date 
+        emailOTPExpires: {
+            type: Date
+        },
+
+        otpResendAt: {
+            type: Date
         }
     }, 
     {

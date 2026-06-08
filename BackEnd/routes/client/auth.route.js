@@ -8,7 +8,9 @@ const { forgotPasswordLimiter } = require("../../middlewares/rateLimiter")
 
 router.post("/register", validation.validateRegister, controller.register); 
 
-router.get("/verify-email", controller.verifyEmail)
+router.post("/verify-email", controller.verifyEmail);
+
+router.post("/resend-otp", controller.resendOTP);
 
 router.post("/login", validation.validateLogin, controller.login); 
 

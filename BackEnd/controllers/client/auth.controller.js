@@ -2,7 +2,7 @@ const User = require("../../models/user.model");
 const RefreshToken = require("../../models/refreshToken.model")
 const { generateAccessToken, generateRefreshToken, refreshAccessToken } = require('../../service/token.service');
 const { revokeToken } = require("../../helper/revokeToken");
-const { generateVerificationToken } = require("../../service/email.service");
+const { generateEmailOTP } = require("../../service/email.service");
 const { transporter } = require("../../config/email")
 
 module.exports.register = async (req, res, next) => {
@@ -28,8 +28,8 @@ module.exports.register = async (req, res, next) => {
       });
     }
 
-    // Tạo token xác nhận
-    const { token, expiresAt } = generateVerificationToken();
+    // Tạo otp xác nhận
+    const { otp, hashedOTP, expiresAt } = generateEmailOTP();
 
     // Tạo user mới trong database
     const newUser = await User.create({
@@ -38,41 +38,18 @@ module.exports.register = async (req, res, next) => {
       password: password, // Sẽ được mã hóa tự động bởi pre-save middleware
       dateOfBirth: dateOfBirth,
       role: "user", // Mặc định là 'user' 
-      verificationToken: token,
-      verificationTokenExpires: expiresAt
+      emailOTP: hashedOTP,
+      emailOTPExpires: expiresAt
     });
 
-    // Tạo link xác nhận
-    const verificationLink = `${process.env.BASE_URL}/api/auth/verify-email?token=${token}`;
-
-    try {
-      // Gửi email xác nhận
-      await transporter.sendMail({
-        from: `"Ứng dụng của tôi" <${process.env.EMAIL_USER}>`,
-        to: email,
-        subject: 'Xác nhận địa chỉ email của bạn',
-        html: `
-          <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-            <h2>Chào mừng bạn đến với website!</h2>
-            <p>Cảm ơn bạn đã đăng ký. Vui lòng click vào link dưới đây để xác nhận email:</p>
-            <a href="${verificationLink}" 
-              style="display: inline-block; padding: 12px 24px; background-color: #4CAF50; 
-                      color: white; text-decoration: none; border-radius: 4px;">
-              Xác nhận email
-            </a>
-            <p>Link này có hiệu lực trong 24 giờ.</p>
-            <p>Nếu bạn không đăng ký tài khoản, vui lòng bỏ qua email này.</p>
-          </div>
-        `
-      });
-    } 
-    catch (error) {
-      await User.findByIdAndDelete( newUser._id );
-      throw error;
-    }
+    await sendOTPEmail(newUser.email, otp);
 
     res.status(201).json({ 
-      message: 'Đăng ký thành công! Vui lòng kiểm tra email để xác nhận tài khoản.' 
+      success: true,
+      message: 'Đăng ký thành công! Vui lòng kiểm tra email để lấy mã OTP.',
+      data: {
+        email: newUser.email
+      }
     });
   } 
   catch (error) {
@@ -81,36 +58,54 @@ module.exports.register = async (req, res, next) => {
   }
 } 
 
-module.exports.verifyEmail = async (req, res) => {
+module.exports.verifyEmail = async (req, res, next) => {
   try {
-    const { token } = req.query;
+    const { email, otp } = req.body;
 
-    // Kiểm tra token có được cung cấp không
-    if (!token) {
-      return res.status(400).json({ 
-        message: 'Token xác nhận không hợp lệ' 
+    const hashedOTP = crypto
+      .createHash("sha256")
+      .update(otp)
+      .digest("hex");
+
+    const user = await User.findOne({email: email.toLowerCase()}).select("+emailOTP");
+
+    if (!user) {
+      return res.status(404).json({ 
+        success: false,
+        message: 'Không tìm thấy tài khoản' 
       });
     }
 
-    // Tìm user với token và chưa hết hạn
-    const user = await User.findOne({
-      verificationToken: token,
-      verificationTokenExpires: { $gt: Date.now() }
-    });
-
-    if (!user) {
-      return res.status(400).json({ 
-        message: 'Token xác nhận không hợp lệ hoặc đã hết hạn' 
+    if (user.isVerified) {
+      return res.status(400).json({
+        success: false,
+        message: "Tài khoản đã được xác thực"
       });
+    }
+
+    if (!user.emailOTP || user.emailOTP !== hashedOTP) {
+      return res.status(400).json({
+        success:false,
+        message: "OTP không chính xác"
+      })
+    }
+
+    if (user.emailOTPExpires < Date.now()) {
+      return res.status(400).json({
+        success:false,
+        message: "OTP đã hết hạn"
+      })
     }
 
     // Kích hoạt tài khoản
     user.isVerified = true;
-    user.verificationToken = undefined;
-    user.verificationTokenExpires = undefined;
+    user.emailOTP = undefined;
+    user.emailOTPExpires = undefined;
+    user.lastLogin = new Date();
     await user.save();
 
     const refreshToken = await generateRefreshToken(user);
+    const accessToken = generateAccessToken(user);
 
     res.cookie("refreshToken", refreshToken.token,{
           httpOnly: true,
@@ -120,14 +115,67 @@ module.exports.verifyEmail = async (req, res) => {
         }
     );
 
-    // Chuyển hướng đến trang thành công (frontend)
-    return res.redirect(`${process.env.FRONTEND_URL}/login?verified=true`);
+    return res.status(200).json({
+      success: true,
+      message: "Xác thực email thành công",
+      data: {
+        accessToken
+      }
+    })
 
   } 
   catch (error) {
     next(error)
   }
 };
+
+module.exports.resendOTP = async (req, res, next) => {
+  try {
+      const { email } = req.body;
+
+      const user = await User.findOne({ email: email.toLowerCase() });
+
+      if (!user) {
+        return res.status(404).json({
+            success: false,
+            message: "Không tìm thấy tài khoản"
+        });
+      }
+
+      if (user.isVerified) {
+        return res.status(400).json({
+            success: false,
+            message: "Tài khoản đã xác thực"
+        });
+      }
+
+      if (user.otpResendAt && Date.now() - user.otpResendAt < 60 * 1000) {
+        return res.status(429).json({
+            success: false,
+            message: "Vui lòng thử lại sau 1 phút"
+        });
+      }
+
+      const { otp, hashedOTP } = generateEmailOTP()
+
+      user.emailOTP = hashedOTP;
+      user.emailOTPExpires = new Date(Date.now() + 10 * 60 * 1000);
+      user.otpResendAt = new Date();
+      await user.save();
+
+      await sendOTPEmail(user.email, otp);
+
+      return res.status(200).json({
+          success: true,
+          message:
+              "OTP mới đã được gửi"
+      });
+
+    } 
+    catch (error) {
+      next(error);
+    }
+}
 
 // Quy trình:
 //  1. Lấy email và password từ request body

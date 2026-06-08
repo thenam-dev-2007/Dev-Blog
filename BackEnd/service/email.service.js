@@ -1,11 +1,37 @@
 const crypto = require("crypto");
+const { transporter } = require("../config/email")
 
-// Tạo token có thời hạn (dùng JWT)
-const generateVerificationToken = (userId) => {
-    const token = crypto.randomBytes(32).toString("hex");
-    // Token có hiệu lực trong 24 giờ
-    const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000);
-    return { token, expiresAt };
-};
+const generateEmailOTP = () => {
+    const otp = Math.floor(100000 + Math.random() * 900000).toString();
 
-module.exports = { generateVerificationToken };
+    const hashedOTP = crypto
+        .createHash("sha256")
+        .update(otp)
+        .digest("hex");
+
+    const expiresAt = new Date(Date.now() + 10 * 60 * 1000);
+
+    return { otp, hashedOTP, expiresAt };
+}
+
+const sendOTPEmail = async (email, otp) => {
+    try {
+        await transporter.sendMail({
+            from: `"Blog Platform" <${process.env.EMAIL_USER}>`,
+            to: email,
+            subject: 'Mã xác thực tài khoản',
+            html: `
+                <div style="font-family: Arial">
+                <h2>Xác thực email</h2>
+                <p>Mã OTP của bạn là:</p>
+                <h1 style="letter-spacing: 5px; color: #4CAF50; ">${otp}</h1>
+                <p> OTP có hiệu lực trong 10 phút. </p>
+                </div>
+            `
+            });
+    } 
+    catch (error) {
+        throw error;
+    }
+}
+module.exports = { generateEmailOTP };
