@@ -4,14 +4,13 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Trang Chủ - Hệ Thống Blog Cộng Đồng LGBT</title>
+    <!-- Dùng CSS client riêng -->
     <link rel="stylesheet" href="./asset/css/style-client.css">
 </head>
 <body>
     <header>
         <div class="header-container">
             <a class="logo" href="index.html">BLOG LOGO</a>
-
-            <!-- Menu điều hướng -->
             <nav class="header-nav">
                 <a href="index.html">Home</a>
                 <a href="categories.html">Categories</a>
@@ -19,19 +18,12 @@
                 <a href="about.html">About</a>
                 <a href="contact.html">Contact</a>
             </nav>
-
-            <!-- Phần bên phải: search, dark mode, đăng nhập -->
             <div class="header-right">
-                <!-- Thanh tìm kiếm thu gọn -->
                 <div class="search-wrapper">
                     <input type="text" id="headerSearch" placeholder="Tìm kiếm...">
                     <button class="btn-search-icon" onclick="toggleSearch()" title="Tìm kiếm">🔍</button>
                 </div>
-
-                <!-- Nút bật/tắt dark mode -->
                 <button class="btn-darkmode" onclick="toggleDarkMode()" id="btnDarkMode" title="Chế độ tối">🌙</button>
-
-                <!-- Nút đăng nhập và đăng ký tách riêng -->
                 <a href="login.html" class="btn-dangnhap">Đăng nhập</a>
                 <a href="register.html" class="btn-dangky">Đăng ký</a>
             </div>
@@ -41,26 +33,29 @@
     <main>
         <section class="section-card page-banner">
             <h1>Blog cộng đồng LGBT</h1>
-            <p>Khám phá nội dung mới nhất, thảo luận và chia sẻ kinh nghiệm say gex từ cộng đồng Phúc Mai.</p>
+            <p>Khám phá nội dung mới nhất, thảo luận và chia sẻ kinh nghiệm từ cộng đồng.</p>
         </section>
 
         <div class="content-grid">
+            <!-- Cột trái: bài viết -->
             <div>
-                <section class="article-grid">
+                <!-- Bài viết mới nhất - JS sẽ render vào đây -->
+                <div class="article-grid" id="latestPosts">
+                    <!-- Dữ liệu mẫu, khi có API sẽ bị thay thế bởi index.js -->
                     <article class="section-card article-card">
                         <img src="https://via.placeholder.com/400x200" alt="Thumbnail">
                         <div>
                             <h3><a href="post.html">Liệu quan hệ đồng giới có bị HIV?</a></h3>
                             <p>Em vừa quan hệ đồng giới và lo lắng về khả năng bị lây nhiễm HIV. Xin hỏi có nguy cơ không?</p>
                         </div>
-                        <footer>
+                        <div class="card-footer">
                             <small>Tác giả: <b>Phuc Mai</b> | 11/05/2026</small>
                             <div class="article-actions">
                                 <button type="button">❤️ 120</button>
                                 <button type="button">🔗 Share</button>
                                 <button type="button">💬 15</button>
                             </div>
-                        </footer>
+                        </div>
                     </article>
                     <article class="section-card article-card">
                         <img src="https://via.placeholder.com/400x250" alt="Thumbnail">
@@ -68,38 +63,48 @@
                             <h3><a href="post.html">Làm top hay bot sướng hơn?</a></h3>
                             <p>Theo mọi người thì làm top hay bot sướng hơn?</p>
                         </div>
-                        <footer>
+                        <div class="card-footer">
                             <small>Tác giả: <b>Phuc Mai</b> | 14/05/2026</small>
                             <div class="article-actions">
                                 <button type="button">❤️ 85</button>
                                 <button type="button">🔗 Share</button>
                                 <button type="button">💬 4</button>
                             </div>
-                        </footer>
+                        </div>
                     </article>
-                </section>
-                <section class="section-card">
-                <div class="pagination">
-                    <button type="button" class="pagination-btn">← Previous</button>
-                    <span>Trang 1 / 10</span>
-                    <button type="button" class="pagination-btn">Next →</button>
                 </div>
-            </section>
+
+                <!-- PHÂN TRANG - đã sửa lại đúng chuẩn -->
+                <section class="section-card">
+                    <div class="phan-trang" id="phan-trang-home">
+                        <!-- JS render vào đây. Xem hàm renderPhanTrang() trong utils.js -->
+                        <!-- Mẫu tĩnh để xem giao diện trước khi có API: -->
+                        <button class="btn-trang" disabled>← Trước</button>
+                        <button class="btn-trang active">1</button>
+                        <button class="btn-trang">2</button>
+                        <button class="btn-trang">3</button>
+                        <span style="padding: 0 4px; color: var(--mau-chu-nhat);">...</span>
+                        <button class="btn-trang">10</button>
+                        <button class="btn-trang">Sau →</button>
+                    </div>
+                </section>
             </div>
+
+            <!-- Cột phải: sidebar -->
             <aside class="aside section-card">
                 <div>
                     <h3>Danh mục</h3>
                     <ul>
-                        <li><a href="#">Đồ chơi</a></li>
-                        <li><a href="#">Đời sống LGBT</a></li>
-                        <li><a href="#">Nghệ thuật đánh lừa thị giác</a></li>
+                        <li><a href="categories.html?tag=do-choi">Đồ chơi</a></li>
+                        <li><a href="categories.html?tag=doi-song">Đời sống LGBT</a></li>
+                        <li><a href="categories.html?tag=nghe-thuat">Nghệ thuật đánh lừa thị giác</a></li>
                     </ul>
                 </div>
-                <div>
+                <div style="margin-top: 20px;">
                     <h3>Xu hướng (#Trending)</h3>
                     <p class="list-links">
-                        <a href="#">#tophaybot</a><br>
-                        <a href="#">#missgayuniverses8</a><br>
+                        <a href="#">#tophaybot</a>
+                        <a href="#">#missgayuniverses8</a>
                         <a href="#">#3some</a>
                     </p>
                 </div>
@@ -107,7 +112,6 @@
         </div>
     </main>
 
-            <!-- Footer kiểu Medium: các link quan trọng nằm ở dưới -->
     <footer class="footer">
         <nav class="footer-nav">
             <a href="index.html">Home</a>
@@ -121,6 +125,10 @@
         </nav>
         <p class="footer-copy">© 2026 Blog Platform. All rights reserved.</p>
     </footer>
+
     <script src="./asset/script/main.js"></script>
+    <script src="./asset/script/utils.js"></script>
+    <script src="./asset/script/index.js"></script>
 </body>
 </html>
+
