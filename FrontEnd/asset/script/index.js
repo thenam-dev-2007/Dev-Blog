@@ -1,36 +1,42 @@
-async function loadHomePage() {
-  showLoading("Đang tải dữ liệu...");
-  try {
-    const response = await fetch("http://localhost:3000/");
-    const result = await response.json();
+// index.js - Trang chủ
+// Biến lưu trang hiện tại
+var trangHienTai = 1;
 
-    hideLoading();
+async function loadHomePage(trang) {
+    trang = trang || 1;
+    trangHienTai = trang;
 
-    if (result.code === 200) {
-      // Render Bài Viết Mới nhất
-      const latestContainer = document.getElementById("latestPosts");
-      if (latestContainer && result.data.latestPosts) {
-        latestContainer.innerHTML = result.data.latestPosts
-          .map((post) => renderPost(post))
-          .join("");
-      }
+    showLoading("Đang tải dữ liệu...");
 
-      // Render Bài Viết Nổi Bật
-      const topContainer = document.getElementById("topPosts");
-      if (topContainer && result.data.topPosts) {
-        topContainer.innerHTML = result.data.topPosts
-          .map((post) => renderPost(post))
-          .join("");
-      }
-    } else {
-      showError("Không thể tải dữ liệu. Vui lòng thử lại sau.");
+    try {
+        // Gọi API lấy bài viết trang chủ
+        const result = await apiCall("/posts?page=" + trang, "GET");
+        hideLoading();
+
+        if (result.code === 200) {
+            // Render bài viết vào latestPosts
+            var latestContainer = document.getElementById("latestPosts");
+            if (latestContainer && result.data) {
+                latestContainer.innerHTML = result.data
+                    .map(function(post) { return renderPost(post); })
+                    .join("");
+            }
+
+            // Cập nhật phân trang
+            var tongTrang = result.pagination ? result.pagination.pages : 1;
+            renderPhanTrang('phan-trang-home', trang, tongTrang, loadHomePage);
+
+        } else {
+            showError("Không thể tải dữ liệu. Vui lòng thử lại sau.", "latestPosts");
+        }
+    } catch (error) {
+        hideLoading();
+        console.error("Lỗi:", error);
+        showError("Lỗi kết nối: " + error.message, "latestPosts");
     }
-  } catch (error) {
-    hideLoading();
-    console.error("Lỗi:", error);
-    showError("Lỗi kết nối:" + error.message, "content");
-  }
 }
 
 // Gọi khi trang load
-document.addEventListener("DOMContentLoaded", loadHomePage);
+document.addEventListener("DOMContentLoaded", function() {
+    loadHomePage(1);
+});
