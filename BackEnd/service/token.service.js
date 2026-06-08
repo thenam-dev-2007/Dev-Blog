@@ -95,9 +95,19 @@ const refreshAccessToken = async (refreshToken) => {
     };
 }
 
+const revokeToken = async (userId, res) => {
+    await RefreshToken.deleteMany({ userId });
+    res.clearCookie("refreshToken", {
+        httpOnly: true,
+        secure: true,
+        sameSite: "strict"
+    });
+};
+
 module.exports = {
     generateAccessToken,
     generateRefreshToken,
     verifyAccessToken,
-    refreshAccessToken
+    refreshAccessToken,
+    revokeToken
 };

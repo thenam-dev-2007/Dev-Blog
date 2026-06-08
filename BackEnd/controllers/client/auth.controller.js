@@ -1,7 +1,6 @@
 const User = require("../../models/user.model");
 const RefreshToken = require("../../models/refreshToken.model")
-const { generateAccessToken, generateRefreshToken, refreshAccessToken } = require('../../service/token.service');
-const { revokeToken } = require("../../helper/revokeToken");
+const { generateAccessToken, generateRefreshToken, refreshAccessToken, revokeToken } = require('../../service/token.service');
 const { generateEmailOTP } = require("../../service/email.service");
 const { transporter } = require("../../config/email")
 
