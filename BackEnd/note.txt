@@ -1,0 +1,37 @@
+Trang 1
+
+Người dùng nhập:
+
+abc@gmail.com
+
+Gọi:
+
+POST /forgot-password
+
+Sau khi thành công:
+
+sessionStorage.setItem(
+    "resetEmail",
+    email
+);
+Trang nhập OTP
+
+Lấy email từ sessionStorage:
+
+const email =
+    sessionStorage.getItem(
+        "resetEmail"
+    );
+
+Gửi:
+
+POST /verify-reset-password-otp
+
+{
+    email,
+    otp
+}
+
+Người dùng không phải nhập lại email.
+
+Nhưng backend vẫn nhận được email.

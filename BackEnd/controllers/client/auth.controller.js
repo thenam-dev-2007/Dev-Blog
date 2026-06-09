@@ -1,7 +1,7 @@
 const User = require("../../models/user.model");
 const RefreshToken = require("../../models/refreshToken.model")
 const { generateAccessToken, generateRefreshToken, refreshAccessToken, revokeToken } = require('../../service/token.service');
-const { generateEmailOTP } = require("../../service/email.service");
+const { generateEmailOTP, generateOTPAndSave, sendOTPEmail } = require("../../service/email.service");
 const { transporter } = require("../../config/email")
 
 module.exports.register = async (req, res, next) => {
@@ -128,7 +128,7 @@ module.exports.verifyEmail = async (req, res, next) => {
   }
 };
 
-module.exports.resendOTP = async (req, res, next) => {
+module.exports.resendRegisterOTP = async (req, res, next) => {
   try {
       const { email } = req.body;
 
@@ -155,19 +155,17 @@ module.exports.resendOTP = async (req, res, next) => {
         });
       }
 
-      const { otp, hashedOTP } = generateEmailOTP()
+      const otp = generateOTPAndSave(user, "emailOTP", "emailOTPExpires")
 
-      user.emailOTP = hashedOTP;
-      user.emailOTPExpires = new Date(Date.now() + 10 * 60 * 1000);
-      user.otpResendAt = new Date();
-      await user.save();
-
-      await sendOTPEmail(user.email, otp);
+      await sendOTPEmail({
+        email: user.email, 
+        otp, 
+        type: "verify"
+      });
 
       return res.status(200).json({
           success: true,
-          message:
-              "OTP mới đã được gửi"
+          message: "OTP mới đã được gửi"
       });
 
     } 
@@ -399,103 +397,175 @@ module.exports.changeEmail = async (req, res, next) => {
 
 module.exports.forgotPassword = async (req, res, next) => {
   try {
-    // 1. Lấy email từ request body
     const { email } = req.body;
     
-    // 2. Kiểm tra email có tồn tại không
-    const user = await User.findOne({ email });
+    const user = await User.findOne({ email: email.toLowerCase() });
+
     if (!user) {
       return res.status(404).json({
         status: 'fail',
         message: 'Không tìm thấy người dùng với email này.'
       });
     }
+
+    const { otp, hashedOTP, expiresAt } = generateEmailOTP(); 
     
-    // 3. Tạo reset token
-    const resetToken = user.createPasswordResetToken();
-    await user.save({ validateBeforeSave: false }); // Lưu mà không chạy validation
-    
-    // 4. Tạo URL reset (trong thực tế, đây là URL frontend)
-    const resetURL = `${req.protocol}://${req.get('host')}/api/v1/users/reset-password/${resetToken}`;
-    
-    // 5. Gửi email
-    const message = `Bạn nhận được email này vì bạn (hoặc ai đó) đã yêu cầu đặt lại mật khẩu. 
-                    Vui lòng click vào link sau để đặt lại mật khẩu: \n\n ${resetURL} \n\n
-                    Nếu bạn không yêu cầu điều này, vui lòng bỏ qua email này.`;
-    
-    try {
-      await sendEmail({
-        email: user.email,
-        subject: 'Yêu cầu đặt lại mật khẩu (hiệu lực trong 10 phút)',
-        message
-      });
-      
-      res.status(200).json({
-        status: 'success',
-        message: 'Token đã được gửi đến email của bạn.'
-      });
-    } 
-    catch (err) {
-      // Nếu gửi email thất bại, xóa token khỏi database
-      user.resetPasswordToken = undefined;
-      user.resetPasswordExpires = undefined;
-      await user.save({ validateBeforeSave: false });
-      
-      return res.status(500).json({
-        status: 'error',
-        message: 'Không thể gửi email. Vui lòng thử lại sau.'
-      });
-    }
+    user.resetPasswordOTP = hashedOTP;
+    user.resetPasswordOTPExpires = expiresAt;
+    user.resetPasswordVerified = false;
+
+    await user.save({ validateBeforeSave: false });
+    // validateBeforeSave: false dùng để bỏ qua toàn bộ validation của Mongoose khi gọi save().
+    // Nếu dùng await user.save(); --> Mongoose sẽ kiểm tra lại tất cả validation trước khi lưu. (không bỏ qua middleware)
+    // Chỉ đang cập nhật (resetPasswordOTP, resetPasswordOTPExpires), không đụng tới (username, password, email)
+    // --> nên việc chạy lại toàn bộ validation là không cần thiết.
+
+    await sendOTPEmail({
+      email: user.email,
+      otp,
+      type: "reset-password"
+    })
+
+    return res.status(200).json({
+      success: true,
+      message: "OTP đã được gửi"
+    });
   } 
   catch (error) {
     next(error)
   }
 }
 
+module.exports.verifyResetPasswordOTP = async ( req, res, next) => {
+  try {
+      const { email, otp } = req.body;
+
+      const hashedOTP = crypto
+          .createHash("sha256")
+          .update(otp)
+          .digest("hex");
+
+      const user = await User.findOne({ email: email.toLowerCase() }).select("+resetPasswordOTP");
+
+      if (!user) {
+          return res.status(404).json({
+              success: false,
+              message:
+                  "Không tìm thấy tài khoản"
+          });
+      }
+
+      if (user.resetPasswordOTP !== hashedOTP) {
+        return res.status(400).json({
+            success: false,
+            message:
+                "OTP không chính xác"
+        });
+      }
+
+      if (user.resetPasswordOTPExpires < Date.now()) {
+        return res.status(400).json({
+            success: false,
+            message:
+                "OTP đã hết hạn"
+        });
+      }
+
+      user.resetPasswordVerified = true;
+
+      await user.save({ validateBeforeSave: false });
+
+      return res.status(200).json({
+        success: true,
+        message: "OTP hợp lệ"
+      });
+
+  } 
+  catch (error) {
+    next(error);
+  }
+};
+
 module.exports.resetPassword = async (req, res, next) => {
   try {
-    // 1. Lấy token từ params và băm nó
-    const hashedToken = crypto
-      .createHash('sha256')
-      .update(req.params.token)
-      .digest('hex');
+    const { email, newPassword } = req.body
     
-    // 2. Tìm user có token khớp và chưa hết hạn
-    const user = await User.findOne({
-      resetPasswordToken: hashedToken,
-      resetPasswordExpires: { $gt: Date.now() } // Token chưa hết hạn
-    });
-    
-    // 3. Nếu không tìm thấy user hoặc token đã hết hạn
+    const user = await User.findOne({ email: email.toLowerCase() });
+
     if (!user) {
       return res.status(400).json({
         status: 'fail',
-        message: 'Token không hợp lệ hoặc đã hết hạn.'
+        message: 'Không tìm thấy toàn khoản'
       });
     }
     
-    // 4. Cập nhật mật khẩu mới
-    user.password = req.body.password;
-    user.resetPasswordToken = undefined; // Xóa token
-    user.resetPasswordExpires = undefined; // Xóa thời gian hết hạn
+    if (!user.resetPasswordVerified) {
+      return res.status(403).json({
+          success: false,
+          message: "OTP chưa được xác thực"
+      });
+    }
+
+    user.password = newPassword;
+    user.passwordChangedAt = Date.now(); 
+    user.resetPasswordOTP = undefined;
+    user.resetPasswordOTPExpires = undefined; 
+    user.resetPasswordVerified = false;
     await user.save(); // Middleware pre('save') sẽ tự động băm mật khẩu
-    
-    // 5. Tạo JWT mới và gửi về client
-    const token = generateAccessToken(user._id); 
+
+    await revokeToken(user._id) // Đăng xuất khỏi tất cả các thiết bị
     
     res.status(200).json({
       status: 'success',
       token,
-      message: 'Mật khẩu đã được đặt lại thành công.'
+      message: "Đổi mật khẩu thành công"
     });
-  } catch (err) {
-    console.error('Lỗi resetPassword:', err);
-    res.status(500).json({
-      status: 'error',
-      message: 'Đã xảy ra lỗi server.'
-    });
+  } 
+  catch (err) {
+    next(error)
   }
 };
+
+module.exports.resendResetPasswordOTP = async (req, res, next) => {
+  try {
+      const { email } = req.body;
+
+      const user = await User.findOne({ email: email.toLowerCase() });
+
+      if (!user) {
+        return res.status(404).json({
+            success: false,
+            message: "Không tìm thấy tài khoản"
+        });
+      }
+
+      if (user.otpResendAt && Date.now() - user.otpResendAt < 60 * 1000) {
+        return res.status(429).json({
+            success: false,
+            message: "Vui lòng thử lại sau 1 phút"
+        });
+      }
+
+      const otp = generateOTPAndSave(user, "resetPasswordOTP", "resetPasswordOTPExpires")
+      user.resetPasswordVerified = false;
+      await user.save({validateBeforeSave: false})
+
+      await sendOTPEmail({
+        email: user.email, 
+        otp, 
+        type: "reset-password"
+      });
+
+      return res.status(200).json({
+          success: true,
+          message: "OTP mới đã được gửi"
+      });
+
+    } 
+    catch (error) {
+      next(error);
+    }
+}
 
 // res.cookie(name, value, options);
   // 1. name: Tên cookie

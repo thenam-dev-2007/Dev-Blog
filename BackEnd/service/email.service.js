@@ -14,6 +14,24 @@ const generateEmailOTP = () => {
     return { otp, hashedOTP, expiresAt };
 }
 
+const generateOTPAndSave = async (user, otpField, otpExpiresField) => {
+    // otpField và otpExpiresField là biến chứa tên field, không phải tên field cố định.
+    const {otp, hashedOTP, expiresAt} = generateOTP();
+
+    user[otpField] = hashedOTP;
+    user[otpExpiresField] = expiresAt;
+    // user["emailOTP"] = hashedOTP;
+    // user["emailOTPExpires"] = expiresAt;
+    // tuowgn đương:
+    // user.emailOTP = hashedOTP;
+    // user.emailOTPExpires = expiresAt;
+    user.otpResendAt = new Date();
+
+    await user.save({ validateBeforeSave: false });
+
+    return otp;
+};
+
 const sendOTPEmail = async (email, otp) => {
     try {
         await transporter.sendMail({
@@ -34,4 +52,4 @@ const sendOTPEmail = async (email, otp) => {
         throw error;
     }
 }
-module.exports = { generateEmailOTP };
+module.exports = { generateEmailOTP, generateOTPAndSave, sendOTPEmail };

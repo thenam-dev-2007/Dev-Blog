@@ -2,19 +2,20 @@ const Post = require("../../models/post.model.js");
 const User = require("../../models/user.model.js");
 const paginationHelper = require("../../helper/pagination")
 
-// [GET] - Lấy tất cả bài viết (có phân trang)
+// [GET] - Lấy tất cả bài viết 
 module.exports.getAllPosts = async (req, res, next) => {
   try {
     let find = {isDeleted: false};
 
     const countPosts = await Post.countDocuments(find); // countDocuments() => Dùng để đếm số document trong MongoDB
 
-    let objectPagination = paginationHelper({
-      currentPage: 1,
-      limitPost: 4,
-    }, 
-    req.query, 
-    countPosts
+    let objectPagination = paginationHelper(
+      {
+        currentPage: 1,
+        limitPost: 4,
+      }, 
+      req.query, 
+      countPosts
     )
 
     const posts = await Post.find(find)
@@ -120,12 +121,9 @@ module.exports.searchPost = async (req, res) => {
         },
       },
     });
-  } catch (error) {
-    console.error("Lỗi:", error);
-    res.status(500).json({
-      code: 500,
-      message: "Lỗi server: " + error.message,
-    });
+  } 
+  catch (error) {
+    next(error)
   }
 };
 
@@ -203,12 +201,9 @@ module.exports.createPost = async (req, res) => {
       message: "Tạo bài viết thành công",
       data: populatedPost,
     });
-  } catch (error) {
-    console.error("Lỗi:", error);
-    res.status(500).json({
-      code: 500,
-      message: "Lỗi server: " + error.message,
-    });
+  } 
+  catch (error) {
+    next(error)
   }
 };
 
@@ -248,11 +243,7 @@ module.exports.updatePost = async (req, res) => {
     });
   } 
   catch (error) {
-    console.error("Lỗi:", error);
-    res.status(500).json({
-      code: 500,
-      message: "Lỗi server: " + error.message,
-    });
+    next(error)
   }
 };
 
@@ -310,11 +301,7 @@ module.exports.likePost = async (req, res) => {
       data: { likes: updatedPost.likes },
     });
   } catch (error) {
-    console.error("Lỗi:", error);
-    res.status(500).json({
-      code: 500,
-      message: "Lỗi server: " + error.message,
-    });
+    next(error);
   }
 };
 
@@ -351,12 +338,9 @@ module.exports.unlikePost = async (req, res) => {
       message: "Bỏ like bài viết thành công",
       data: { likes: updatedPost.likes },
     });
-  } catch (error) {
-    console.error("Lỗi:", error);
-    res.status(500).json({
-      code: 500,
-      message: "Lỗi server: " + error.message,
-    });
+  } 
+  catch (error) {
+    next(error);
   }
 };
 
@@ -408,12 +392,9 @@ module.exports.addComment = async (req, res) => {
       message: "Thêm bình luận thành công",
       data: updatedPost,
     });
-  } catch (error) {
-    console.error("Lỗi:", error);
-    res.status(500).json({
-      code: 500,
-      message: "Lỗi server: " + error.message,
-    });
+  } 
+  catch (error) {
+    next(error);
   }
 };
 
@@ -465,12 +446,9 @@ module.exports.deleteComment = async (req, res) => {
       code: 200,
       message: "Xóa bình luận thành công",
     });
-  } catch (error) {
-    console.error("Lỗi:", error);
-    res.status(500).json({
-      code: 500,
-      message: "Lỗi server: " + error.message,
-    });
+  } 
+  catch (error) {
+    next(error);
   }
 };
 
@@ -518,7 +496,8 @@ module.exports.getPostsByUser = async (req, res, next) => {
         },
       },
     });
-  } catch (error) {
+  } 
+  catch (error) {
     next(error);
   }
 };

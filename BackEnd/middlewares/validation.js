@@ -143,7 +143,7 @@ module.exports.validateCreatePost = [
     handleValidationErrors
 ];
 
-module.exports.validateChangePassword = [
+module.exports.validatePassword = [
     // Current Password
     body('currentPassword')
         .trim()
@@ -179,7 +179,7 @@ module.exports.validateChangePassword = [
     handleValidationErrors
 ];
 
-module.exports.validateChangeEmail = [
+module.exports.validateEmail = [
     // New Password
     body('newEmail')
         .trim()
@@ -203,4 +203,11 @@ module.exports.validateChangeEmail = [
         }),
 
     handleValidationErrors
+];
+
+module.exports.validationOTP = [
+    body("otp")
+        .trim()
+        .isLength({min: 6, max: 6})
+        .withMessage("OTP gồm 6 chữ số"),
 ];

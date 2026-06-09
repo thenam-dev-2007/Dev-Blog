@@ -8,7 +8,7 @@
 }
 
 /* =====================
-   BIẾN MÀU SẮC (dùng cho dark mode)
+   BIẾN MÀU SẮC
    ===================== */
 :root {
     --mau-nen: #f5f5f5;
@@ -20,7 +20,6 @@
     --mau-nen-header: #ffffff;
 }
 
-/* Màu khi dark mode */
 body.dark {
     --mau-nen: #1a1a1a;
     --mau-trang: #2a2a2a;
@@ -41,7 +40,6 @@ a {
     color: var(--mau-chinh);
     text-decoration: none;
 }
-
 a:hover {
     text-decoration: underline;
 }
@@ -75,7 +73,6 @@ header {
     text-decoration: none;
 }
 
-/* Nav giữa */
 .header-nav {
     display: flex;
     align-items: center;
@@ -97,17 +94,13 @@ header {
     text-decoration: none;
 }
 
-/* Phần bên phải header */
 .header-right {
     display: flex;
     align-items: center;
     gap: 8px;
 }
 
-/* =====================
-   THANH TÌM KIẾM
-   Mặc định ẩn, bấm icon mới hiện
-   ===================== */
+/* Thanh tìm kiếm */
 .search-wrapper {
     display: flex;
     align-items: center;
@@ -122,19 +115,16 @@ header {
     color: var(--mau-chu);
     font-size: 0.9rem;
     outline: none;
-    /* Hiệu ứng mở ra */
     transition: width 0.3s, padding 0.3s, border-color 0.3s;
     overflow: hidden;
 }
 
-/* Khi có class .open thì hiện ra */
 #headerSearch.open {
     width: 180px;
     padding: 6px 8px;
     border-bottom-color: var(--mau-chinh);
 }
 
-/* Nút icon tìm kiếm */
 .btn-search-icon {
     background: none;
     border: none;
@@ -145,15 +135,12 @@ header {
     border-radius: 50%;
     transition: background 0.2s;
 }
-
 .btn-search-icon:hover {
     background-color: var(--mau-vien);
     color: var(--mau-chu);
 }
 
-/* =====================
-   NÚT DARK MODE
-   ===================== */
+/* Nút dark mode */
 .btn-darkmode {
     background: none;
     border: 1px solid var(--mau-vien);
@@ -165,15 +152,12 @@ header {
     border-radius: 50%;
     transition: background 0.2s;
 }
-
 .btn-darkmode:hover {
     background-color: var(--mau-vien);
     color: var(--mau-chu);
 }
 
-/* =====================
-   NÚT ĐĂNG NHẬP / ĐĂNG KÝ
-   ===================== */
+/* Nút đăng nhập / đăng ký */
 .btn-dangnhap {
     font-size: 0.85rem;
     color: var(--mau-chu-nhat);
@@ -185,7 +169,6 @@ header {
     transition: background 0.2s;
     text-decoration: none;
 }
-
 .btn-dangnhap:hover {
     background-color: var(--mau-vien);
     color: var(--mau-chu);
@@ -204,7 +187,6 @@ header {
     transition: background 0.2s;
     text-decoration: none;
 }
-
 .btn-dangky:hover {
     background-color: var(--mau-chinh);
     color: white;
@@ -220,7 +202,6 @@ main {
     padding: 0 20px 40px;
 }
 
-/* Card trắng dùng nhiều nơi */
 .section-card {
     background-color: var(--mau-trang);
     border: 1px solid var(--mau-vien);
@@ -229,18 +210,15 @@ main {
     margin-bottom: 20px;
 }
 
-/* Banner đầu trang */
 .page-banner {
     text-align: center;
     padding: 50px 24px;
     border-bottom: 3px solid var(--mau-chinh);
 }
-
 .page-banner h1 {
     font-size: 2rem;
     margin-bottom: 10px;
 }
-
 .page-banner p {
     color: var(--mau-chu-nhat);
     font-size: 1rem;
@@ -261,39 +239,34 @@ main {
     gap: 20px;
 }
 
-/* Card bài viết */
 .article-card {
     display: flex;
     flex-direction: column;
     gap: 10px;
 }
-
 .article-card img {
     width: 100%;
     border-radius: 8px;
 }
-
 .article-card h3 {
     font-size: 1rem;
     margin: 0;
 }
-
 .article-card h3 a {
     color: var(--mau-chu);
 }
-
 .article-card h3 a:hover {
     color: var(--mau-chinh);
     text-decoration: none;
 }
-
 .article-card p {
     font-size: 0.88rem;
     color: var(--mau-chu-nhat);
     line-height: 1.6;
 }
 
-.article-card footer {
+/* Dùng div thay vì footer để tránh conflict với footer trang */
+.article-card .card-footer {
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -302,8 +275,7 @@ main {
     flex-wrap: wrap;
     gap: 8px;
 }
-
-.article-card footer small {
+.article-card .card-footer small {
     font-size: 0.78rem;
     color: var(--mau-chu-nhat);
 }
@@ -312,7 +284,6 @@ main {
     display: flex;
     gap: 6px;
 }
-
 .article-actions button {
     background: none;
     border: 1px solid var(--mau-vien);
@@ -323,7 +294,6 @@ main {
     cursor: pointer;
     transition: background 0.2s;
 }
-
 .article-actions button:hover {
     background-color: var(--mau-vien);
     color: var(--mau-chu);
@@ -337,31 +307,71 @@ main {
     color: var(--mau-chu-nhat);
     margin-bottom: 12px;
 }
-
 .aside ul {
     list-style: none;
     padding: 0;
 }
-
 .aside ul li {
     margin-bottom: 8px;
 }
-
 .aside ul li a {
     color: var(--mau-chu);
     font-size: 0.9rem;
 }
-
 .aside ul li a:hover {
     color: var(--mau-chinh);
     text-decoration: none;
 }
-
 .list-links a {
     display: block;
     font-size: 0.88rem;
     margin-bottom: 6px;
     color: var(--mau-chinh);
+}
+
+/* =====================
+   PHÂN TRANG CLIENT
+   Sửa lại - có nút số trang, highlight trang đang xem
+   ===================== */
+.phan-trang {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 6px;
+    flex-wrap: wrap;
+    padding: 4px 0;
+}
+
+/* Dùng chung cho nút số trang lẫn nút Trước/Sau */
+.btn-trang {
+    background-color: var(--mau-trang);
+    color: var(--mau-chu);
+    border: 1px solid var(--mau-vien);
+    border-radius: 6px;
+    padding: 7px 13px;
+    font-size: 0.875rem;
+    cursor: pointer;
+    transition: background 0.2s;
+    min-width: 36px;
+    text-align: center;
+}
+.btn-trang:hover {
+    background-color: var(--mau-vien);
+}
+
+/* Trang đang chọn */
+.btn-trang.active {
+    background-color: var(--mau-chinh);
+    color: white;
+    border-color: var(--mau-chinh);
+    font-weight: bold;
+}
+
+/* Nút bị tắt (disabled) */
+.btn-trang:disabled {
+    color: var(--mau-chu-nhat);
+    cursor: not-allowed;
+    opacity: 0.4;
 }
 
 /* =====================
@@ -380,46 +390,10 @@ main {
     display: inline-block;
     text-decoration: none;
 }
-
 .button:hover {
     background-color: var(--mau-chinh);
     color: white;
     text-decoration: none;
-}
-
-/* Nút phân trang */
-.btn-trang {
-    background-color: var(--mau-trang);
-    color: var(--mau-chu);
-    border: 1px solid var(--mau-vien);
-    border-radius: 20px;
-    padding: 8px 16px;
-    font-size: 0.875rem;
-    cursor: pointer;
-    transition: background 0.2s;
-}
-
-.btn-trang:hover {
-    background-color: var(--mau-vien);
-}
-
-.btn-trang:disabled {
-    color: var(--mau-chu-nhat);
-    cursor: not-allowed;
-    opacity: 0.5;
-}
-
-/* Phân trang */
-.phan-trang {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    gap: 14px;
-}
-
-.phan-trang span {
-    font-size: 0.875rem;
-    color: var(--mau-chu-nhat);
 }
 
 /* =====================
@@ -439,7 +413,6 @@ main {
 .form-group {
     margin-bottom: 16px;
 }
-
 .form-group label {
     display: block;
     margin-bottom: 6px;
@@ -461,7 +434,6 @@ textarea {
     font-size: 0.9rem;
     outline: none;
 }
-
 input[type="text"]:not(#headerSearch):focus,
 input[type="email"]:focus,
 input[type="password"]:focus,
@@ -485,7 +457,6 @@ textarea {
     cursor: pointer;
     transition: background 0.2s;
 }
-
 .form-card button[type="submit"]:hover {
     background-color: var(--mau-chinh);
     color: white;
@@ -507,7 +478,6 @@ select {
     flex-direction: column;
     gap: 8px;
 }
-
 .filter-group label {
     display: flex;
     align-items: center;
@@ -518,7 +488,7 @@ select {
 }
 
 /* =====================
-   AUTH RIÊNG BIỆT (login / register)
+   AUTH (login / register)
    ===================== */
 .auth-page {
     min-height: 80vh;
@@ -536,12 +506,10 @@ select {
     width: 100%;
     max-width: 420px;
 }
-
 .auth-box h1 {
     font-size: 1.6rem;
     margin-bottom: 6px;
 }
-
 .auth-box .chu-nho {
     font-size: 0.875rem;
     color: var(--mau-chu-nhat);
@@ -555,7 +523,47 @@ select {
 }
 
 /* =====================
-   FOOTER KIỂU MEDIUM
+   TOAST + LOADER
+   ===================== */
+.toast {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    padding: 12px 20px;
+    border-radius: 8px;
+    color: white;
+    font-size: 0.9rem;
+    z-index: 9999;
+    animation: hienLen 0.3s ease;
+}
+.toast-success { background-color: #1a8917; }
+.toast-error   { background-color: #e53e3e; }
+.toast-info    { background-color: #3182ce; }
+
+@keyframes hienLen {
+    from { opacity: 0; transform: translateY(10px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+
+.loader {
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    background: rgba(0,0,0,0.3);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 9998;
+}
+.loader p {
+    background: var(--mau-trang);
+    padding: 16px 28px;
+    border-radius: 10px;
+    font-weight: bold;
+}
+
+/* =====================
+   FOOTER
    ===================== */
 footer.footer {
     border-top: 1px solid var(--mau-vien);
@@ -563,7 +571,6 @@ footer.footer {
     text-align: center;
     background-color: var(--mau-nen);
 }
-
 .footer-nav {
     display: flex;
     flex-wrap: wrap;
@@ -571,17 +578,14 @@ footer.footer {
     gap: 6px 18px;
     margin-bottom: 12px;
 }
-
 .footer-nav a {
     font-size: 0.8rem;
     color: var(--mau-chu-nhat);
 }
-
 .footer-nav a:hover {
     color: var(--mau-chu);
     text-decoration: none;
 }
-
 .footer-copy {
     font-size: 0.8rem;
     color: var(--mau-chu-nhat);
@@ -596,17 +600,14 @@ footer.footer {
     .article-grid {
         grid-template-columns: 1fr;
     }
-
     .header-nav {
         display: none;
     }
 }
-
 @media (max-width: 600px) {
     .btn-dangnhap {
         display: none;
     }
-
     #headerSearch.open {
         width: 130px;
     }
