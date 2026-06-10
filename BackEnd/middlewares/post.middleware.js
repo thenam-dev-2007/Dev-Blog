@@ -22,23 +22,40 @@ module.exports.loadPost = async (req, res, next) => {
     }
 };
 
+module.exports.canEditPost = (req, res, next) => {
+    const post = req.post;
+    const user = req.user;
+
+    const isOwner = post.author.toString() === user._id;
+
+    const isAdmin = user.role === "admin";
+
+    if (!isOwner && !isAdmin) {
+        return res.status(403).json({
+            success: false,
+            message: "Bạn không có quyền sửa bài viết này"
+        });
+    }
+
+    next();
+};
 
 // Admin: xóa mọi bài viết
 // User: chỉ xóa bài viết của mình
 module.exports.canDeletePost = (req, res, next) => {
-    const { user, post } = req;
+    const post = req.post;
+    const user = req.user;
+
+    const isOwner = post.author.toString() === user._id;
 
     const isAdmin = user.role === "admin";
 
-    const isOwner = post.author.toString() === user._id.toString();
-
-    if (isAdmin || isOwner) {
-        return next();
+    if (!isOwner && !isAdmin) {
+        return res.status(403).json({
+            success: false,
+            message: "Bạn không có quyền xóa bài viết này"
+        });
     }
 
-    return res.status(403).json({
-        success: false,
-        message: "Bạn không có quyền xóa bài viết này",
-        error: "PERMISSION_DENIED",
-    });
+    next();
 };

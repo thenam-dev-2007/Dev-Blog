@@ -6,6 +6,7 @@ const fs = require("fs/promises"); // file system (tạo, đọc, ghi, xóa, đ�
                                     // /promises: thêm phiên bản Promise của thư viện fs (để dùng async, await)
 const path = require("path"); // dùng để xử lý đường dẫn file/thư mục.
 const getProfileStatus = require("../../service/profile.service");
+const paginationHelper = require("../../helper/pagination")
 
 // [GET] - Lấy thông tin profile của user hiện tại
 module.exports.getMyProfile = async (req, res, next) => {
@@ -31,7 +32,7 @@ module.exports.getMyProfile = async (req, res, next) => {
       code: 200,
       message: "Lấy thông tin profile thành công",
       data: {
-        id: user._id,
+        _id: user._id,
         username: user.username,
         email: user.email,
         avatar: user.avatar,
@@ -58,7 +59,7 @@ module.exports.getOtherProfile = async (req, res, next) => {
         code: 200,
         message: "Lấy thông tin profile thành công",
         data: {
-            id: user._id,
+            _id: user._id,
             username: user.username,
             avatar: user.avatar,
             dateOfBirth: user.dateOfBirth,
@@ -143,7 +144,7 @@ module.exports.updateMyProfile = async (req, res, next) => {
 
     // Bước 8: Response
     const userResponse = {
-      id: user._id,
+      _id: user._id,
       username: user.username,
       avatar: user.avatar,
       dateOfBirth: user.dateOfBirth,
@@ -153,6 +154,88 @@ module.exports.updateMyProfile = async (req, res, next) => {
       code: 200,
       message: "Cập nhật dữ liệu thành công",
       data: userResponse,
+    });
+  } 
+  catch (error) {
+    next(error);
+  }
+};
+
+// [GET] - Lấy tất cả bài viết (me)
+module.exports.getMyPosts = async (req, res, next) => {
+    try {
+      const userId = req.user._id;
+
+      const countPosts = await Post.countDocuments({author: userId, isDeleted: false});
+      
+      let objectPagination = paginationHelper(
+        {
+          currentPage: 1,
+          limitPost: 9,
+        }, 
+        req.query, 
+        countPosts
+      )
+
+      const posts = await Post.find({author: userId, isDeleted: false})
+        .sort({ createdAt: -1 })
+        .skip(objectPagination.skip)
+        .limit(objectPagination.limitItem);
+
+      res.status(200).json({
+          success: true,
+          data: posts,
+          pagination: objectPagination,
+      });
+
+    } 
+    catch (error) {
+        next(error);
+    }
+};
+
+// [GET] - Lấy tất cả bài viết (others)
+module.exports.getOthersPosts = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const user = await User.findById(id);
+
+    if (!user) {
+      return res.status(404).json({
+        code: 404,
+        message: "User not found",
+      });
+    }
+
+    const countPosts = await Post.countDocuments({author: userId, isDeleted: false});
+
+    let objectPagination = paginationHelper(
+          {
+            currentPage: 1,
+            limitPost: 9,
+          }, 
+          req.query, 
+          countPosts
+        )
+
+    const posts = await Post.find({author: userId, isDeleted: false})
+        .populate("author", "username email avatar")
+        .sort({ createdAt: -1 })
+        .skip(objectPagination.skip)
+        .limit(objectPagination.limitItem);
+
+    res.json({
+      code: 200,
+      message: "Lấy bài viết của user thành công",
+      data: {
+        user: {
+          id: user._id,
+          username: user.username,
+          avatar: user.avatar,
+        },
+        posts,
+        pagination: objectPagination
+      },
     });
   } 
   catch (error) {

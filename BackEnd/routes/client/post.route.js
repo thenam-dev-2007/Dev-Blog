@@ -4,40 +4,27 @@ const router = express.Router();
 const controller = require("../../controllers/client/post.controller.js");
 const validation = require("../../middlewares/validation.js");
 const upload = require("../../middlewares/upload.js");
-const auth = require("../../middlewares/auth.js")
-const postMiddleware = require("../../middlewares/post.middleware.js")
+const auth = require("../../middlewares/auth.js");
+const postMiddleware = require("../../middlewares/post.middleware.js");
 
-// [GET] - Lấy tất cả posts 
 router.get("/", controller.getAllPosts);
 
-// [GET] - Tìm kiếm posts
-router.get("/search", controller.searchPost);
-
-// [GET] - Lấy posts theo tag
 router.get("/tag/:tag", controller.getPostsByTag);
 
-// [GET] - Lấy post theo slug
 router.get("/:slug", controller.getPostBySlug);
 
-// [POST] - Tạo post mới (cần authentication)
-router.post("/", validation.validateCreatePost, upload.uploadThumbnail.single("thumbnail"), controller.createPost);
+router.post("/", auth.authenticateToken, upload.uploadThumbnail.single("thumbnail"), validation.validateCreatePost, controller.createPost);
 
-// [PUT] - Sửa post (cần authentication)
-router.put("/:id", upload.uploadThumbnail.single("thumbnail"), controller.updatePost);
+router.put("/:id", auth.authenticateToken, postMiddleware.loadPost, postMiddleware.canEditPost, upload.uploadThumbnail.single("thumbnail"), validation.validateUpdatePost, controller.updatePost);
 
-// [DELETE] - Xóa post (cần authentication)
 router.delete("/:id", auth.authenticateToken, postMiddleware.loadPost, postMiddleware.canDeletePost, controller.deletePost);
 
-// [POST] - Like post (cần authentication)
-router.post("/:id/like", controller.likePost);
+router.post("/:id/like",auth.authenticateToken,  controller.likePost);
 
-// [DELETE] - Bỏ like post (cần authentication)
-router.delete("/:id/like", controller.unlikePost);
+router.delete("/:id/like", auth.authenticateToken, controller.unlikePost);
 
-// [POST] - Thêm bình luận (cần authentication)
-router.post("/:id/comment", validation.validateComment, controller.addComment);
+router.post("/:id/comments", auth.authenticateToken, validation.validateComment, controller.addComment);
 
-// [DELETE] - Xóa bình luận (cần authentication)
-router.delete("/:postId/comment/:commentId", controller.deleteComment);
+router.delete("/:postId/comments/:commentId", auth.authenticateToken, controller.deleteComment);
 
 module.exports = router;

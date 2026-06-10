@@ -49,7 +49,7 @@ module.exports.getPostBySlug = async (req, res, next) => {
   try {
     const { slug } = req.params;
 
-    const post = await Post.findOne({ slug })
+    const post = await Post.findOne({ slug, isDeleted: false })
       .populate("author", "username avatar")
       .populate("comments.user", "username avatar")
       .lean();
@@ -72,78 +72,29 @@ module.exports.getPostBySlug = async (req, res, next) => {
   }
 };
 
-// [GET] - Tìm kiếm bài viết
-module.exports.searchPost = async (req, res) => {
-  try {
-    const { keyword } = req.query;
-    const page = parseInt(req.query.page) || 1;
-    const limit = parseInt(req.query.limit) || 10;
-    const skip = (page - 1) * limit;
-
-    if (!keyword || keyword.trim() === "") {
-      return res.status(400).json({
-        code: 400,
-        message: "Vui lòng nhập từ khóa tìm kiếm",
-      });
-    }
-
-    const posts = await Post.find({
-      $or: [
-        { title: { $regex: keyword, $options: "i" } },
-        { content: { $regex: keyword, $options: "i" } },
-        { tags: { $regex: keyword, $options: "i" } },
-      ],
-    })
-      .populate("author", "username email avatar")
-      .sort({ createdAt: -1 })
-      .skip(skip)
-      .limit(limit)
-      .lean();
-
-    const total = await Post.countDocuments({
-      $or: [
-        { title: { $regex: keyword, $options: "i" } },
-        { content: { $regex: keyword, $options: "i" } },
-        { tags: { $regex: keyword, $options: "i" } },
-      ],
-    });
-
-    res.json({
-      code: 200,
-      message: "Tìm kiếm bài viết thành công",
-      data: {
-        posts,
-        pagination: {
-          total,
-          page,
-          limit,
-          pages: Math.ceil(total / limit),
-        },
-      },
-    });
-  } 
-  catch (error) {
-    next(error)
-  }
-};
-
 // [GET] - Lấy bài viết theo tag
-module.exports.getPostsByTag = async (req, res) => {
+module.exports.getPostsByTag = async (req, res, next) => {
   try {
     const { tag } = req.params;
-    const page = parseInt(req.query.page) || 1;
-    const limit = parseInt(req.query.limit) || 10;
-    const skip = (page - 1) * limit;
 
-    const posts = await Post.find({ tags: { $in: [tag] } })
-      .populate("author", "username email avatar")
-      .populate("comments.user", "username avatar")
-      .sort({ createdAt: -1 })
-      .skip(skip)
-      .limit(limit)
-      .lean();
+    const find = {tags: { $in: [tag] }, isDeleted: false};
+    
+    const countPosts = await Post.countDocuments(find);
 
-    const total = await Post.countDocuments({ tags: { $in: [tag] } });
+    let objectPagination = paginationHelper(
+          {
+            currentPage: 1,
+            limitPost: 9,
+          }, 
+          req.query, 
+          countPosts
+        )
+
+    const posts = await Post.find({ tags: { $in: [tag] }, isDeleted: false })
+        .populate("author", "username email avatar")
+        .sort({ createdAt: -1 })
+        .skip(objectPagination.skip)
+        .limit(objectPagination.limitItem);
 
     res.json({
       code: 200,
@@ -151,25 +102,68 @@ module.exports.getPostsByTag = async (req, res) => {
       data: {
         tag,
         posts,
-        pagination: {
-          total,
-          page,
-          limit,
-          pages: Math.ceil(total / limit),
-        },
+        pagination: objectPagination
       },
     });
-  } catch (error) {
-    console.error("Lỗi:", error);
-    res.status(500).json({
-      code: 500,
-      message: "Lỗi server: " + error.message,
+  } 
+  catch (error) {
+    next(error);
+  }
+};
+
+// [GET] - Tìm kiếm bài viết
+module.exports.searchPost = async (req, res, next) => {
+  try {
+    const { keyword } = req.query;
+    if (!keyword?.trim()) {
+        return res.status(400).json({
+            code: 400,
+            message: "Vui lòng nhập từ khóa tìm kiếm",
+        });
+    }
+
+    const find = {
+        isDeleted: false,
+        $or: [
+            { title: { $regex: keyword, $options: "i" } },
+            { content: { $regex: keyword, $options: "i" } },
+            { tags: { $regex: keyword, $options: "i" } },
+        ],
+    };
+
+    const Posts = await Post.countDocuments(find);
+
+    let objectPagination = paginationHelper(
+        {
+          currentPage: 1,
+          limitPost: 9,
+        }, 
+        req.query, 
+        countPosts
+      )
+
+    const posts = await Post.find(find)
+        .populate("author", "username email avatar")
+        .sort({ createdAt: -1 })
+        .skip(objectPagination.skip)
+        .limit(objectPagination.limitItem)
+
+    res.json({
+        code: 200,
+        message: "Tìm kiếm bài viết thành công",
+        data: {
+            posts,
+            pagination: objectPagination,
+        },
     });
+  } 
+  catch (error) {
+    next(error)
   }
 };
 
 // [POST] - Tạo bài viết mới
-module.exports.createPost = async (req, res) => {
+module.exports.createPost = async (req, res, next) => {
   try {
     const { title, content, thumbnail, tags } = req.body;
     const authorId = req.user?.id; // Lấy từ middleware auth
@@ -208,13 +202,13 @@ module.exports.createPost = async (req, res) => {
 };
 
 // [PUT] - Sửa bài viết
-module.exports.updatePost = async (req, res) => {
+module.exports.updatePost = async (req, res, next) => {
   try {
     const { id } = req.params;
     const { title, content, thumbnail, tags } = req.body;
-    const userId = req.user?.id;
+    const userId = req.user?._id;
 
-    const post = await Post.findById(id);
+    const post = await Post.findById({_id: id, isDeleted: false});
 
     if (!post) {
       return res.status(404).json({
@@ -230,16 +224,25 @@ module.exports.updatePost = async (req, res) => {
       });
     }
 
+    const updateData = {};
+    if(title !== undefined) updateData.title = title;
+    if(content !== undefined) updateData.content = content;
+    if(thumbnail !== undefined) updateData.thumbnail = thumbnail;
+    if(tags !== undefined) updateData.tags = tags;
+
     const updatedPost = await Post.findByIdAndUpdate(
-      id,
-      { title, content, thumbnail, tags },
-      { new: true },
-    ).populate("author", "username email avatar");
+      id, 
+      updateData,
+      {
+          new: true,
+          runValidators: true
+      }
+    )
 
     res.json({
       code: 200,
       message: "Cập nhật bài viết thành công",
-      data: updatedPost,
+      data: post,
     });
   } 
   catch (error) {
@@ -248,18 +251,27 @@ module.exports.updatePost = async (req, res) => {
 };
 
 // [DELETE] - Xóa bài viết
-module.exports.deletePost = async (req, res) => {
+module.exports.deletePost = async (req, res, next) => {
   try {
-        await req.post.deleteOne();
-        await User.findByIdAndUpdate(
-            post.author,
-            { $pull: { posts: post._id } } // $pull là một MongoDB update operator dùng để xóa phần tử khỏi mảng.
-        );
+    const post = req.post;
 
-        return res.status(200).json({
-            success: true,
-            message: "Xóa bài viết thành công"
-        });
+    await Post.findByIdAndUpdate(
+      post._id,
+      {
+        isDeleted: true,
+        deletedAt: new Date()
+      }
+    );
+
+    await User.findByIdAndUpdate(
+        post.author,
+        { $pull: { posts: post._id } } // $pull là một MongoDB update operator dùng để xóa phần tử khỏi mảng.
+    );
+
+    return res.status(200).json({
+        success: true,
+        message: "Xóa bài viết thành công"
+    });
 
     }
     catch (error) {
@@ -268,19 +280,12 @@ module.exports.deletePost = async (req, res) => {
 };
 
 // [POST] - Like bài viết
-module.exports.likePost = async (req, res) => {
+module.exports.likePost = async (req, res, next) => {
   try {
     const { id } = req.params;
-    const userId = req.user?.id;
+    const userId = req.user._id;
 
-    if (!userId) {
-      return res.status(401).json({
-        code: 401,
-        message: "Bạn phải đăng nhập để like bài viết",
-      });
-    }
-
-    const post = await Post.findById(id);
+    const post = await Post.findById({_id: id,  isDeleted: false});
 
     if (!post) {
       return res.status(404).json({
@@ -289,36 +294,33 @@ module.exports.likePost = async (req, res) => {
       });
     }
 
-    const updatedPost = await Post.findByIdAndUpdate(
-      id,
-      { $inc: { likes: 1 } },
-      { new: true },
-    );
+    if (post.likes.includes(userId)) {
+      return res.status(400).json({
+        message: "Bạn đã like bài viết này rồi"
+      });
+    }
+
+    post.likes.push(userId);
+    await post.save();
 
     res.json({
       code: 200,
       message: "Like bài viết thành công",
-      data: { likes: updatedPost.likes },
+      likesCount: post.likes.length
     });
-  } catch (error) {
+  } 
+  catch (error) {
     next(error);
   }
 };
 
 // [DELETE] - Bỏ like bài viết
-module.exports.unlikePost = async (req, res) => {
+module.exports.unlikePost = async (req, res, next) => {
   try {
     const { id } = req.params;
-    const userId = req.user?.id;
+    const userId = req.user._id;
 
-    if (!userId) {
-      return res.status(401).json({
-        code: 401,
-        message: "Bạn phải đăng nhập để bỏ like bài viết",
-      });
-    }
-
-    const post = await Post.findById(id);
+    const post = await Post.findById({_id: id, isDeleted: false});
 
     if (!post) {
       return res.status(404).json({
@@ -327,16 +329,19 @@ module.exports.unlikePost = async (req, res) => {
       });
     }
 
-    const updatedPost = await Post.findByIdAndUpdate(
-      id,
-      { $inc: { likes: -1 } },
-      { new: true },
-    );
+    if (!post.likes.includes(userId)) {
+      return res.status(400).json({
+        message: "Bạn chưa like bài viết này"
+      });
+    }
+
+    post.likes.pull(userId);
+    await post.save();
 
     res.json({
       code: 200,
       message: "Bỏ like bài viết thành công",
-      data: { likes: updatedPost.likes },
+      likesCount: post.likes.length
     });
   } 
   catch (error) {
@@ -345,11 +350,11 @@ module.exports.unlikePost = async (req, res) => {
 };
 
 // [POST] - Thêm bình luận
-module.exports.addComment = async (req, res) => {
+module.exports.addComment = async (req, res, next) => {
   try {
     const { id } = req.params;
     const { content } = req.body;
-    const userId = req.user?.id;
+    const userId = req.user?._id;
 
     if (!userId) {
       return res.status(401).json({
@@ -376,14 +381,14 @@ module.exports.addComment = async (req, res) => {
 
     const newComment = {
       user: userId,
-      content,
+      content: content.trim(),
       createdAt: new Date(),
     };
 
     post.comments.push(newComment);
     await post.save();
 
-    const updatedPost = await Post.findById(id)
+    const updatedPost = await Post.findById({_id: id, isDeleted: false})
       .populate("author", "username email avatar")
       .populate("comments.user", "username avatar");
 
@@ -399,10 +404,10 @@ module.exports.addComment = async (req, res) => {
 };
 
 // [DELETE] - Xóa bình luận
-module.exports.deleteComment = async (req, res) => {
+module.exports.deleteComment = async (req, res, next) => {
   try {
     const { postId, commentId } = req.params;
-    const userId = req.user?.id;
+    const userId = req.user?._id;
 
     if (!userId) {
       return res.status(401).json({
@@ -411,7 +416,7 @@ module.exports.deleteComment = async (req, res) => {
       });
     }
 
-    const post = await Post.findById(postId);
+    const post = await Post.findById({_id: postId, isDeleted: false});
 
     if (!post) {
       return res.status(404).json({
@@ -445,56 +450,6 @@ module.exports.deleteComment = async (req, res) => {
     res.json({
       code: 200,
       message: "Xóa bình luận thành công",
-    });
-  } 
-  catch (error) {
-    next(error);
-  }
-};
-
-// [GET] - Lấy tất cả bài viết của user
-module.exports.getPostsByUser = async (req, res, next) => {
-  try {
-    const { id } = req.params;
-    const page = parseInt(req.query.page) || 1;
-    const limit = parseInt(req.query.limit) || 10;
-    const skip = (page - 1) * limit;
-
-    const user = await User.findById(id);
-
-    if (!user) {
-      return res.status(404).json({
-        code: 404,
-        message: "User not found",
-      });
-    }
-
-    const posts = await Post.find({ author: id })
-      .populate("author", "username email avatar")
-      .sort({ createdAt: -1 })
-      .skip(skip)
-      .limit(limit)
-      .lean();
-
-    const total = await Post.countDocuments({ author: id });
-
-    res.json({
-      code: 200,
-      message: "Lấy bài viết của user thành công",
-      data: {
-        user: {
-          id: user._id,
-          username: user.username,
-          avatar: user.avatar,
-        },
-        posts,
-        pagination: {
-          total,
-          page,
-          limit,
-          pages: Math.ceil(total / limit),
-        },
-      },
     });
   } 
   catch (error) {

@@ -130,15 +130,64 @@ module.exports.validateCreatePost = [
 
     // Tags
     body('tags')
-        .optional()
+        .optional({ nullable: true })
         .isArray().withMessage('Tags phải là một mảng')
         .custom((value) => {
             if (value.length > 10 ) {
                 throw new Error('Không được vượt quá 10 tags');
             }
+
+            const hasEmptyTag = value.some(tag => typeof tag !== "string" || tag.trim() === "");
+            if (hasEmptyTag) {
+                throw new Error("Tag không được để trống");
+            }
             return true;
         }),
+    
+    // Thumbnail
+    body("thumbnail")
+        .optional()
+        .isURL().withMessage("Thumbnail phải là URL hợp lệ"),
 
+    handleValidationErrors
+];
+
+module.exports.validateUpdatePost = [
+    // Title
+    body("title")
+        .optional()
+        .trim()
+        .notEmpty().withMessage("Tiêu đề không được để trống")
+        .isLength({ max: 200 }).withMessage("Tiêu đề không được vượt quá 200 ký tự"),
+
+    // Content
+    body("content")
+        .optional()
+        .trim()
+        .notEmpty().withMessage("Nội dung không được để trống")
+        .isLength({ min: 10 }).withMessage("Nội dung phải có ít nhất 10 ký tự"),
+
+    // Thumbnail
+    body("thumbnail")
+        .optional()
+        .trim()
+        .notEmpty().withMessage("Thumbnail không được để trống"),
+
+    // Tags
+    body("tags")
+        .optional()
+        .isArray().withMessage("Tags phải là một mảng")
+        .custom((value) => {
+            if (value.length > 10) {
+                throw new Error("Không được vượt quá 10 tags");
+            }
+
+            const hasEmptyTag = value.some(tag => typeof tag !== "string" || tag.trim() === "");
+            if (hasEmptyTag) {
+                throw new Error("Tag không được để trống");
+            }
+            return true;
+        }),
 
     handleValidationErrors
 ];

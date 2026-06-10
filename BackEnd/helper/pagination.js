@@ -1,7 +1,7 @@
 module.exports = (objectPagination, query, countItems) => {
     if(query.page) {
         const page = parseInt(query.page);
-        if(page > 0) {
+        if(!isNaN(page) && page > 0) {
             objectPagination.currentPage = page;
         }
     }
