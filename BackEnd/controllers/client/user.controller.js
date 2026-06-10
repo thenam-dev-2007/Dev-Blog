@@ -78,11 +78,10 @@ module.exports.getOtherProfile = async (req, res, next) => {
 // [PATCH] //
 module.exports.updateMyProfile = async (req, res, next) => {
   try {
-    // Bước 1: Lấy ID từ URL params
-    const userId = req.params.id;
-    const currentUserId = req.user?._id.toString();
+    // Lấy Id từ token
+    const userId = req.user._id.toString();
 
-    // Bước 2: Validate ObjectId
+    // Validate ObjectId
     if (!mongoose.Types.ObjectId.isValid(userId)) {
       return res.status(400).json({
         code: 400,
@@ -90,18 +89,10 @@ module.exports.updateMyProfile = async (req, res, next) => {
       });
     }
 
-    // Bước 3: Kiểm tra quyền (chỉ có thể sửa profile của chính mình)
-    if (currentUserId !== userId) {
-      return res.status(403).json({
-        code: 403,
-        message: "Bạn không có quyền sửa profile này",
-      });
-    }
-
-    // Bước 3: Gọi model để tìm user
+    // Tìm user
     const user = await User.findById(userId);
 
-    // Bước 4: Kiểm tra xem user có tồn tại không
+    // Kiểm tra xem user có tồn tại không
     if (!user) {
       return res.status(404).json({
         code: 404,
@@ -109,43 +100,59 @@ module.exports.updateMyProfile = async (req, res, next) => {
       });
     }
 
-    // Bước 5: Lấy dữ liệu từ body request
+    // Lấy dữ liệu từ body request
     const { username, dateOfBirth } = req.body;
 
-    // Bước 6: Update dữ liệu
-    if (username) user.username = username;
-    if (dateOfBirth) user.dateOfBirth = dateOfBirth;
+    // Update dữ liệu
+    if (username) user.username = username.trim();
+    if (dateOfBirth && !isNaN(new Date(dateOfBirth))) user.dateOfBirth = dateOfBirth;
 
+    // Lưu avatar cũ để xóa sau khi save thành công
+    let oldAvatarPath = null;
     // Nếu có upload avatar
     if (req.file) {
       // Xóa avatar cũ (nếu có)
       if (user.avatar && !user.avatar.includes("default-avatar.png")) {
+        oldAvatarPath = path.join( // Tạo biến chứa đường dẫn vật lý tới avatar cũ.
+          process.cwd(), // Trả về thư mục gốc của project hiện tại.
+          user.avatar.replace(/^\/+/, "") // Regex: /^\//
+                                        // ^   : đầu chuỗi
+                                        // \/+  : loại bỏ nhiều dấu / (nếu có)
+          // ví dụ: "/upload/avatar/old-avatar.png" sẽ đổi thành upload/avatar/old-avatar.png
+          // Nếu không bỏ dấu / sẽ có thể tạo đường dẫn không đúng trên một số hệ điều hành.
+        );
+      }
+      // Cập nhật avatar mới
+      user.avatar = `/upload/avatar/${req.file.filename}`;
+      // Save user
+      await user.save();
+
+      if (oldAvatarPath) {
         try {
-          const oldAvatarPath = path.join( // Tạo biến chứa đường dẫn vật lý tới avatar cũ.
-            process.cwd(), // Trả về thư mục gốc của project hiện tại.
-            user.avatar.replace(/^\//, "") // Regex: /^\//
-                                          // ^   : đầu chuỗi
-                                          // \/  : dấu /
-            // ví dụ: "/upload/avatar/old-avatar.png" sẽ đổi thành upload/avatar/old-avatar.png
-            // Nếu không bỏ dấu / sẽ có thể tạo đường dẫn không đúng trên một số hệ điều hành.
-          );
-          await fs.unlink(oldAvatarPath); // Xóa file avatar cũ.
+          const exists = await fs.access(oldAvatarPath)
+            // Nếu file hoặc thư mục tồn tại và có quyền truy cập → Promise được resolve.
+            // Nếu file không tồn tại hoặc không có quyền truy cập → Promise bị reject (throw error).
+            .then(() => true)
+            .catch(() => false);
+          if (exists) await fs.unlink(oldAvatarPath); // Xóa file avatar cũ.
         } 
         catch (err) {
           console.error(err.message);
         }
       }
+
       // Cập nhật avatar mới
       user.avatar = `/upload/avatar/${req.file.filename}`;
     }
 
-    // Bước 7: Save user
+    // Save user
     await user.save();
 
-    // Bước 8: Response
+    // Response
     const userResponse = {
       _id: user._id,
       username: user.username,
+      email: user.email,
       avatar: user.avatar,
       dateOfBirth: user.dateOfBirth,
     };

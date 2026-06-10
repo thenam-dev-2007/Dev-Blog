@@ -1,7 +1,7 @@
 const User = require("../../models/user.model.js");
 const Post = require("../../models/post.model.js");
 
-// [GET] - Trang chủ: 10 post mới nhất + 10 post nổi tiếng
+// [GET]
 module.exports.home = async (req, res) => {
   try {
     // 10 post mới nhất

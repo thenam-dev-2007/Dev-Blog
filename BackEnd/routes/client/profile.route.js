@@ -16,6 +16,6 @@ router.get("/:id", auth.authenticateToken, userMiddleware.loadUser, controller.g
 
 router.get("/:id/posts", auth.authenticateToken, userMiddleware.loadUser, controller.getOthersPosts);
 
-router.patch("/me", auth.authenticateToken, authorize.authorizeRoles, upload.uploadAvatar.single('avatar'), validation.validateUpdateMyProfile, controller.updateMyProfile);
+router.patch("/me", auth.authenticateToken, upload.uploadAvatar.single('avatar'), validation.validateUpdateMyProfile, controller.updateMyProfile);
 
 module.exports = router;
