@@ -1,7 +1,7 @@
 const User = require("../../models/user.model");
 const Post = require("../../models/post.model");
 
-// [GET] //
+// [GET] 
 module.exports.getAllUser = async () => {
     try {
         res.status(200).json({
@@ -15,6 +15,33 @@ module.exports.getAllUser = async () => {
         next(error);
     }
 }
+
+// [GET] - Lấy profile của user
+module.exports.getOtherProfile = async (req, res, next) => {
+    try {
+        const user = req.targetUser;
+
+        const profileStatus = await getProfileStatus(user._id);
+
+        return res.status(200).json({
+            code: 200,
+            message: "Lấy thông tin profile thành công",
+            data: {
+                _id: user._id,
+                username: user.username,
+                avatar: user.avatar,
+                dateOfBirth: user.dateOfBirth,
+
+                totalPosts: profileStatus.totalPosts,
+                totalLikes: profileStatus.totalLikes,
+                totalComments: profileStatus.totalComments,
+            },
+        });
+    } 
+    catch (error) {
+        next(error);
+    }
+};
 
 // [DELETE] - Xóa tài khoản
 module.exports.deleteUser = async (req, res, next) => {

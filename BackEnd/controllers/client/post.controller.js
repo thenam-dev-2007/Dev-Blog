@@ -1,6 +1,6 @@
 const Post = require("../../models/post.model.js");
 const User = require("../../models/user.model.js");
-const paginationHelper = require("../../helper/pagination")
+const paginationHelper = require("../../helper/pagination");
 
 // [GET] - Lấy tất cả bài viết 
 module.exports.getAllPosts = async (req, res, next) => {

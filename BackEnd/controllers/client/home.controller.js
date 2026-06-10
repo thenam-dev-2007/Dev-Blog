@@ -38,7 +38,7 @@ module.exports.home = async (req, res) => {
 };
 
 // [GET] - Lấy tất cả tags hiện có
-module.exports.getAllTags = async (req, res) => {
+module.exports.getAllTags = async (req, res, next) => {
   try {
     const posts = await Post.find().select("tags").lean();
 
@@ -60,12 +60,9 @@ module.exports.getAllTags = async (req, res) => {
         total: tags.length,
       },
     });
-  } catch (error) {
-    console.error("Lỗi:", error);
-    res.status(500).json({
-      code: 500,
-      message: "Lỗi server: " + error.message,
-    });
+  } 
+  catch (error) {
+    next(error)
   }
 };
 
