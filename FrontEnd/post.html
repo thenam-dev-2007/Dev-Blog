@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="vi">
 <head>
     <meta charset="UTF-8">
@@ -7,69 +7,72 @@
     <link rel="stylesheet" href="./asset/css/style-client.css">
 </head>
 <body>
-    <header>
-        <div class="header-container">
-            <a class="logo" href="index.html">BLOG LOGO</a>
 
-            <!-- Menu điều hướng -->
-            <nav class="header-nav">
-                <a href="index.html">Home</a>
-                <a href="categories.html">Categories</a>
-                <a href="faq.html">FAQ</a>
-                <a href="about.html">About</a>
-                <a href="contact.html">Contact</a>
-            </nav>
-
-            <!-- Phần bên phải: search, dark mode, đăng nhập -->
-            <div class="header-right">
-                <!-- Thanh tìm kiếm thu gọn -->
-                <div class="search-wrapper">
-                    <input type="text" id="headerSearch" placeholder="Tìm kiếm...">
-                    <button class="btn-search-icon" onclick="toggleSearch()" title="Tìm kiếm">🔍</button>
-                </div>
-
-                <!-- Nút bật/tắt dark mode -->
-                <button class="btn-darkmode" onclick="toggleDarkMode()" id="btnDarkMode" title="Chế độ tối">🌙</button>
-
-                <!-- Nút đăng nhập và đăng ký tách riêng -->
-                <a href="login.html" class="btn-dangnhap">Đăng nhập</a>
-                <a href="register.html" class="btn-dangky">Đăng ký</a>
-            </div>
-        </div>
-    </header>
-
-    <main>
-        <section class="section-card page-banner">
-            <h1>Làm chủ HTML trong 7 ngày</h1>
-            <p>Tìm hiểu cách xây dựng trang web đơn giản, rõ ràng và hiệu quả mà không cần framework phức tạp.</p>
-        </section>
-        <section class="section-card">
-            <p><i>Tác giả: TechMaster - Đăng ngày 14/05/2026</i></p>
-            <img src="https://via.placeholder.com/800x400" alt="Header Image">
-            <div style="margin-top:20px; line-height:1.8; color:#334155;">
-                <p>Nội dung bài viết chi tiết...</p>
-            </div>
-            <div style="display:flex; justify-content:flex-end; gap:12px; flex-wrap:wrap; margin-top:18px;">
-                <button type="button">❤️ Yêu thích</button>
-                <button type="button">🔗 Chia sẻ</button>
-            </div>
-        </section>
-    </main>
-
-            <!-- Footer kiểu Medium: các link quan trọng nằm ở dưới -->
-    <footer class="footer">
-        <nav class="footer-nav">
+<header>
+    <div class="header-container">
+        <a class="logo" href="index.html">BLOG LOGO</a>
+        <nav class="header-nav">
             <a href="index.html">Home</a>
-            <a href="about.html">Giới thiệu</a>
+            <a href="categories.html">Categories</a>
             <a href="faq.html">FAQ</a>
-            <a href="contact.html">Liên hệ</a>
-            <a href="categories.html">Danh mục</a>
-            <a href="admin.html">Admin</a>
-            <a href="#">Điều khoản</a>
-            <a href="#">Quyền riêng tư</a>
+            <a href="about.html">About</a>
+            <a href="contact.html">Contact</a>
         </nav>
-        <p class="footer-copy">© 2026 Blog Platform. All rights reserved.</p>
-    </footer>
+        <div class="header-right">
+            <div class="search-wrapper">
+                <input type="text" id="headerSearch" placeholder="Tìm kiếm...">
+                <button class="btn-search-icon" onclick="toggleSearch()" title="Tìm kiếm">🔍</button>
+            </div>
+            <button class="btn-darkmode" onclick="toggleDarkMode()" id="btnDarkMode" title="Chế độ tối">🌙</button>
+            <a href="login.html" class="btn-dangnhap">Đăng nhập</a>
+            <a href="register.html" class="btn-dangky">Đăng ký</a>
+        </div>
+    </div>
+</header>
+
+
+<main>
+    <section class="section-card page-banner" id="postBanner">
+        <h1>Đang tải bài viết...</h1>
+        <p>Vui lòng chờ trong giây lát.</p>
+    </section>
+
+    <section class="section-card post-detail" id="postDetail">
+        <p>Đang tải...</p>
+    </section>
+
+    <section class="section-card">
+        <h2>Bình luận</h2>
+        <div id="commentsList" style="margin-top:16px;"></div>
+        <div id="commentFormWrap" style="margin-top:20px;">
+            <form id="commentForm">
+                <div class="form-group">
+                    <label for="commentContent">Viết bình luận</label>
+                    <textarea id="commentContent" placeholder="Nhập bình luận của bạn..." maxlength="1000"></textarea>
+                </div>
+                <button type="submit" class="button">Gửi bình luận</button>
+            </form>
+        </div>
+    </section>
+</main>
+
+
+<footer class="footer">
+    <nav class="footer-nav">
+        <a href="index.html">Home</a>
+        <a href="about.html">Giới thiệu</a>
+        <a href="faq.html">FAQ</a>
+        <a href="contact.html">Liên hệ</a>
+        <a href="categories.html">Danh mục</a>
+        <a href="admin.html">Admin</a>
+        <a href="#">Điều khoản</a>
+        <a href="#">Quyền riêng tư</a>
+    </nav>
+    <p class="footer-copy">© 2026 Blog Platform. All rights reserved.</p>
+</footer>
+
     <script src="./asset/script/main.js"></script>
+    <script src="./asset/script/utils.js"></script>
+    <script src="./asset/script/post.js"></script>
 </body>
 </html>

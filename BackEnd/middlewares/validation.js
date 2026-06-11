@@ -32,15 +32,6 @@ module.exports.validateRegister = [
         .isEmail().withMessage('Email không hợp lệ')
         .normalizeEmail(), // Chuẩn hóa email (chuyển thành chữ thường, loại bỏ dấu chấm trong Gmail...)
 
-    // Kiểm tra password
-    body('password')
-        .trim()
-        .notEmpty().withMessage('Mật khẩu là bắt buộc')
-        .isLength({ min: 8 }).withMessage('Mật khẩu phải có ít nhất 8 ký tự')
-        .matches(/[a-zA-Z]/).withMessage('Mật khẩu phải chứa ít nhất 1 chữ cái')
-        .matches(/[0-9]/).withMessage('Mật khẩu phải chứa ít nhất 1 số')
-        .matches(/[!@#$%^&*(),.?":{}|<>]/).withMessage('Mật khẩu phải chứa ít nhất 1 ký tự đặc biệt'),
-
     // Kiểm tra dateOfBirth (nếu có)
     body('dateOfBirth')
         .isISO8601()
@@ -58,6 +49,26 @@ module.exports.validateRegister = [
             // express-validator sẽ đánh dấu validation failed
             // message lỗi sẽ là: Ngày sinh không hợp lệ
         .toDate(),
+
+    // Kiểm tra password
+    body('password')
+        .trim()
+        .notEmpty().withMessage('Mật khẩu là bắt buộc')
+        .isLength({ min: 8 }).withMessage('Mật khẩu phải có ít nhất 8 ký tự')
+        .matches(/[a-zA-Z]/).withMessage('Mật khẩu phải chứa ít nhất 1 chữ cái')
+        .matches(/[0-9]/).withMessage('Mật khẩu phải chứa ít nhất 1 số')
+        .matches(/[!@#$%^&*(),.?":{}|<>]/).withMessage('Mật khẩu phải chứa ít nhất 1 ký tự đặc biệt'),
+
+    // Confirm Password
+    body('confirmPassword')
+        .trim()
+        .notEmpty().withMessage('Xác nhận mật khẩu là bắt buộc')
+        .custom((value, { req }) => {
+            if (value !== req.body.password) {
+                throw new Error('Xác nhận mật khẩu không trùng khớp');
+            }
+            return true;
+        }),
 
     // Middleware xử lý kết quả validation
     handleValidationErrors

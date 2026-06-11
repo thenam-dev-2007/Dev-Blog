@@ -1,42 +1,29 @@
-//  login.html
-async function handleLogin(event) {
-    event.preventDefault();
-
-    const username = document.getElementById("username").value.trim();
-    const password = document.getElementById("password").value.trim();
-
-    if (!username || !password) {
-        showError("Vui lòng nhập đầy đủ thông tin!", "loginError");
-        return;
-    }
-
-    showLoading("Đang đăng nhập");
-
-    try {
-        const result = await login(username, password );
-        hideLoading();
-        if (result.code === 200) {
-            toast("Đăng nhập thành công!", "success");
-            // Lưu thông tin người dùng vào localStorage
-            saveUserInfo(result.data);
-            // Chuyển hướng về trang chủ
-            setTimeout(() => {
-                window.location.href = "index.html";
-            }, 1000);
-        } else {
-            showError(result.message || "Đăng nhập thất bại. Vui lòng thử lại.", "loginError");
-        }
-    } catch (error) {
-        hideLoading();
-        console.error("Lỗi:", error);
-        toast("Lỗi : " + error.message, "loginError");
-    }
-}
-
-
 document.addEventListener("DOMContentLoaded", () => {
-    const loginForm = document.getElementById("login-form");
-    if (loginForm) {
-        loginForm.addEventListener("submit", handleLogin);
-    }
+    const form = document.getElementById("login-form");
+    if (!form) return;
+
+    form.addEventListener("submit", async (event) => {
+        event.preventDefault();
+
+        const email = document.getElementById("login-email")?.value.trim();
+        const password = document.getElementById("login-password")?.value;
+
+        if (!email || !password) {
+            showMessage("Vui lòng nhập email và mật khẩu.", "login-message", "error");
+            return;
+        }
+
+        showLoading("Đang đăng nhập...");
+        const result = await login(email, password);
+        hideLoading();
+
+        if (resultOk(result)) {
+            setAccessToken(result.data?.accessToken);
+            saveUserInfo(result.data?.user);
+            showMessage("Đăng nhập thành công. Đang chuyển trang...", "login-message", "success");
+            setTimeout(() => window.location.href = "index.html", 600);
+        } else {
+            showMessage(getErrorMessage(result, "Đăng nhập thất bại"), "login-message", "error");
+        }
+    });
 });

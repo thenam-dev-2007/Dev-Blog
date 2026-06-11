@@ -7,100 +7,63 @@
     <link rel="stylesheet" href="./asset/css/style-client.css">
 </head>
 <body>
-    <header>
-        <div class="header-container">
-            <a class="logo" href="index.html">BLOG LOGO</a>
 
-            <!-- Menu điều hướng -->
-            <nav class="header-nav">
-                <a href="index.html">Home</a>
-                <a href="categories.html">Categories</a>
-                <a href="faq.html">FAQ</a>
-                <a href="about.html">About</a>
-                <a href="contact.html">Contact</a>
-            </nav>
-
-            <!-- Phần bên phải: search, dark mode, đăng nhập -->
-            <div class="header-right">
-                <!-- Thanh tìm kiếm thu gọn -->
-                <div class="search-wrapper">
-                    <input type="text" id="headerSearch" placeholder="Tìm kiếm...">
-                    <button class="btn-search-icon" onclick="toggleSearch()" title="Tìm kiếm">🔍</button>
-                </div>
-
-                <!-- Nút bật/tắt dark mode -->
-                <button class="btn-darkmode" onclick="toggleDarkMode()" id="btnDarkMode" title="Chế độ tối">🌙</button>
-
-                <!-- Nút đăng nhập và đăng ký tách riêng -->
-                <a href="login.html" class="btn-dangnhap">Đăng nhập</a>
-                <a href="register.html" class="btn-dangky">Đăng ký</a>
-            </div>
-        </div>
-    </header>
-
-    <main>
-        <section class="section-card page-banner">
-            <h1>Kết quả tìm kiếm</h1>
-            <p id="searchQuery">Tìm kiếm: <strong></strong></p>
-        </section>
-
-        <div class="content-grid">
-            <div>
-                <section class="article-grid" id="searchResults">
-                    <!-- Search results will be populated here -->
-                    <div style="grid-column: 1 / -1; text-align: center; color: #64748b;">
-                        <p>Đang tải kết quả tìm kiếm...</p>
-                    </div>
-                </section>
-                <section class="section-card">
-                    <div class="phan-trang">
-                        <button type="button" id="prevBtn" class="pagination-btn">← Previous</button>
-                        <span id="pageInfo">Trang 1 / 1</span>
-                        <button type="button" id="nextBtn" class="pagination-btn">Next →</button>
-                    </div>
-                </section>
-            </div>
-            <aside class="aside section-card">
-                <div>
-                    <h3>Bộ lọc</h3>
-                    <div class="filter-group">
-                        <label>
-                            <input type="checkbox" name="category" value="health"> Sức khỏe
-                        </label>
-                        <label>
-                            <input type="checkbox" name="category" value="lifestyle"> Đời sống
-                        </label>
-                        <label>
-                            <input type="checkbox" name="category" value="art"> Nghệ thuật
-                        </label>
-                    </div>
-                </div>
-                <div>
-                    <h3>Sắp xếp</h3>
-                    <select id="sortBy">
-                        <option value="recent">Gần đây nhất</option>
-                        <option value="popular">Phổ biến nhất</option>
-                        <option value="trending">Xu hướng</option>
-                    </select>
-                </div>
-            </aside>
-        </div>
-    </main>
-
-            <!-- Footer kiểu Medium: các link quan trọng nằm ở dưới -->
-    <footer class="footer">
-        <nav class="footer-nav">
+<header>
+    <div class="header-container">
+        <a class="logo" href="index.html">BLOG LOGO</a>
+        <nav class="header-nav">
             <a href="index.html">Home</a>
-            <a href="about.html">Giới thiệu</a>
+            <a href="categories.html">Categories</a>
             <a href="faq.html">FAQ</a>
-            <a href="contact.html">Liên hệ</a>
-            <a href="categories.html">Danh mục</a>
-            <a href="admin.html">Admin</a>
-            <a href="#">Điều khoản</a>
-            <a href="#">Quyền riêng tư</a>
+            <a href="about.html">About</a>
+            <a href="contact.html">Contact</a>
         </nav>
-        <p class="footer-copy">© 2026 Blog Platform. All rights reserved.</p>
-    </footer>
+        <div class="header-right">
+            <div class="search-wrapper">
+                <input type="text" id="headerSearch" placeholder="Tìm kiếm...">
+                <button class="btn-search-icon" onclick="toggleSearch()" title="Tìm kiếm">🔍</button>
+            </div>
+            <button class="btn-darkmode" onclick="toggleDarkMode()" id="btnDarkMode" title="Chế độ tối">🌙</button>
+            <a href="login.html" class="btn-dangnhap">Đăng nhập</a>
+            <a href="register.html" class="btn-dangky">Đăng ký</a>
+        </div>
+    </div>
+</header>
+
+
+<main>
+    <section class="section-card page-banner">
+        <h1>Kết quả tìm kiếm</h1>
+        <p id="searchQuery">Tìm kiếm: <strong></strong></p>
+        <p id="searchInfo" class="chu-nho"></p>
+    </section>
+
+    <section class="article-grid" id="searchResults">
+        <div class="section-card empty-state">Đang tải kết quả tìm kiếm...</div>
+    </section>
+
+    <section class="section-card">
+        <div class="phan-trang" id="phan-trang-search"></div>
+    </section>
+</main>
+
+
+<footer class="footer">
+    <nav class="footer-nav">
+        <a href="index.html">Home</a>
+        <a href="about.html">Giới thiệu</a>
+        <a href="faq.html">FAQ</a>
+        <a href="contact.html">Liên hệ</a>
+        <a href="categories.html">Danh mục</a>
+        <a href="admin.html">Admin</a>
+        <a href="#">Điều khoản</a>
+        <a href="#">Quyền riêng tư</a>
+    </nav>
+    <p class="footer-copy">© 2026 Blog Platform. All rights reserved.</p>
+</footer>
+
     <script src="./asset/script/main.js"></script>
+    <script src="./asset/script/utils.js"></script>
+    <script src="./asset/script/search.js"></script>
 </body>
 </html>

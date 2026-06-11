@@ -112,9 +112,6 @@ userSchema.pre('save', async function(next) {
         const salt = await bcrypt.genSalt(12);
         // Mã hóa password với salt
         this.password = await bcrypt.hash(this.password, salt);
-        next();
-        // Báo cho Mongoose: Middleware xong rồi, tiếp tục save document.
-        // Nếu quên gọi next() thì request có thể bị treo.
     } 
     catch (error) {
         next(error); // Chuyển lỗi cho error handler

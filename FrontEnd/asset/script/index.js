@@ -1,42 +1,23 @@
-// index.js - Trang chủ
-// Biến lưu trang hiện tại
-var trangHienTai = 1;
+let currentHomePage = 1;
 
-async function loadHomePage(trang) {
-    trang = trang || 1;
-    trangHienTai = trang;
+async function loadHomePage(page = 1) {
+    currentHomePage = page;
+    showLoading("Đang tải bài viết...");
 
-    showLoading("Đang tải dữ liệu...");
+    const result = await getPosts(page, 4);
+    hideLoading();
 
-    try {
-        // Gọi API lấy bài viết trang chủ
-        const result = await apiCall("/posts?page=" + trang, "GET");
-        hideLoading();
-
-        if (result.code === 200) {
-            // Render bài viết vào latestPosts
-            var latestContainer = document.getElementById("latestPosts");
-            if (latestContainer && result.data) {
-                latestContainer.innerHTML = result.data
-                    .map(function(post) { return renderPost(post); })
-                    .join("");
-            }
-
-            // Cập nhật phân trang
-            var tongTrang = result.pagination ? result.pagination.pages : 1;
-            renderPhanTrang('phan-trang-home', trang, tongTrang, loadHomePage);
-
-        } else {
-            showError("Không thể tải dữ liệu. Vui lòng thử lại sau.", "latestPosts");
-        }
-    } catch (error) {
-        hideLoading();
-        console.error("Lỗi:", error);
-        showError("Lỗi kết nối: " + error.message, "latestPosts");
+    if (!resultOk(result)) {
+        showError(getErrorMessage(result, "Không tải được danh sách bài viết"), "latestPosts");
+        return;
     }
+
+    const posts = getPostsFromResponse(result);
+    const pagination = getPaginationFromResponse(result, page, 1);
+
+    renderPosts(posts, "latestPosts");
+    renderPhanTrang("phan-trang-home", pagination.currentPage, pagination.totalPage, loadHomePage);
 }
 
-// Gọi khi trang load
-document.addEventListener("DOMContentLoaded", function() {
-    loadHomePage(1);
-});
+document.addEventListener("DOMContentLoaded", () => loadHomePage(1));
+window.loadHomePage = loadHomePage;
