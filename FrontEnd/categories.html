@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="vi">
 <head>
     <meta charset="UTF-8">
@@ -7,72 +7,62 @@
     <link rel="stylesheet" href="./asset/css/style-client.css">
 </head>
 <body>
-    <header>
-        <div class="header-container">
-            <a class="logo" href="index.html">BLOG LOGO</a>
 
-            <!-- Menu điều hướng -->
-            <nav class="header-nav">
-                <a href="index.html">Home</a>
-                <a href="categories.html">Categories</a>
-                <a href="faq.html">FAQ</a>
-                <a href="about.html">About</a>
-                <a href="contact.html">Contact</a>
-            </nav>
-
-            <!-- Phần bên phải: search, dark mode, đăng nhập -->
-            <div class="header-right">
-                <!-- Thanh tìm kiếm thu gọn -->
-                <div class="search-wrapper">
-                    <input type="text" id="headerSearch" placeholder="Tìm kiếm...">
-                    <button class="btn-search-icon" onclick="toggleSearch()" title="Tìm kiếm">🔍</button>
-                </div>
-
-                <!-- Nút bật/tắt dark mode -->
-                <button class="btn-darkmode" onclick="toggleDarkMode()" id="btnDarkMode" title="Chế độ tối">🌙</button>
-
-                <!-- Nút đăng nhập và đăng ký tách riêng -->
-                <a href="login.html" class="btn-dangnhap">Đăng nhập</a>
-                <a href="register.html" class="btn-dangky">Đăng ký</a>
-            </div>
-        </div>
-    </header>
-
-    <main>
-        <section class="section-card page-banner">
-            <h1>Danh mục</h1>
-            <p>Khám phá các chủ đề phổ biến và nội dung phù hợp với cộng đồng blog của chúng tôi.</p>
-        </section>
-        <div class="card-row">
-            <section class="section-card">
-                <h2>Đồ chơi</h2>
-                <p>Khám phá các trò chơi mới và thú vị dành cho cộng đồng LGBT.</p>
-            </section>
-            <section class="section-card">
-                <h2>Đời sống LGBT</h2>
-                <p>Chia sẻ câu chuyện, trải nghiệm và lời khuyên trong môi trường gay</p>
-            </section>
-            <section class="section-card">
-                <h2>Nghệ thuật đánh lừa thị giác</h2>
-                <p>Khám phá cách trang điểm y hệt như con gái</p>
-            </section>
-        </div>
-    </main>
-
-            <!-- Footer kiểu Medium: các link quan trọng nằm ở dưới -->
-    <footer class="footer">
-        <nav class="footer-nav">
+<header>
+    <div class="header-container">
+        <a class="logo" href="index.html">BLOG LOGO</a>
+        <nav class="header-nav">
             <a href="index.html">Home</a>
-            <a href="about.html">Giới thiệu</a>
+            <a href="categories.html">Categories</a>
             <a href="faq.html">FAQ</a>
-            <a href="contact.html">Liên hệ</a>
-            <a href="categories.html">Danh mục</a>
-            <a href="admin.html">Admin</a>
-            <a href="#">Điều khoản</a>
-            <a href="#">Quyền riêng tư</a>
+            <a href="about.html">About</a>
+            <a href="contact.html">Contact</a>
         </nav>
-        <p class="footer-copy">© 2026 Blog Platform. All rights reserved.</p>
-    </footer>
+        <div class="header-right">
+            <div class="search-wrapper">
+                <input type="text" id="headerSearch" placeholder="Tìm kiếm...">
+                <button class="btn-search-icon" onclick="toggleSearch()" title="Tìm kiếm">🔍</button>
+            </div>
+            <button class="btn-darkmode" onclick="toggleDarkMode()" id="btnDarkMode" title="Chế độ tối">🌙</button>
+            <a href="login.html" class="btn-dangnhap">Đăng nhập</a>
+            <a href="register.html" class="btn-dangky">Đăng ký</a>
+        </div>
+    </div>
+</header>
+
+
+<main>
+    <section class="section-card page-banner">
+        <h1 id="categoryTitle">Danh mục</h1>
+        <p id="categoryDesc">Khám phá các chủ đề phổ biến.</p>
+    </section>
+
+    <div class="card-row" id="categoryContent">
+        <section class="section-card empty-state">Đang tải danh mục...</section>
+    </div>
+
+    <section class="section-card">
+        <div class="phan-trang" id="phan-trang-category"></div>
+    </section>
+</main>
+
+
+<footer class="footer">
+    <nav class="footer-nav">
+        <a href="index.html">Home</a>
+        <a href="about.html">Giới thiệu</a>
+        <a href="faq.html">FAQ</a>
+        <a href="contact.html">Liên hệ</a>
+        <a href="categories.html">Danh mục</a>
+        <a href="admin.html">Admin</a>
+        <a href="#">Điều khoản</a>
+        <a href="#">Quyền riêng tư</a>
+    </nav>
+    <p class="footer-copy">© 2026 Blog Platform. All rights reserved.</p>
+</footer>
+
     <script src="./asset/script/main.js"></script>
+    <script src="./asset/script/utils.js"></script>
+    <script src="./asset/script/categories.js"></script>
 </body>
 </html>

@@ -1,173 +1,187 @@
 // ==================== UTILS.JS ====================
-// Các hàm dùng chung cho toàn bộ trang client và admin
+// Hàm dùng chung để render dữ liệu backend hiện tại.
 
-// ==================== RENDER BÀI VIẾT ====================
+function escapeHtml(value = "") {
+    return String(value)
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#039;");
+}
 
-// Render 1 bài viết thành HTML (dùng ở index, search, categories...)
+function stripHtml(value = "") {
+    const temp = document.createElement("div");
+    temp.innerHTML = value;
+    return temp.textContent || temp.innerText || "";
+}
+
+function truncateText(value = "", max = 150) {
+    const text = stripHtml(value).trim();
+    return text.length > max ? text.slice(0, max).trim() + "..." : text;
+}
+
+function normalizeImageUrl(src, fallback = "https://via.placeholder.com/800x400?text=Blog") {
+    if (!src || src.includes("default-post.png")) return fallback;
+    if (src.startsWith("http://") || src.startsWith("https://") || src.startsWith("data:")) return src;
+    if (src.startsWith("../upload")) return `${window.API_ORIGIN || "http://localhost:3000"}/${src.replace(/^\.\.\//, "")}`;
+    if (src.startsWith("/upload")) return `${window.API_ORIGIN || "http://localhost:3000"}${src}`;
+    return src;
+}
+
+function formatDate(value) {
+    if (!value) return "Không rõ ngày";
+    const date = new Date(value);
+    if (Number.isNaN(date.getTime())) return "Không rõ ngày";
+    return date.toLocaleDateString("vi-VN");
+}
+
+function getLikeCount(post) {
+    if (Array.isArray(post?.likes)) return post.likes.length;
+    if (typeof post?.likes === "number") return post.likes;
+    if (typeof post?.likesCount === "number") return post.likesCount;
+    return 0;
+}
+
+function getCommentCount(post) {
+    if (Array.isArray(post?.comments)) return post.comments.length;
+    if (typeof post?.commentsCount === "number") return post.commentsCount;
+    return 0;
+}
+
+function getPostsFromResponse(result) {
+    if (!result) return [];
+    if (Array.isArray(result.data)) return result.data;
+    if (Array.isArray(result.data?.posts)) return result.data.posts;
+    if (Array.isArray(result.data?.latestPosts)) return result.data.latestPosts;
+    return [];
+}
+
+function getPaginationFromResponse(result, fallbackPage = 1, fallbackTotal = 1) {
+    const p = result?.pagination || result?.data?.pagination || {};
+    return {
+        currentPage: Number(p.currentPage || p.page || fallbackPage) || fallbackPage,
+        totalPage: Number(p.totalPage || p.pages || fallbackTotal) || fallbackTotal,
+        totalPosts: Number(p.totalPosts || p.total || 0) || 0
+    };
+}
+
+function resultOk(result) {
+    return Boolean(result && (result.success === true || result.code === 200 || result.code === 201 || result.status === "success"));
+}
+
+function getErrorMessage(result, fallback = "Có lỗi xảy ra") {
+    if (result?.message) return result.message;
+    if (Array.isArray(result?.errors)) return result.errors.map(e => e.msg || e.message).join("\n");
+    return fallback;
+}
+
 function renderPost(post) {
+    const title = escapeHtml(post.title || "Không có tiêu đề");
+    const slug = encodeURIComponent(post.slug || post._id || "");
+    const thumb = normalizeImageUrl(post.thumbnail, "https://via.placeholder.com/800x400?text=Blog+Post");
+    const author = escapeHtml(post.author?.username || "Ẩn danh");
+    const tags = Array.isArray(post.tags) ? post.tags : [];
+
     return `
         <article class="section-card article-card">
-            <img src="${post.thumbnail || 'https://via.placeholder.com/400x200'}" alt="${post.title}">
+            <a href="post.html?slug=${slug}">
+                <img src="${thumb}" alt="${title}">
+            </a>
             <div>
-                <h3><a href="post.html?slug=${post.slug}">${post.title}</a></h3>
-                <p>${post.content.substring(0, 150)}...</p>
+                <h3><a href="post.html?slug=${slug}">${title}</a></h3>
+                <p>${escapeHtml(truncateText(post.content, 150))}</p>
+                ${tags.length ? `<div class="tag-list">${tags.map(tag => `<a href="categories.html?tag=${encodeURIComponent(tag)}">#${escapeHtml(tag)}</a>`).join("")}</div>` : ""}
             </div>
             <div class="card-footer">
-                <small>
-                    <b>${post.author?.username || 'Ẩn danh'}</b>
-                    | ${new Date(post.createdAt).toLocaleDateString('vi-VN')}
-                </small>
+                <small><b>${author}</b> | ${formatDate(post.createdAt)}</small>
                 <div class="article-actions">
-                    <button type="button">❤️ ${post.likes || 0}</button>
-                    <button type="button">🔗 Share</button>
+                    <button type="button">❤️ ${getLikeCount(post)}</button>
+                    <button type="button">💬 ${getCommentCount(post)}</button>
                 </div>
             </div>
         </article>
     `;
 }
 
-// Render nhiều bài viết vào 1 container
 function renderPosts(posts, containerId) {
     const container = document.getElementById(containerId);
     if (!container) return;
-    container.innerHTML = posts.map(post => renderPost(post)).join('');
+
+    if (!posts || posts.length === 0) {
+        container.innerHTML = `<div class="section-card empty-state">Chưa có bài viết nào.</div>`;
+        return;
+    }
+
+    container.innerHTML = posts.map(post => renderPost(post)).join("");
 }
 
-
-// ==================== PHÂN TRANG CLIENT ====================
-
-/**
- * Tạo các nút phân trang và đặt vào container
- *
- * @param {string}   containerId  - id của div chứa phân trang
- * @param {number}   trangHT      - trang hiện tại (bắt đầu từ 1)
- * @param {number}   tongTrang    - tổng số trang
- * @param {Function} hamLoad      - hàm gọi khi người dùng đổi trang
- *
- * Ví dụ dùng:
- *   renderPhanTrang('phan-trang-home', 2, 10, loadHomePage);
- */
 function renderPhanTrang(containerId, trangHT, tongTrang, hamLoad) {
     const container = document.getElementById(containerId);
     if (!container) return;
 
-    // Nếu chỉ có 1 trang thì ẩn đi
+    trangHT = Number(trangHT) || 1;
+    tongTrang = Number(tongTrang) || 1;
+
     if (tongTrang <= 1) {
-        container.innerHTML = '';
+        container.innerHTML = "";
         return;
     }
 
-    let html = '';
+    let html = "";
+    html += `<button class="btn-trang" ${trangHT === 1 ? "disabled" : `onclick="${hamLoad.name}(${trangHT - 1})"`}>← Trước</button>`;
 
-    // Nút "← Trước"
-    if (trangHT === 1) {
-        // Trang đầu thì disabled
-        html += `<button class="btn-trang" disabled>← Trước</button>`;
-    } else {
-        html += `<button class="btn-trang" onclick="${hamLoad.name}(${trangHT - 1})">← Trước</button>`;
-    }
+    const batDau = Math.max(1, trangHT - 2);
+    const ketThuc = Math.min(tongTrang, trangHT + 2);
 
-    // Tính khoảng số trang hiển thị (tối đa 5 nút số)
-    // Ví dụ đang trang 5 / 10 thì hiện: 3 4 [5] 6 7
-    let batDau = Math.max(1, trangHT - 2);
-    let ketThuc = Math.min(tongTrang, trangHT + 2);
-
-    // Hiển thị "1 ..." nếu trang đầu bị ẩn
     if (batDau > 1) {
         html += `<button class="btn-trang" onclick="${hamLoad.name}(1)">1</button>`;
-        if (batDau > 2) {
-            html += `<span style="padding:0 4px; color:#999; align-self:center;">...</span>`;
-        }
+        if (batDau > 2) html += `<span class="page-ellipsis">...</span>`;
     }
 
-    // Các nút số trang chính
     for (let i = batDau; i <= ketThuc; i++) {
-        if (i === trangHT) {
-            // Trang đang xem - active
-            html += `<button class="btn-trang active">${i}</button>`;
-        } else {
-            html += `<button class="btn-trang" onclick="${hamLoad.name}(${i})">${i}</button>`;
-        }
+        html += `<button class="btn-trang ${i === trangHT ? "active" : ""}" ${i === trangHT ? "disabled" : `onclick="${hamLoad.name}(${i})"`}>${i}</button>`;
     }
 
-    // Hiển thị "... 10" nếu trang cuối bị ẩn
     if (ketThuc < tongTrang) {
-        if (ketThuc < tongTrang - 1) {
-            html += `<span style="padding:0 4px; color:#999; align-self:center;">...</span>`;
-        }
+        if (ketThuc < tongTrang - 1) html += `<span class="page-ellipsis">...</span>`;
         html += `<button class="btn-trang" onclick="${hamLoad.name}(${tongTrang})">${tongTrang}</button>`;
     }
 
-    // Nút "Sau →"
-    if (trangHT === tongTrang) {
-        html += `<button class="btn-trang" disabled>Sau →</button>`;
-    } else {
-        html += `<button class="btn-trang" onclick="${hamLoad.name}(${trangHT + 1})">Sau →</button>`;
-    }
-
+    html += `<button class="btn-trang" ${trangHT === tongTrang ? "disabled" : `onclick="${hamLoad.name}(${trangHT + 1})"`}>Sau →</button>`;
     container.innerHTML = html;
 }
-
-
-// ==================== RENDER PHÂN TRANG ADMIN ====================
-// (Giống client nhưng dùng class phan-trang-admin)
 
 function renderPhanTrangAdmin(containerId, trangHT, tongTrang, hamLoad) {
-    const container = document.getElementById(containerId);
-    if (!container) return;
-
-    if (tongTrang <= 1) {
-        container.innerHTML = '';
-        return;
-    }
-
-    let html = '';
-
-    html += `<button ${trangHT === 1 ? 'disabled' : `onclick="${hamLoad.name}(${trangHT - 1})"`}>← Trước</button>`;
-
-    let batDau = Math.max(1, trangHT - 2);
-    let ketThuc = Math.min(tongTrang, trangHT + 2);
-
-    for (let i = batDau; i <= ketThuc; i++) {
-        html += `<button class="${i === trangHT ? 'active' : ''}" onclick="${hamLoad.name}(${i})">${i}</button>`;
-    }
-
-    html += `<button ${trangHT === tongTrang ? 'disabled' : `onclick="${hamLoad.name}(${trangHT + 1})"`}>Sau →</button>`;
-
-    container.innerHTML = html;
+    return renderPhanTrang(containerId, trangHT, tongTrang, hamLoad);
 }
-
-
-// ==================== RENDER DANH MỤC ====================
 
 function renderCategories(categories) {
+    if (!categories || categories.length === 0) {
+        return `<section class="section-card empty-state">Chưa có tag nào trong các bài viết.</section>`;
+    }
+
     return categories.map(cat => `
-        <div class="section-card" style="cursor:pointer;">
-            <a href="categories.html?tag=${cat._id}" style="text-decoration:none;">
-                <h3 style="color:var(--mau-chu);">${cat._id}</h3>
-                <p style="color:var(--mau-chu-nhat); font-size:0.85rem; margin-top:6px;">${cat.count} bài viết</p>
+        <section class="section-card category-card">
+            <a href="categories.html?tag=${encodeURIComponent(cat._id)}">
+                <h2>#${escapeHtml(cat._id)}</h2>
+                <p>${cat.count} bài viết</p>
             </a>
-        </div>
-    `).join('');
+        </section>
+    `).join("");
 }
-
-
-// ==================== RENDER BÌNH LUẬN ====================
 
 function renderComment(comment) {
     return `
-        <div style="padding:14px 0; border-bottom:1px solid var(--mau-vien);">
-            <div style="display:flex; align-items:center; gap:10px; margin-bottom:8px;">
-                <img src="${comment.user?.avatar || 'https://via.placeholder.com/36'}"
-                     style="width:36px; height:36px; border-radius:50%; object-fit:cover;">
+        <div class="comment-item">
+            <div class="comment-meta">
+                <img src="${normalizeImageUrl(comment.user?.avatar, "https://via.placeholder.com/36?text=U")}" alt="Avatar">
                 <div>
-                    <b style="font-size:0.9rem;">${comment.user?.username || 'Ẩn danh'}</b><br>
-                    <span style="font-size:0.78rem; color:#999;">
-                        ${new Date(comment.createdAt).toLocaleDateString('vi-VN')}
-                    </span>
+                    <b>${escapeHtml(comment.user?.username || "Ẩn danh")}</b><br>
+                    <span>${formatDate(comment.createdAt)}</span>
                 </div>
             </div>
-            <p style="font-size:0.9rem; line-height:1.6;">${comment.content}</p>
+            <p>${escapeHtml(comment.content || "")}</p>
         </div>
     `;
 }
@@ -175,74 +189,89 @@ function renderComment(comment) {
 function renderComments(comments, containerId) {
     const container = document.getElementById(containerId);
     if (!container) return;
-    container.innerHTML = comments.map(c => renderComment(c)).join('');
+
+    if (!comments || comments.length === 0) {
+        container.innerHTML = `<p class="empty-state">Chưa có bình luận nào.</p>`;
+        return;
+    }
+
+    container.innerHTML = comments.map(renderComment).join("");
 }
 
+async function loadAllPosts(maxPages = 30) {
+    const all = [];
+    let page = 1;
+    let totalPage = 1;
 
-// ==================== URL QUERY ====================
+    do {
+        const result = await getPosts(page, 4);
+        if (!resultOk(result)) break;
+        all.push(...getPostsFromResponse(result));
+        totalPage = getPaginationFromResponse(result, page, totalPage).totalPage;
+        page++;
+    } while (page <= totalPage && page <= maxPages);
 
-// Lấy param từ URL: getQueryParam('slug') → 'ten-bai-viet'
+    return all;
+}
+
 function getQueryParam(param) {
-    const urlParams = new URLSearchParams(window.location.search);
-    return urlParams.get(param);
+    return new URLSearchParams(window.location.search).get(param);
 }
 
-
-// ==================== LOCAL STORAGE ====================
-
-function saveUserInfo(user) {
-    localStorage.setItem('user', JSON.stringify(user));
-}
-
-function getUserInfo() {
-    const user = localStorage.getItem('user');
-    return user ? JSON.parse(user) : null;
-}
-
-function clearUserInfo() {
-    localStorage.removeItem('user');
-}
-
-
-// ==================== LOADING & TOAST ====================
-
-function showLoading(text = 'Đang tải...') {
-    hideLoading(); // Xóa loader cũ nếu còn
-    const loader = document.createElement('div');
-    loader.id = 'loader';
-    loader.className = 'loader';
-    loader.innerHTML = `<p>${text}</p>`;
-    document.body.appendChild(loader);
-}
-
-function hideLoading() {
-    const loader = document.getElementById('loader');
+function showLoading(text = "Đang tải...") {
+    const loader = document.getElementById("loader");
     if (loader) loader.remove();
 }
 
-// Thông báo nhỏ góc phải màn hình
-function toast(message, type = 'info') {
-    const el = document.createElement('div');
+function hideLoading() {
+    const loader = document.getElementById("loader");
+    if (loader) loader.remove();
+}
+
+function toast(message, type = "info") {
+    const el = document.createElement("div");
     el.className = `toast toast-${type}`;
     el.textContent = message;
     document.body.appendChild(el);
-
-    // Tự xóa sau 3 giây
-    setTimeout(() => {
-        el.remove();
-    }, 3000);
+    setTimeout(() => el.remove(), 3500);
 }
 
-// Hiển thị lỗi trong container
-function showError(message, containerId) {
+function showMessage(message, containerId, type = "info") {
     const container = document.getElementById(containerId);
+    const cls = type === "error" ? "alert-error" : type === "success" ? "alert-success" : "alert-info";
     if (container) {
-        container.innerHTML = `
-            <div style="text-align:center; padding:30px; color:#e53e3e;">
-                <p>⚠️ ${message}</p>
-            </div>
-        `;
+        container.innerHTML = `<div class="alert ${cls}">${escapeHtml(message)}</div>`;
     } else {
-        alert(message);
+        toast(message, type);
     }
 }
+
+function showError(message, containerId) {
+    showMessage(message, containerId, "error");
+}
+
+window.escapeHtml = escapeHtml;
+window.stripHtml = stripHtml;
+window.truncateText = truncateText;
+window.normalizeImageUrl = normalizeImageUrl;
+window.formatDate = formatDate;
+window.getLikeCount = getLikeCount;
+window.getCommentCount = getCommentCount;
+window.getPostsFromResponse = getPostsFromResponse;
+window.getPaginationFromResponse = getPaginationFromResponse;
+window.resultOk = resultOk;
+window.getErrorMessage = getErrorMessage;
+window.renderPost = renderPost;
+window.renderPosts = renderPosts;
+window.renderPhanTrang = renderPhanTrang;
+window.renderPhanTrangAdmin = renderPhanTrangAdmin;
+window.renderCategories = renderCategories;
+window.renderComment = renderComment;
+window.renderComments = renderComments;
+window.loadAllPosts = loadAllPosts;
+window.getQueryParam = getQueryParam;
+window.showLoading = showLoading;
+window.hideLoading = hideLoading;
+window.toast = toast;
+window.showMessage = showMessage;
+window.showError = showError;

@@ -1,79 +1,56 @@
-// categories.html - Trang categories
-let currentTag = "";
 let currentCategoryPage = 1;
+let currentTag = null;
 
-async function loadCategories() {
-  showLoading("Đang tải danh mục...");
+async function loadCategoryPage(page = 1) {
+    currentCategoryPage = page;
+    currentTag = getQueryParam("tag");
 
-  try {
-    const result = await apiCall("/categories", "GET");
-    hideLoading();
+    const title = document.getElementById("categoryTitle");
+    const desc = document.getElementById("categoryDesc");
+    const content = document.getElementById("categoryContent");
 
-    if (result.code === 200 && result.data) {
-      const categoriesDiv = document.getElementById("all-categories");
-      if (categoriesDiv) {
-        categoriesDiv.innerHTML = renderCategories(result.data);
-      }
+    showLoading("Đang tải danh mục...");
+
+    if (currentTag) {
+        if (title) title.textContent = `#${currentTag}`;
+        if (desc) desc.textContent = "Các bài viết thuộc tag này.";
+
+        const result = await getPostsByTag(currentTag, page, 9);
+        hideLoading();
+
+        if (!resultOk(result)) {
+            showError(getErrorMessage(result, "Không tải được bài viết theo tag"), "categoryContent");
+            return;
+        }
+
+        const posts = result.data?.posts || getPostsFromResponse(result);
+        const pagination = getPaginationFromResponse(result, page, 1);
+        renderPosts(posts, "categoryContent");
+        renderPhanTrang("phan-trang-category", pagination.currentPage, pagination.totalPage, loadCategoryPage);
+        return;
     }
-  } catch (error) {
-    hideLoading();
-    console.error("Lỗi:", error);
-  }
-}
 
-async function loadPostsByCategory(page = 1) {
-  const tag = getQueryParam("tag");
+    if (title) title.textContent = "Danh mục";
+    if (desc) desc.textContent = "Các tag được tổng hợp từ bài viết hiện có trong backend.";
 
-  if (!tag) {
-    // Load tất cả categories néu không có tag
-    loadCategories();
-    return;
-  }
-
-  currentTag = tag;
-  currentCategoryPage = page;
-  showLoading("Đang tải bài viết...");
-
-  try {
-    const result = await apiCall(`/category/${tag}?page=${page}`, "GET");
+    const posts = await loadAllPosts();
     hideLoading();
 
-    const contentDiv = document.getElementById("category-posts");
+    const counts = new Map();
+    posts.forEach(post => {
+        (post.tags || []).forEach(tag => {
+            if (!tag) return;
+            counts.set(tag, (counts.get(tag) || 0) + 1);
+        });
+    });
 
-    if (result.code === 200) {
-      if (result.data && result.data.length > 0) {
-        contentDiv.innerHTML = `
-                    <div class="category-header">
-                        <h2>Danh mục: <strong>${tag}</strong></h2>
-                        <p>${result.pagination.total} bài viết</p>
-                    </div>
-                `;
-        renderPosts(result.data, "category-posts");
-      } else {
-        contentDiv.innerHTML = `<p>Không có bài viết trong danh mục này</p>`;
-      }
-    } else {
-      showError(result.message || "Không thể tải bài viết", "content");
-    }
-  } catch (error) {
-    hideLoading();
-    console.error("Lỗi:", error);
-    showError("Lỗi kết nối: " + error.message, "content");
-  }
+    const categories = Array.from(counts, ([tag, count]) => ({ _id: tag, count }))
+        .sort((a, b) => b.count - a.count || a._id.localeCompare(b._id));
+
+    if (content) content.innerHTML = renderCategories(categories);
+    const pagination = document.getElementById("phan-trang-category");
+    if (pagination) pagination.innerHTML = "";
 }
 
-// Xử lý đổi trang
-function handleCategoryPageChange(newPage) {
-  loadPostsByCategory(newPage);
-  window.scroll(0, 0);
-}
-
-// Gọi khi trang load
-document.addEventListener("DOMContentLoaded", () => {
-  const tag = getQueryParam("tag");
-  if (tag) {
-    loadPostsByCategory(1);
-  } else {
-    loadCategories();
-  }
-});
+document.addEventListener("DOMContentLoaded", () => loadCategoryPage(1));
+window.loadCategoryPage = loadCategoryPage;

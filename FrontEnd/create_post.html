@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="vi">
 <head>
     <meta charset="UTF-8">
@@ -7,71 +7,81 @@
     <link rel="stylesheet" href="./asset/css/style-client.css">
 </head>
 <body>
-    <header>
-        <div class="header-container">
-            <a class="logo" href="index.html">BLOG LOGO</a>
 
-            <!-- Menu điều hướng -->
-            <nav class="header-nav">
-                <a href="index.html">Home</a>
-                <a href="categories.html">Categories</a>
-                <a href="faq.html">FAQ</a>
-                <a href="about.html">About</a>
-                <a href="contact.html">Contact</a>
-            </nav>
-
-            <!-- Phần bên phải: search, dark mode, đăng nhập -->
-            <div class="header-right">
-                <!-- Thanh tìm kiếm thu gọn -->
-                <div class="search-wrapper">
-                    <input type="text" id="headerSearch" placeholder="Tìm kiếm...">
-                    <button class="btn-search-icon" onclick="toggleSearch()" title="Tìm kiếm">🔍</button>
-                </div>
-
-                <!-- Nút bật/tắt dark mode -->
-                <button class="btn-darkmode" onclick="toggleDarkMode()" id="btnDarkMode" title="Chế độ tối">🌙</button>
-
-                <!-- Nút đăng nhập và đăng ký tách riêng -->
-                <a href="login.html" class="btn-dangnhap">Đăng nhập</a>
-                <a href="register.html" class="btn-dangky">Đăng ký</a>
-            </div>
-        </div>
-    </header>
-
-    <main>
-        <section class="section-card page-banner">
-            <h1>Tạo bài viết mới</h1>
-            <p>Viết và chia sẻ nội dung mới với cộng đồng ngay hôm nay.</p>
-        </section>
-        <section class="section-card form-card">
-            <form action="index.html" method="GET">
-                <div class="form-group">
-                    <label for="title">Tiêu đề</label>
-                    <input id="title" type="text" placeholder="Tiêu đề...">
-                </div>
-                <div class="form-group">
-                    <label for="content">Nội dung</label>
-                    <textarea id="content" placeholder="Nội dung..."></textarea>
-                </div>
-                <button type="submit">Đăng bài</button>
-            </form>
-        </section>
-    </main>
-
-            <!-- Footer kiểu Medium: các link quan trọng nằm ở dưới -->
-    <footer class="footer">
-        <nav class="footer-nav">
+<header>
+    <div class="header-container">
+        <a class="logo" href="index.html">BLOG LOGO</a>
+        <nav class="header-nav">
             <a href="index.html">Home</a>
-            <a href="about.html">Giới thiệu</a>
+            <a href="categories.html">Categories</a>
             <a href="faq.html">FAQ</a>
-            <a href="contact.html">Liên hệ</a>
-            <a href="categories.html">Danh mục</a>
-            <a href="admin.html">Admin</a>
-            <a href="#">Điều khoản</a>
-            <a href="#">Quyền riêng tư</a>
+            <a href="about.html">About</a>
+            <a href="contact.html">Contact</a>
         </nav>
-        <p class="footer-copy">© 2026 Blog Platform. All rights reserved.</p>
-    </footer>
+        <div class="header-right">
+            <div class="search-wrapper">
+                <input type="text" id="headerSearch" placeholder="Tìm kiếm...">
+                <button class="btn-search-icon" onclick="toggleSearch()" title="Tìm kiếm">🔍</button>
+            </div>
+            <button class="btn-darkmode" onclick="toggleDarkMode()" id="btnDarkMode" title="Chế độ tối">🌙</button>
+            <a href="login.html" class="btn-dangnhap">Đăng nhập</a>
+            <a href="register.html" class="btn-dangky">Đăng ký</a>
+        </div>
+    </div>
+</header>
+
+
+<main>
+    <section class="section-card page-banner">
+        <h1>Tạo bài viết mới</h1>
+        <p>Viết và chia sẻ nội dung mới với cộng đồng.</p>
+    </section>
+
+    <section id="create-post-gate" class="section-card hidden">
+        <div class="alert alert-info">Bạn cần <a href="login.html">đăng nhập</a> trước khi tạo bài viết.</div>
+    </section>
+
+    <section class="section-card form-card">
+        <div id="create-post-message"></div>
+        <form id="create-post-client-form">
+            <div class="form-group">
+                <label for="title">Tiêu đề</label>
+                <input id="title" type="text" placeholder="Tiêu đề bài viết" required>
+            </div>
+            <div class="form-group">
+                <label for="thumbnail">Thumbnail URL</label>
+                <input id="thumbnail" type="text" placeholder="https://... hoặc để trống">
+            </div>
+            <div class="form-group">
+                <label for="tags">Tags</label>
+                <input id="tags" type="text" placeholder="vd: cong-nghe, hoc-tap, doi-song">
+            </div>
+            <div class="form-group">
+                <label for="content">Nội dung</label>
+                <textarea id="content" placeholder="Nội dung bài viết..." required></textarea>
+            </div>
+            <button type="submit" class="button">Đăng bài</button>
+        </form>
+    </section>
+</main>
+
+
+<footer class="footer">
+    <nav class="footer-nav">
+        <a href="index.html">Home</a>
+        <a href="about.html">Giới thiệu</a>
+        <a href="faq.html">FAQ</a>
+        <a href="contact.html">Liên hệ</a>
+        <a href="categories.html">Danh mục</a>
+        <a href="admin.html">Admin</a>
+        <a href="#">Điều khoản</a>
+        <a href="#">Quyền riêng tư</a>
+    </nav>
+    <p class="footer-copy">© 2026 Blog Platform. All rights reserved.</p>
+</footer>
+
     <script src="./asset/script/main.js"></script>
+    <script src="./asset/script/utils.js"></script>
+    <script src="./asset/script/create_post.js"></script>
 </body>
 </html>

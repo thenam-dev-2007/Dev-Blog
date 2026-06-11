@@ -7,70 +7,96 @@
     <link rel="stylesheet" href="./asset/css/style-client.css">
 </head>
 <body>
-    <header>
-        <div class="header-container">
-            <a class="logo" href="index.html">BLOG LOGO</a>
-            <nav class="header-nav">
-                <a href="index.html">Home</a>
-                <a href="categories.html">Categories</a>
-                <a href="faq.html">FAQ</a>
-                <a href="about.html">About</a>
-                <a href="contact.html">Contact</a>
-            </nav>
-            <div class="header-right">
-                <div class="search-wrapper">
-                    <input type="text" id="headerSearch" placeholder="Tìm kiếm...">
-                    <button class="btn-search-icon" onclick="toggleSearch()" title="Tìm kiếm">🔍</button>
-                </div>
-                <button class="btn-darkmode" onclick="toggleDarkMode()" id="btnDarkMode" title="Chế độ tối">🌙</button>
-                <a href="login.html" class="btn-dangnhap">Đăng nhập</a>
+
+<header>
+    <div class="header-container">
+        <a class="logo" href="index.html">BLOG LOGO</a>
+        <nav class="header-nav">
+            <a href="index.html">Home</a>
+            <a href="categories.html">Categories</a>
+            <a href="faq.html">FAQ</a>
+            <a href="about.html">About</a>
+            <a href="contact.html">Contact</a>
+        </nav>
+        <div class="header-right">
+            <div class="search-wrapper">
+                <input type="text" id="headerSearch" placeholder="Tìm kiếm...">
+                <button class="btn-search-icon" onclick="toggleSearch()" title="Tìm kiếm">🔍</button>
             </div>
+            <button class="btn-darkmode" onclick="toggleDarkMode()" id="btnDarkMode" title="Chế độ tối">🌙</button>
+            <a href="login.html" class="btn-dangnhap">Đăng nhập</a>
+            <a href="register.html" class="btn-dangky">Đăng ký</a>
         </div>
-    </header>
+    </div>
+</header>
 
-    <main class="auth-page">
-        <div class="auth-box">
-            <h1>Tạo tài khoản</h1>
-            <p class="chu-nho">Đã có tài khoản? <a href="login.html">Đăng nhập ngay</a></p>
 
+<main class="auth-page">
+    <div class="auth-box">
+        <h1>Tạo tài khoản</h1>
+        <p class="chu-nho">Đã có tài khoản? <a href="login.html">Đăng nhập ngay</a></p>
+
+        <div id="register-message"></div>
+
+        <form id="register-form">
             <div class="form-group">
-                <label for="reg-name">Họ tên hiển thị</label>
-                <input id="reg-name" type="text" placeholder="Tên của bạn">
+                <label for="reg-username">Tên đăng nhập</label>
+                <input id="reg-username" type="text" placeholder="vd: nguyenvana" autocomplete="username" required>
             </div>
             <div class="form-group">
                 <label for="reg-email">Email</label>
-                <input id="reg-email" type="email" placeholder="you@example.com">
+                <input id="reg-email" type="email" placeholder="you@example.com" autocomplete="email" required>
             </div>
             <div class="form-group">
-                <label for="reg-pass">Mật khẩu</label>
-                <input id="reg-pass" type="password" placeholder="Ít nhất 8 ký tự">
+                <label for="reg-dob">Ngày sinh</label>
+                <input id="reg-dob" type="date" required>
+            </div>
+            <div class="form-group">
+                <label for="reg-password">Mật khẩu</label>
+                <input id="reg-password" type="password" placeholder="Ít nhất 8 ký tự, có chữ, số và ký tự đặc biệt" autocomplete="new-password" required>
             </div>
             <div class="form-group">
                 <label for="reg-confirm">Xác nhận mật khẩu</label>
-                <input id="reg-confirm" type="password" placeholder="Nhập lại mật khẩu">
+                <input id="reg-confirm" type="password" placeholder="Nhập lại mật khẩu" autocomplete="new-password" required>
             </div>
-            <div class="form-group" style="display: flex; align-items: flex-start; gap: 10px;">
-                <input id="agree" type="checkbox" style="width: 15px; height: 15px; margin-top: 2px; flex-shrink: 0;">
-                <label for="agree" style="font-size: 0.85rem; color: var(--mau-chu-nhat); font-weight: normal;">
-                    Tôi đồng ý với <a href="#">điều khoản dịch vụ</a> và <a href="#">chính sách bảo mật</a>
-                </label>
+            <div class="form-group checkbox-row">
+                <input id="agree" type="checkbox">
+                <label for="agree">Tôi đồng ý với <a href="#">điều khoản dịch vụ</a> và <a href="#">chính sách bảo mật</a></label>
             </div>
+            <button type="submit" class="button btn-full">Tạo tài khoản</button>
+        </form>
 
-            <a href="index.html" class="button btn-full">Tạo tài khoản</a>
+        <div id="register-otp-box" class="hidden">
+            <div class="alert alert-info">OTP đã được gửi đến <strong id="otp-email-target"></strong>. Nhập mã 6 số để xác thực tài khoản.</div>
+            <form id="register-otp-form">
+                <div class="form-group">
+                    <label for="register-otp">Mã OTP</label>
+                    <input id="register-otp" type="text" inputmode="numeric" maxlength="6" placeholder="123456" required>
+                </div>
+                <button type="submit" class="button btn-full">Xác thực email</button>
+                <button type="button" id="btn-resend-register-otp" class="button btn-full secondary" style="margin-top:10px;">Gửi lại OTP</button>
+            </form>
         </div>
-    </main>
+    </div>
+</main>
 
-    <footer class="footer">
-        <nav class="footer-nav">
-            <a href="index.html">Home</a>
-            <a href="about.html">Giới thiệu</a>
-            <a href="faq.html">FAQ</a>
-            <a href="contact.html">Liên hệ</a>
-            <a href="#">Điều khoản</a>
-            <a href="#">Quyền riêng tư</a>
-        </nav>
-        <p class="footer-copy">© 2026 Blog Platform. All rights reserved.</p>
-    </footer>
+
+<footer class="footer">
+    <nav class="footer-nav">
+        <a href="index.html">Home</a>
+        <a href="about.html">Giới thiệu</a>
+        <a href="faq.html">FAQ</a>
+        <a href="contact.html">Liên hệ</a>
+        <a href="categories.html">Danh mục</a>
+        <a href="admin.html">Admin</a>
+        <a href="#">Điều khoản</a>
+        <a href="#">Quyền riêng tư</a>
+    </nav>
+    <p class="footer-copy">© 2026 Blog Platform. All rights reserved.</p>
+</footer>
+
     <script src="./asset/script/main.js"></script>
+    <script src="./asset/script/utils.js"></script>
+    <script src="./asset/script/register.js"></script>
 </body>
 </html>

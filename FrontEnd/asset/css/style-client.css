@@ -612,3 +612,179 @@ footer.footer {
         width: 130px;
     }
 }
+
+/* =====================
+   BỔ SUNG CHO API + OTP FLOW
+   ===================== */
+.hidden { display: none !important; }
+
+.alert {
+    border-radius: 8px;
+    padding: 12px 14px;
+    margin-bottom: 16px;
+    font-size: 0.9rem;
+    line-height: 1.5;
+}
+.alert-info {
+    background: rgba(49, 130, 206, 0.12);
+    border: 1px solid rgba(49, 130, 206, 0.35);
+    color: var(--mau-chu);
+}
+.alert-success {
+    background: rgba(26, 137, 23, 0.12);
+    border: 1px solid rgba(26, 137, 23, 0.35);
+    color: var(--mau-chu);
+}
+.alert-error {
+    background: rgba(229, 62, 62, 0.12);
+    border: 1px solid rgba(229, 62, 62, 0.35);
+    color: var(--mau-chu);
+}
+
+.button.secondary {
+    background-color: transparent;
+    color: var(--mau-chu);
+    border: 1px solid var(--mau-vien);
+}
+.button.secondary:hover {
+    background-color: var(--mau-vien);
+    color: var(--mau-chu);
+}
+
+input[type="date"] {
+    width: 100%;
+    padding: 10px 14px;
+    border: 1px solid var(--mau-vien);
+    border-radius: 8px;
+    background-color: var(--mau-nen);
+    color: var(--mau-chu);
+    font-size: 0.9rem;
+    outline: none;
+}
+input[type="date"]:focus { border-color: var(--mau-chinh); }
+
+.checkbox-row {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+}
+.checkbox-row input {
+    width: 16px;
+    height: 16px;
+    margin-top: 2px;
+    flex-shrink: 0;
+}
+.checkbox-row label {
+    font-size: 0.85rem;
+    color: var(--mau-chu-nhat);
+    font-weight: normal;
+}
+
+.user-menu-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+.header-username {
+    font-size: 0.85rem;
+    color: var(--mau-chu-nhat);
+    max-width: 110px;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+}
+
+.empty-state {
+    text-align: center;
+    color: var(--mau-chu-nhat);
+    padding: 24px;
+}
+
+.page-ellipsis {
+    padding: 0 4px;
+    color: var(--mau-chu-nhat);
+    align-self: center;
+}
+
+.tag-list {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+    margin-top: 10px;
+}
+.tag-list a {
+    font-size: 0.78rem;
+    border: 1px solid var(--mau-vien);
+    padding: 4px 8px;
+    border-radius: 999px;
+    color: var(--mau-chinh);
+    background: var(--mau-nen);
+}
+.tag-list a:hover { text-decoration: none; }
+
+.category-card a {
+    display: block;
+    color: var(--mau-chu);
+}
+.category-card a:hover { text-decoration: none; }
+.category-card h2 { margin-bottom: 8px; }
+.category-card p { color: var(--mau-chu-nhat); }
+
+.post-detail img.post-hero-image {
+    width: 100%;
+    max-height: 440px;
+    object-fit: cover;
+    border-radius: 10px;
+    margin-bottom: 18px;
+}
+.post-content-text {
+    white-space: pre-line;
+    line-height: 1.8;
+    color: var(--mau-chu);
+    font-size: 1rem;
+}
+.post-actions-row {
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+    flex-wrap: wrap;
+    margin-top: 22px;
+}
+
+.comment-item {
+    padding: 14px 0;
+    border-bottom: 1px solid var(--mau-vien);
+}
+.comment-meta {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 8px;
+}
+.comment-meta img {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    object-fit: cover;
+}
+.comment-meta span {
+    font-size: 0.78rem;
+    color: var(--mau-chu-nhat);
+}
+.comment-item p {
+    font-size: 0.9rem;
+    line-height: 1.6;
+}
+
+.admin-note {
+    padding: 20px;
+    border: 1px dashed #bbb;
+    border-radius: 8px;
+    background: #fafafa;
+    color: #666;
+    text-align: center;
+}
+.btn-trang.active:disabled {
+    opacity: 1;
+    cursor: default;
+}

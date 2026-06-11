@@ -1,62 +1,48 @@
-// search.html - Trang tìm kiếm
-let currentSearchQuery = "";
 let currentSearchPage = 1;
+let currentSearchQuery = "";
+let cachedSearchResults = [];
+const SEARCH_PAGE_SIZE = 9;
+
+function renderSearchPage(page = 1) {
+    currentSearchPage = page;
+    const totalPage = Math.max(1, Math.ceil(cachedSearchResults.length / SEARCH_PAGE_SIZE));
+    const start = (page - 1) * SEARCH_PAGE_SIZE;
+    const pagePosts = cachedSearchResults.slice(start, start + SEARCH_PAGE_SIZE);
+
+    const info = document.getElementById("searchInfo");
+    if (info) {
+        info.innerHTML = `Tìm thấy <strong>${cachedSearchResults.length}</strong> kết quả cho <strong>${escapeHtml(currentSearchQuery)}</strong>`;
+    }
+
+    renderPosts(pagePosts, "searchResults");
+    renderPhanTrang("phan-trang-search", page, totalPage, renderSearchPage);
+}
 
 async function loadSearchResults(page = 1) {
-  const query = getQueryParam("q");
+    const query = (getQueryParam("q") || "").trim();
+    currentSearchQuery = query;
 
-  if (!query) {
-    showError("Vui lòng nhập từ khóa tìm kiếm", "content");
-    return;
-  }
+    const queryText = document.querySelector("#searchQuery strong");
+    if (queryText) queryText.textContent = query || "chưa nhập từ khóa";
 
-  currentSearchQuery = query;
-  currentSearchPage = page;
-  showLoading("Đang tìm kiếm...");
-
-  try {
-    const result = await apiCall(
-      `/search?q=${encodeURIComponent(query)}&page=${page}`,
-      "GET",
-    );
-    hideLoading();
-
-    const contentDiv = document.getElementById("searchResults");
-    if (result.code === 200) {
-      if (result.data && result.data.length > 0) {
-        contentDiv.innerHTML = `<div class="search-info">
-                    <p>Tìm thấy <strong>${result.pagination.total}</strong> kết quả cho "<strong>${query}</strong>"</p>
-                </div>`;
-        renderPosts(result.data, "searchResults");
-
-        // Thêm pagination
-        const paginationDiv = document.getElementById("pagination");
-        if (paginationDiv) {
-          paginationDiv.innerHTML = renderPage(
-            result.pagination.page,
-            result.pagination.pages,
-          );
-        }
-      } else {
-        contentDiv.innerHTML = `<p class="no-results">Không tìm thấy bài viết nào</p>`;
-      }
-    } else {
-      showError(result.message || "Không thể thực hiện tìm kiếm", "content");
+    if (!query) {
+        showMessage("Hãy nhập từ khóa trên thanh tìm kiếm.", "searchResults", "info");
+        return;
     }
-  } catch (error) {
+
+    showLoading("Đang tìm kiếm...");
+    const posts = await loadAllPosts();
     hideLoading();
-    console.error("Lỗi:", error);
-    showError("Lỗi kết nối: " + error.message, "content");
-  }
+
+    const q = query.toLowerCase();
+    cachedSearchResults = posts.filter(post => {
+        const text = [post.title, post.content, ...(post.tags || [])].join(" ").toLowerCase();
+        return text.includes(q);
+    });
+
+    renderSearchPage(page);
 }
 
-// Xử lý đổi trang
-function handleSearchPageChange(newPage) {
-  loadSearchResults(page);
-  window.scroll(0, 0);
-}
-
-// Gọi khi trang load
-document.addEventListener("DOMContentLoaded", () => {
-  loadSearchResults(1);
-});
+document.addEventListener("DOMContentLoaded", () => loadSearchResults(1));
+window.loadSearchResults = loadSearchResults;
+window.renderSearchPage = renderSearchPage;
