@@ -71,3 +71,71 @@ module.exports.getPostBySlug = async (req, res, next) => {
         next(error)
     }
 };
+
+// [POST] - Tạo bài viết mới
+module.exports.createPost = async (req, res, next) => {
+    try {
+        const { title, content, thumbnail, tags } = req.body;
+        const authorId = req.user?.id; // Lấy từ middleware auth
+
+        if (!authorId) {
+        return res.status(401).json({
+            code: 401,
+            message: "Bạn phải đăng nhập để tạo bài viết",
+        });
+        }
+
+        const newPost = await Post.create({
+        title,
+        content,
+        thumbnail,
+        tags: tags || [],
+        author: authorId,
+        });
+
+        await User.findByIdAndUpdate(authorId, { $push: { posts: newPost._id } });
+
+        const populatedPost = await newPost.populate(
+        "author",
+        "username email avatar",
+        );
+
+        res.status(201).json({
+        code: 201,
+        message: "Tạo bài viết thành công",
+        data: populatedPost,
+        });
+    } 
+    catch (error) {
+        next(error)
+    }
+};
+
+// [DELETE] - Xóa bài viết
+module.exports.deletePost = async (req, res, next) => {
+    try {
+        const post = req.post;
+
+        await Post.findByIdAndUpdate(
+        post._id,
+        {
+            isDeleted: true,
+            deletedAt: new Date()
+        }
+        );
+
+        await User.findByIdAndUpdate(
+            post.author,
+            { $pull: { posts: post._id } } // $pull là một MongoDB update operator dùng để xóa phần tử khỏi mảng.
+        );
+
+        return res.status(200).json({
+            success: true,
+            message: "Xóa bài viết thành công"
+        });
+
+        }
+    catch (error) {
+        next(error);
+    }
+};

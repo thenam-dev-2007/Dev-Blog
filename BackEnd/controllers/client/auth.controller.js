@@ -1,8 +1,8 @@
 const User = require("../../models/user.model");
-const RefreshToken = require("../../models/refreshToken.model")
+const RefreshToken = require("../../models/refreshToken.model");
 const { generateAccessToken, generateRefreshToken, refreshAccessToken, revokeToken } = require('../../service/token.service');
 const { generateEmailOTP, generateOTPAndSave, sendOTPEmail } = require("../../service/email.service");
-const { transporter } = require("../../config/email")
+const { transporter } = require("../../config/email");
 
 module.exports.register = async (req, res, next) => {
   try {
@@ -55,7 +55,7 @@ module.exports.register = async (req, res, next) => {
     // Chuyển lỗi cho error handler middleware
     next(error);
   }
-} 
+};
 
 module.exports.verifyEmail = async (req, res, next) => {
   try {
@@ -172,7 +172,7 @@ module.exports.resendRegisterOTP = async (req, res, next) => {
     catch (error) {
       next(error);
     }
-}
+};
 
 // Quy trình:
 //  1. Lấy email và password từ request body
@@ -434,7 +434,7 @@ module.exports.forgotPassword = async (req, res, next) => {
   catch (error) {
     next(error)
   }
-}
+};
 
 module.exports.verifyResetPasswordOTP = async ( req, res, next) => {
   try {
@@ -565,7 +565,7 @@ module.exports.resendResetPasswordOTP = async (req, res, next) => {
     catch (error) {
       next(error);
     }
-}
+};
 
 // res.cookie(name, value, options);
   // 1. name: Tên cookie
