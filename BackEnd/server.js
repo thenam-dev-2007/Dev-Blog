@@ -7,7 +7,7 @@ const logger = require("./middlewares/logger");
 const errorHandler = require("./middlewares/errorHandler");
 const notFound = require("./middlewares/notFound");
 const routeClient = require("./routes/client/index.route");
-// const routeAdmin = require("./routes/admin/index.route");
+const routeAdmin = require("./routes/admin/index.route");
 
 const app = express();
 const port = process.env.PORT;
@@ -28,7 +28,7 @@ app.use("/upload", express.static("upload"));
 
 // Routes
 routeClient(app);
-// app.use("/admin", routeAdmin);
+routeAdmin(app);
 
 // Middleware 404 dùng để xử lý các request đến đường dẫn không tồn tại trong hệ thống
 app.use(notFound);

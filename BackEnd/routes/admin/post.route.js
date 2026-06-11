@@ -14,3 +14,5 @@ router.get("/:slug", controller.getPostBySlug);
 router.post("/", auth.authenticateToken, upload.uploadThumbnail.single("thumbnail"), validation.validateCreatePost, controller.createPost);
 
 router.delete("/:id", auth.authenticateToken, postMiddleware.loadPost, postMiddleware.canDeletePost, controller.deletePost);
+
+module.exports = router
