@@ -1,23 +1,23 @@
 module.exports = (objectPagination, query, countItems) => {
-    if(query.page) {
+    objectPagination.currentPage = objectPagination.currentPage || 1;
+    objectPagination.limitItem = objectPagination.limitItem || objectPagination.limitPost || 4;
+
+    if (query.page) {
         const page = parseInt(query.page);
-        if(!isNaN(page) && page > 0) {
+        if (!isNaN(page) && page > 0) {
             objectPagination.currentPage = page;
         }
     }
 
-    if(query.limit) {
+    if (query.limit) {
         const limit = parseInt(query.limit);
-
-        if(limit > 0 && limit <= 20) {
+        if (!isNaN(limit) && limit > 0 && limit <= 20) {
             objectPagination.limitItem = limit;
         }
     }
 
-    objectPagination.skip = (objectPagination.currentPage - 1) * objectPagination.limitItem 
+    objectPagination.skip = (objectPagination.currentPage - 1) * objectPagination.limitItem;
+    objectPagination.totalPage = Math.ceil(countItems / objectPagination.limitItem) || 1;
 
-    const totalPage = Math.ceil(countItems / objectPagination.limitItem)
-    objectPagination.totalPage = totalPage
-
-    return objectPagination
-}
+    return objectPagination;
+};

@@ -1,3 +1,4 @@
+const crypto = require("crypto");
 const User = require("../../models/user.model");
 const RefreshToken = require("../../models/refreshToken.model");
 const { generateAccessToken, generateRefreshToken, refreshAccessToken, revokeToken } = require('../../service/token.service');
@@ -155,7 +156,7 @@ module.exports.resendRegisterOTP = async (req, res, next) => {
         });
       }
 
-      const otp = generateOTPAndSave(user, "emailOTP", "emailOTPExpires")
+      const otp = await generateOTPAndSave(user, "emailOTP", "emailOTPExpires")
 
       await sendOTPEmail({
         email: user.email, 
@@ -344,7 +345,7 @@ module.exports.refreshToken = async (req, res, next) => {
 
 module.exports.changePassword = async (req, res, next) => {
   try {
-      const user = await User.findById(req.user._id).select(+password);
+      const user = await User.findById(req.user._id).select("+password");
 
       const { currentPassword, newPassword } = req.body;
 
@@ -513,16 +514,16 @@ module.exports.resetPassword = async (req, res, next) => {
     user.resetPasswordVerified = false;
     await user.save(); // Middleware pre('save') sẽ tự động băm mật khẩu
 
-    await revokeToken(user._id) // Đăng xuất khỏi tất cả các thiết bị
+    await revokeToken(user._id, res) // Đăng xuất khỏi tất cả các thiết bị
     
     res.status(200).json({
       status: 'success',
-      token,
+      success: true,
       message: "Đổi mật khẩu thành công"
     });
   } 
   catch (err) {
-    next(error)
+    next(err)
   }
 };
 
@@ -546,7 +547,7 @@ module.exports.resendResetPasswordOTP = async (req, res, next) => {
         });
       }
 
-      const otp = generateOTPAndSave(user, "resetPasswordOTP", "resetPasswordOTPExpires")
+      const otp = await generateOTPAndSave(user, "resetPasswordOTP", "resetPasswordOTPExpires")
       user.resetPasswordVerified = false;
       await user.save({validateBeforeSave: false})
 

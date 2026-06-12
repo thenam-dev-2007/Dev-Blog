@@ -9,45 +9,46 @@ const cleanUpNewFile = async () => {
   }
 };
 
+const normalizeTags = (tags) => {
+  if (!tags) return [];
+  if (Array.isArray(tags)) return tags.map(tag => String(tag).trim()).filter(Boolean);
+  if (typeof tags === "string") return tags.split(",").map(tag => tag.trim()).filter(Boolean);
+  return [];
+}
+
 // [GET] - Lấy tất cả bài viết 
 module.exports.getAllPosts = async (req, res, next) => {
   try {
-    let find = {isDeleted: false};
+    const find = { isDeleted: false };
+    const countPosts = await Post.countDocuments(find);
 
-    const countPosts = await Post.countDocuments(find); // countDocuments() => Dùng để đếm số document trong MongoDB
-
-    let objectPagination = paginationHelper(
-      {
-        currentPage: 1,
-        limitPost: 4,
-      }, 
-      req.query, 
+    const objectPagination = paginationHelper(
+      { currentPage: 1, limitPost: 4 },
+      req.query,
       countPosts
-    )
+    );
 
     const posts = await Post.find(find)
       .sort({ createdAt: -1 })
-      .limit(objectPagination.limitPost)
+      .limit(objectPagination.limitItem)
       .skip(objectPagination.skip)
       .populate("author", "username avatar")
       .populate("comments.user", "username avatar")
-      .lean(); // lean() --> trong Mongoose dùng để trả về object JavaScript thuần thay vì trả về Mongoose Document.
-      // Nên dùng GET API
-      // Không nên dùng UPDATE API vì cần dùng các method của Mongoose document. (ví dụ: .save())
+      .lean();
+
     res.status(200).json({
       success: true,
       message: "Lấy bài viết thành công",
       pagination: {
         currentPage: objectPagination.currentPage,
         totalPage: objectPagination.totalPage,
-        totalPosts: countPosts
-        // limit: objectPagination.limit,
+        totalPosts: countPosts,
+        limit: objectPagination.limitItem,
       },
-      data: posts
-    })
-  } 
-  catch (error) {
-    next(error)
+      data: posts,
+    });
+  } catch (error) {
+    next(error);
   }
 };
 
@@ -64,18 +65,19 @@ module.exports.getPostBySlug = async (req, res, next) => {
     if (!post) {
       return res.status(404).json({
         code: 404,
+        success: false,
         message: "Bài viết không tồn tại",
       });
     }
 
     res.status(200).json({
+      code: 200,
       success: true,
       message: "Lấy bài viết thành công",
       data: post,
     });
-  } 
-  catch (error) {
-    next(error)
+  } catch (error) {
+    next(error);
   }
 };
 
@@ -83,37 +85,34 @@ module.exports.getPostBySlug = async (req, res, next) => {
 module.exports.getPostsByTag = async (req, res, next) => {
   try {
     const { tag } = req.params;
-
-    const find = {tags: { $in: [tag] }, isDeleted: false};
-    
+    const find = { tags: { $in: [tag] }, isDeleted: false };
     const countPosts = await Post.countDocuments(find);
 
-    let objectPagination = paginationHelper(
-          {
-            currentPage: 1,
-            limitPost: 9,
-          }, 
-          req.query, 
-          countPosts
-        )
+    const objectPagination = paginationHelper(
+      { currentPage: 1, limitPost: 9 },
+      req.query,
+      countPosts
+    );
 
-    const posts = await Post.find({ tags: { $in: [tag] }, isDeleted: false })
-        .populate("author", "username email avatar")
-        .sort({ createdAt: -1 })
-        .skip(objectPagination.skip)
-        .limit(objectPagination.limitItem);
+    const posts = await Post.find(find)
+      .populate("author", "username email avatar")
+      .populate("comments.user", "username avatar")
+      .sort({ createdAt: -1 })
+      .skip(objectPagination.skip)
+      .limit(objectPagination.limitItem)
+      .lean();
 
     res.json({
       code: 200,
+      success: true,
       message: "Lấy bài viết theo tag thành công",
       data: {
         tag,
         posts,
-        pagination: objectPagination
+        pagination: objectPagination,
       },
     });
-  } 
-  catch (error) {
+  } catch (error) {
     next(error);
   }
 };
@@ -123,49 +122,49 @@ module.exports.searchPost = async (req, res, next) => {
   try {
     const { keyword } = req.query;
     if (!keyword?.trim()) {
-        return res.status(400).json({
-            code: 400,
-            message: "Vui lòng nhập từ khóa tìm kiếm",
-        });
+      return res.status(400).json({
+        code: 400,
+        success: false,
+        message: "Vui lòng nhập từ khóa tìm kiếm",
+      });
     }
 
     const find = {
-        isDeleted: false,
-        $or: [
-            { title: { $regex: keyword, $options: "i" } },
-            { content: { $regex: keyword, $options: "i" } },
-            { tags: { $regex: keyword, $options: "i" } },
-        ],
+      isDeleted: false,
+      $or: [
+        { title: { $regex: keyword, $options: "i" } },
+        { content: { $regex: keyword, $options: "i" } },
+        { tags: { $regex: keyword, $options: "i" } },
+      ],
     };
 
     const countPosts = await Post.countDocuments(find);
 
-    let objectPagination = paginationHelper(
-        {
-          currentPage: 1,
-          limitPost: 9,
-        }, 
-        req.query, 
-        countPosts
-      )
+    const objectPagination = paginationHelper(
+      { currentPage: 1, limitPost: 9 },
+      req.query,
+      countPosts
+    );
 
     const posts = await Post.find(find)
-        .populate("author", "username email avatar")
-        .sort({ createdAt: -1 })
-        .skip(objectPagination.skip)
-        .limit(objectPagination.limitItem)
+      .populate("author", "username email avatar")
+      .populate("comments.user", "username avatar")
+      .sort({ createdAt: -1 })
+      .skip(objectPagination.skip)
+      .limit(objectPagination.limitItem)
+      .lean();
 
     res.json({
-        code: 200,
-        message: "Tìm kiếm bài viết thành công",
-        data: {
-            posts,
-            pagination: objectPagination,
-        },
+      code: 200,
+      success: true,
+      message: "Tìm kiếm bài viết thành công",
+      data: {
+        posts,
+        pagination: objectPagination,
+      },
     });
-  } 
-  catch (error) {
-    next(error)
+  } catch (error) {
+    next(error);
   }
 };
 
@@ -173,20 +172,27 @@ module.exports.searchPost = async (req, res, next) => {
 module.exports.createPost = async (req, res, next) => {
   try {
     const { title, content, tags } = req.body;
-    const authorId = req.user.id; // Lấy từ middleware auth
+    const authorId = req.user._id; // Lấy từ middleware auth
 
     if (!authorId) {
+      await cleanUpNewFile();
       return res.status(401).json({
         code: 401,
+        success: false,
         message: "Bạn phải đăng nhập để tạo bài viết",
       });
+    }
+
+    let thumbnailPath = ""; 
+    if (req.file) {
+      thumbnailPath = `/upload/post/${req.file.filename}`; // Đảm bảo thư mục này tồn tại
     }
 
     const newPost = await Post.create({
       title,
       content,
-      thumbnail,
-      tags: tags || [],
+      thumbnail: thumbnailPath,
+      tags: normalizeTags(tags),
       author: authorId,
     });
 
@@ -194,17 +200,18 @@ module.exports.createPost = async (req, res, next) => {
 
     const populatedPost = await newPost.populate(
       "author",
-      "username email avatar",
+      "username email avatar"
     );
 
     res.status(201).json({
       code: 201,
+      success: true,
       message: "Tạo bài viết thành công",
       data: populatedPost,
     });
   } 
   catch (error) {
-    next(error)
+    next(error);
   }
 };
 
@@ -212,48 +219,62 @@ module.exports.createPost = async (req, res, next) => {
 module.exports.updatePost = async (req, res, next) => {
   try {
     const { id } = req.params;
-    const { title, content, thumbnail, tags } = req.body;
-    const userId = req.user?._id;
+    const { title, content, tags } = req.body;
+    const userId = req.user._id;
 
-    const post = await Post.findById({_id: id, isDeleted: false});
+    const post = await Post.findOne({ _id: id, isDeleted: false });
 
     if (!post) {
       return res.status(404).json({
         code: 404,
+        success: false,
         message: "Bài viết không tồn tại",
       });
     }
 
-    if (post.author.toString() !== userId) {
+    if (post.author.toString() !== userId.toString()) {
       return res.status(403).json({
         code: 403,
+        success: false,
         message: "Bạn không có quyền sửa bài viết này",
       });
     }
 
     const updateData = {};
-    if(title !== undefined) updateData.title = title;
-    if(content !== undefined) updateData.content = content;
-    if(thumbnail !== undefined) updateData.thumbnail = thumbnail;
-    if(tags !== undefined) updateData.tags = tags;
-
-    const updatedPost = await Post.findByIdAndUpdate(
-      id, 
-      updateData,
-      {
-          new: true,
-          runValidators: true
+    if (title !== undefined) updateData.title = title;
+    if (content !== undefined) updateData.content = content;
+    if (tags !== undefined) updateData.tags = normalizeTags(tags);
+    // Xử lý file (Tương tự như avatar)
+    let oldThumbnailPath = null;
+    if (req.file) {
+      if (post.thumbnail && !post.thumbnail.includes("default")) {
+        oldThumbnailPath = path.join(process.cwd(), post.thumbnail.replace(/^\/+/, ""));
       }
-    )
+      updateData.thumbnail = `/upload/post/${req.file.filename}`;
+    };
+
+    const updatedPost = await Post.findByIdAndUpdate(id, updateData, {
+      new: true,
+      runValidators: true,
+    })
+      .populate("author", "username email avatar")
+      .populate("comments.user", "username avatar");
+
+    if (oldThumbnailPath) {
+      try { await fs.unlink(oldThumbnailPath); } 
+      catch (err) { if (err.code !== 'ENOENT') console.error("Lỗi khi xóa thumbnail cũ:", err.message); }
+    }
 
     res.json({
       code: 200,
+      success: true,
       message: "Cập nhật bài viết thành công",
-      data: post,
+      data: updatedPost,
     });
   } 
   catch (error) {
-    next(error)
+    await cleanUpNewFile();
+    next(error);
   }
 };
 
@@ -262,61 +283,57 @@ module.exports.deletePost = async (req, res, next) => {
   try {
     const post = req.post;
 
-    await Post.findByIdAndUpdate(
-      post._id,
-      {
-        isDeleted: true,
-        deletedAt: new Date()
-      }
-    );
-
-    await User.findByIdAndUpdate(
-        post.author,
-        { $pull: { posts: post._id } } // $pull là một MongoDB update operator dùng để xóa phần tử khỏi mảng.
-    );
-
-    return res.status(200).json({
-        success: true,
-        message: "Xóa bài viết thành công"
+    await Post.findByIdAndUpdate(post._id, {
+      isDeleted: true,
+      deletedAt: new Date(),
     });
 
-    }
-    catch (error) {
-      next(error);
-    }
+    await User.findByIdAndUpdate(post.author, { $pull: { posts: post._id } });
+
+    return res.status(200).json({
+      code: 200,
+      success: true,
+      message: "Xóa bài viết thành công",
+    });
+  } catch (error) {
+    next(error);
+  }
 };
 
 // [POST] - Like bài viết
 module.exports.likePost = async (req, res, next) => {
   try {
     const { id } = req.params;
-    const userId = req.user._id;
+    const userId = String(req.user._id);
 
-    const post = await Post.findById({_id: id,  isDeleted: false});
+    const post = await Post.findOne({ _id: id, isDeleted: false });
 
     if (!post) {
       return res.status(404).json({
         code: 404,
+        success: false,
         message: "Bài viết không tồn tại",
       });
     }
 
-    if (post.likes.includes(userId)) {
+    if (post.likes.some(like => like.toString() === userId)) {
       return res.status(400).json({
-        message: "Bạn đã like bài viết này rồi"
+        code: 400,
+        success: false,
+        message: "Bạn đã like bài viết này rồi",
       });
     }
 
-    post.likes.push(userId);
+    post.likes.push(req.user._id);
     await post.save();
 
     res.json({
       code: 200,
+      success: true,
       message: "Like bài viết thành công",
-      likesCount: post.likes.length
+      likesCount: post.likes.length,
     });
-  } 
-  catch (error) {
+  } catch (error) {
     next(error);
   }
 };
@@ -325,33 +342,36 @@ module.exports.likePost = async (req, res, next) => {
 module.exports.unlikePost = async (req, res, next) => {
   try {
     const { id } = req.params;
-    const userId = req.user._id;
+    const userId = String(req.user._id);
 
-    const post = await Post.findById({_id: id, isDeleted: false});
+    const post = await Post.findOne({ _id: id, isDeleted: false });
 
     if (!post) {
       return res.status(404).json({
         code: 404,
+        success: false,
         message: "Bài viết không tồn tại",
       });
     }
 
-    if (!post.likes.includes(userId)) {
+    if (!post.likes.some(like => like.toString() === userId)) {
       return res.status(400).json({
-        message: "Bạn chưa like bài viết này"
+        code: 400,
+        success: false,
+        message: "Bạn chưa like bài viết này",
       });
     }
 
-    post.likes.pull(userId);
+    post.likes = post.likes.filter(like => like.toString() !== userId);
     await post.save();
 
     res.json({
       code: 200,
+      success: true,
       message: "Bỏ like bài viết thành công",
-      likesCount: post.likes.length
+      likesCount: post.likes.length,
     });
-  } 
-  catch (error) {
+  } catch (error) {
     next(error);
   }
 };
@@ -366,6 +386,7 @@ module.exports.addComment = async (req, res, next) => {
     if (!userId) {
       return res.status(401).json({
         code: 401,
+        success: false,
         message: "Bạn phải đăng nhập để bình luận",
       });
     }
@@ -373,39 +394,39 @@ module.exports.addComment = async (req, res, next) => {
     if (!content || content.trim() === "") {
       return res.status(400).json({
         code: 400,
+        success: false,
         message: "Nội dung bình luận không được để trống",
       });
     }
 
-    const post = await Post.findById(id);
+    const post = await Post.findOne({ _id: id, isDeleted: false });
 
     if (!post) {
       return res.status(404).json({
         code: 404,
+        success: false,
         message: "Bài viết không tồn tại",
       });
     }
 
-    const newComment = {
+    post.comments.push({
       user: userId,
       content: content.trim(),
       createdAt: new Date(),
-    };
-
-    post.comments.push(newComment);
+    });
     await post.save();
 
-    const updatedPost = await Post.findById({_id: id, isDeleted: false})
+    const updatedPost = await Post.findOne({ _id: id, isDeleted: false })
       .populate("author", "username email avatar")
       .populate("comments.user", "username avatar");
 
     res.status(201).json({
       code: 201,
+      success: true,
       message: "Thêm bình luận thành công",
       data: updatedPost,
     });
-  } 
-  catch (error) {
+  } catch (error) {
     next(error);
   }
 };
@@ -414,20 +435,22 @@ module.exports.addComment = async (req, res, next) => {
 module.exports.deleteComment = async (req, res, next) => {
   try {
     const { postId, commentId } = req.params;
-    const userId = req.user?._id;
+    const userId = String(req.user?._id || "");
 
     if (!userId) {
       return res.status(401).json({
         code: 401,
+        success: false,
         message: "Bạn phải đăng nhập để xóa bình luận",
       });
     }
 
-    const post = await Post.findById({_id: postId, isDeleted: false});
+    const post = await Post.findOne({ _id: postId, isDeleted: false });
 
     if (!post) {
       return res.status(404).json({
         code: 404,
+        success: false,
         message: "Bài viết không tồn tại",
       });
     }
@@ -437,16 +460,15 @@ module.exports.deleteComment = async (req, res, next) => {
     if (!comment) {
       return res.status(404).json({
         code: 404,
+        success: false,
         message: "Bình luận không tồn tại",
       });
     }
 
-    if (
-      comment.user.toString() !== userId &&
-      post.author.toString() !== userId
-    ) {
+    if (comment.user.toString() !== userId && post.author.toString() !== userId) {
       return res.status(403).json({
         code: 403,
+        success: false,
         message: "Bạn không có quyền xóa bình luận này",
       });
     }
@@ -456,10 +478,10 @@ module.exports.deleteComment = async (req, res, next) => {
 
     res.json({
       code: 200,
+      success: true,
       message: "Xóa bình luận thành công",
     });
-  } 
-  catch (error) {
+  } catch (error) {
     next(error);
   }
 };

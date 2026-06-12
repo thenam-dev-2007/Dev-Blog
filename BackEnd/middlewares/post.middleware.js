@@ -26,7 +26,7 @@ module.exports.canEditPost = (req, res, next) => {
     const post = req.post;
     const user = req.user;
 
-    const isOwner = post.author.toString() === user._id;
+    const isOwner = post.author.toString() === String(user._id);
 
     const isAdmin = user.role === "admin";
 
@@ -46,7 +46,7 @@ module.exports.canDeletePost = (req, res, next) => {
     const post = req.post;
     const user = req.user;
 
-    const isOwner = post.author.toString() === user._id;
+    const isOwner = post.author.toString() === String(user._id);
 
     const isAdmin = user.role === "admin";
 

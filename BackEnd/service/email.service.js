@@ -16,7 +16,7 @@ const generateEmailOTP = () => {
 
 const generateOTPAndSave = async (user, otpField, otpExpiresField) => {
     // otpField và otpExpiresField là biến chứa tên field, không phải tên field cố định.
-    const {otp, hashedOTP, expiresAt} = generateOTP();
+    const {otp, hashedOTP, expiresAt} = generateEmailOTP();
 
     user[otpField] = hashedOTP;
     user[otpExpiresField] = expiresAt;
@@ -34,6 +34,10 @@ const generateOTPAndSave = async (user, otpField, otpExpiresField) => {
 
 const sendOTPEmail = async (email, otp) => {
     try {
+        if (typeof email === "object" && email !== null) {
+            otp = email.otp;
+            email = email.email;
+        }
         await transporter.sendMail({
             from: `"Blog Platform" <${process.env.EMAIL_USER}>`,
             to: email,

@@ -48,9 +48,9 @@ function normalizeApiResult(result, response) {
 // Hàm gọi API dùng chung.
 async function apiCall(endpoint, method = "GET", data = null, options = {}) {
     const url = endpoint.startsWith("http") ? endpoint : `${API_BASE_URL}${endpoint}`;
-    const headers = {};
     const isFormData = typeof FormData !== "undefined" && data instanceof FormData;
 
+    const headers = {};
     if (!isFormData) {
         headers["Content-Type"] = "application/json";
     }
@@ -62,9 +62,12 @@ async function apiCall(endpoint, method = "GET", data = null, options = {}) {
 
     const fetchOptions = {
         method,
-        headers,
         credentials: "include",
-        ...options
+        ...options,
+        headers: {
+            ...headers,
+            ...(options.headers || {})
+        }
     };
 
     if (data) {
@@ -127,7 +130,15 @@ async function resetPassword(email, newPassword, confirmPassword) {
     // Backend hiện dùng chung validatePassword nên cần currentPassword dù controller reset không dùng.
     return apiCall("/auth/reset-password", "PATCH", {
         email,
-        currentPassword: "__RESET_PASSWORD_FLOW__",
+        currentPassword: "ResetFlow123!",
+        newPassword,
+        confirmPassword
+    });
+}
+
+async function changePassword(currentPassword, newPassword, confirmPassword) {
+    return apiCall("/auth/change-password", "PATCH", {
+        currentPassword,
         newPassword,
         confirmPassword
     });
@@ -139,12 +150,25 @@ async function logout() {
     return result;
 }
 
+// ==================== PROFILE API ====================
 async function getProfile() {
     return apiCall("/profile/me", "GET");
 }
 
+async function getUserProfile(userId) {
+    return apiCall(`/profile/${encodeURIComponent(userId)}`, "GET");
+}
+
 async function updateProfile(formDataOrJson) {
     return apiCall("/profile/me", "PATCH", formDataOrJson);
+}
+
+async function getMyPosts(page = 1, limit = 9) {
+    return apiCall(`/profile/me/posts?page=${page}&limit=${limit}`, "GET");
+}
+
+async function getUserPosts(userId, page = 1, limit = 9) {
+    return apiCall(`/profile/${encodeURIComponent(userId)}/posts?page=${page}&limit=${limit}`, "GET");
 }
 
 // ==================== POST API ====================
@@ -162,6 +186,14 @@ async function getPostsByTag(tag, page = 1, limit = 9) {
 
 async function createPost(data) {
     return apiCall("/posts", "POST", data);
+}
+
+async function updatePost(postId, data) {
+    return apiCall(`/posts/${encodeURIComponent(postId)}`, "PUT", data);
+}
+
+async function deletePostById(postId) {
+    return apiCall(`/posts/${encodeURIComponent(postId)}`, "DELETE");
 }
 
 async function likePost(postId) {
@@ -202,6 +234,19 @@ function toggleSearch() {
     }
 }
 
+function normalizeHeaderAvatar(src) {
+    if (!src) return "https://via.placeholder.com/80?text=U";
+    if (src.startsWith("http://") || src.startsWith("https://") || src.startsWith("data:")) return src;
+    if (src.startsWith("../upload")) return `${API_ORIGIN}/${src.replace(/^\.\.\//, "")}`;
+    if (src.startsWith("/upload")) return `${API_ORIGIN}${src}`;
+    return src;
+}
+
+function closeHeaderDropdown() {
+    const dropdown = document.getElementById("headerAvatarDropdown");
+    if (dropdown) dropdown.classList.remove("open");
+}
+
 function updateHeaderAuthUI() {
     const headerRight = document.querySelector(".header-right");
     if (!headerRight) return;
@@ -218,20 +263,35 @@ function updateHeaderAuthUI() {
         return;
     }
 
-    const user = getUserInfo();
+    const user = getUserInfo() || {};
     if (oldLogin) oldLogin.style.display = "none";
     if (oldRegister) oldRegister.style.display = "none";
 
     const menu = document.createElement("div");
     menu.className = "user-menu-header";
     menu.innerHTML = `
-        <a href="create_post.html" class="btn-dangky">Viết bài</a>
-        <span class="header-username">${user?.username || "User"}</span>
-        <button type="button" class="btn-dangnhap" id="btnHeaderLogout">Đăng xuất</button>
+        <button type="button" class="avatar-toggle" id="btnHeaderAvatar" aria-label="Mở menu người dùng">
+            <img src="${normalizeHeaderAvatar(user.avatar)}" alt="Avatar">
+            <span class="header-username">${user.username || "User"}</span>
+        </button>
+        <div class="avatar-dropdown" id="headerAvatarDropdown">
+            <a href="profile.html">👤 Xem hồ sơ</a>
+            <button type="button" id="btnHeaderLogout">🚪 Đăng xuất</button>
+        </div>
     `;
     headerRight.appendChild(menu);
 
+    const btnAvatar = document.getElementById("btnHeaderAvatar");
+    const dropdown = document.getElementById("headerAvatarDropdown");
     const btnLogout = document.getElementById("btnHeaderLogout");
+
+    if (btnAvatar && dropdown) {
+        btnAvatar.addEventListener("click", (event) => {
+            event.stopPropagation();
+            dropdown.classList.toggle("open");
+        });
+    }
+
     if (btnLogout) {
         btnLogout.addEventListener("click", async () => {
             await logout();
@@ -257,6 +317,7 @@ function initMainUI() {
         });
     }
 
+    document.addEventListener("click", closeHeaderDropdown);
     updateHeaderAuthUI();
 }
 
@@ -273,13 +334,19 @@ window.forgotPassword = forgotPassword;
 window.verifyResetPasswordOTP = verifyResetPasswordOTP;
 window.resendResetPasswordOTP = resendResetPasswordOTP;
 window.resetPassword = resetPassword;
+window.changePassword = changePassword;
 window.logout = logout;
 window.getProfile = getProfile;
+window.getUserProfile = getUserProfile;
 window.updateProfile = updateProfile;
+window.getMyPosts = getMyPosts;
+window.getUserPosts = getUserPosts;
 window.getPosts = getPosts;
 window.getPostDetail = getPostDetail;
 window.getPostsByTag = getPostsByTag;
 window.createPost = createPost;
+window.updatePost = updatePost;
+window.deletePostById = deletePostById;
 window.likePost = likePost;
 window.unlikePost = unlikePost;
 window.commentPost = commentPost;

@@ -5,7 +5,7 @@ const fs = require("fs/promises");
 const User = require("../models/user.model")
 const Post = require("../models/post.model")
 
-const handleValidationErrors = (req, res, next) => {
+const handleValidationErrors = async (req, res, next) => {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
         // Nếu có lỗi, trả về status 400 (Bad Request) với danh sách lỗi
@@ -162,6 +162,7 @@ module.exports.validateCreatePost = [
     // Tags
     body('tags')
         .optional({ nullable: true })
+        .customSanitizer((value) => Array.isArray(value) ? value : [value])
         .isArray().withMessage('Tags phải là một mảng')
         .custom((value) => {
             if (value.length > 10 ) {
@@ -174,11 +175,6 @@ module.exports.validateCreatePost = [
             }
             return true;
         }),
-    
-    // Thumbnail
-    body("thumbnail")
-        .optional()
-        .isURL().withMessage("Thumbnail phải là URL hợp lệ"),
 
     handleValidationErrors
 ];
@@ -198,15 +194,10 @@ module.exports.validateUpdatePost = [
         .notEmpty().withMessage("Nội dung không được để trống")
         .isLength({ min: 10 }).withMessage("Nội dung phải có ít nhất 10 ký tự"),
 
-    // Thumbnail
-    body("thumbnail")
-        .optional()
-        .trim()
-        .notEmpty().withMessage("Thumbnail không được để trống"),
-
     // Tags
     body("tags")
         .optional()
+        .customSanitizer((value) => Array.isArray(value) ? value : [value])
         .isArray().withMessage("Tags phải là một mảng")
         .custom((value) => {
             if (value.length > 10) {

@@ -179,11 +179,15 @@ module.exports.getMyPosts = async (req, res, next) => {
       )
 
       const posts = await Post.find({author: userId, isDeleted: false})
+        .populate("author", "username email avatar")
+        .populate("comments.user", "username avatar")
         .sort({ createdAt: -1 })
         .skip(objectPagination.skip)
-        .limit(objectPagination.limitItem);
+        .limit(objectPagination.limitItem)
+        .lean();
 
       res.status(200).json({
+          code: 200,
           success: true,
           data: posts,
           pagination: objectPagination,
@@ -208,6 +212,8 @@ module.exports.getOthersPosts = async (req, res, next) => {
       });
     }
 
+    const userId = id;
+
     const countPosts = await Post.countDocuments({author: userId, isDeleted: false});
 
     let objectPagination = paginationHelper(
@@ -221,9 +227,11 @@ module.exports.getOthersPosts = async (req, res, next) => {
 
     const posts = await Post.find({author: userId, isDeleted: false})
         .populate("author", "username email avatar")
+        .populate("comments.user", "username avatar")
         .sort({ createdAt: -1 })
         .skip(objectPagination.skip)
-        .limit(objectPagination.limitItem);
+        .limit(objectPagination.limitItem)
+        .lean();
 
     res.json({
       code: 200,
