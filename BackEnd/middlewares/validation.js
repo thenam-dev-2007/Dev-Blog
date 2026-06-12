@@ -142,6 +142,7 @@ module.exports.validateCreatePost = [
     // Tags
     body('tags')
         .optional({ nullable: true })
+        .customSanitizer((value) => Array.isArray(value) ? value : [value])
         .isArray().withMessage('Tags phải là một mảng')
         .custom((value) => {
             if (value.length > 10 ) {
@@ -187,6 +188,7 @@ module.exports.validateUpdatePost = [
     // Tags
     body("tags")
         .optional()
+        .customSanitizer((value) => Array.isArray(value) ? value : [value])
         .isArray().withMessage("Tags phải là một mảng")
         .custom((value) => {
             if (value.length > 10) {

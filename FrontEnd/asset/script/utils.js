@@ -76,11 +76,26 @@ function getErrorMessage(result, fallback = "Có lỗi xảy ra") {
     return fallback;
 }
 
+function idToString(value) {
+    if (!value) return "";
+    if (typeof value === "string") return value;
+    if (typeof value === "object" && value._id) return String(value._id);
+    return String(value);
+}
+
+function isLikedByUser(post, userId) {
+    if (!post || !userId || !Array.isArray(post.likes)) return false;
+    const target = String(userId);
+    return post.likes.some(item => idToString(item) === target);
+}
+
 function renderPost(post) {
     const title = escapeHtml(post.title || "Không có tiêu đề");
     const slug = encodeURIComponent(post.slug || post._id || "");
     const thumb = normalizeImageUrl(post.thumbnail, "https://via.placeholder.com/800x400?text=Blog+Post");
-    const author = escapeHtml(post.author?.username || "Ẩn danh");
+    const authorName = escapeHtml(post.author?.username || "Ẩn danh");
+    const authorId = idToString(post.author);
+    const authorHtml = authorId ? `<a href="profile.html?id=${encodeURIComponent(authorId)}"><b>${authorName}</b></a>` : `<b>${authorName}</b>`;
     const tags = Array.isArray(post.tags) ? post.tags : [];
 
     return `
@@ -94,7 +109,7 @@ function renderPost(post) {
                 ${tags.length ? `<div class="tag-list">${tags.map(tag => `<a href="categories.html?tag=${encodeURIComponent(tag)}">#${escapeHtml(tag)}</a>`).join("")}</div>` : ""}
             </div>
             <div class="card-footer">
-                <small><b>${author}</b> | ${formatDate(post.createdAt)}</small>
+                <small>${authorHtml} | ${formatDate(post.createdAt)}</small>
                 <div class="article-actions">
                     <button type="button">❤️ ${getLikeCount(post)}</button>
                     <button type="button">💬 ${getCommentCount(post)}</button>
@@ -257,6 +272,8 @@ window.normalizeImageUrl = normalizeImageUrl;
 window.formatDate = formatDate;
 window.getLikeCount = getLikeCount;
 window.getCommentCount = getCommentCount;
+window.idToString = idToString;
+window.isLikedByUser = isLikedByUser;
 window.getPostsFromResponse = getPostsFromResponse;
 window.getPaginationFromResponse = getPaginationFromResponse;
 window.resultOk = resultOk;

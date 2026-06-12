@@ -1,5 +1,10 @@
 let currentPost = null;
 
+function currentUserId() {
+    const user = getUserInfo();
+    return user?._id || user?.id || "";
+}
+
 function renderPostDetail(post) {
     currentPost = post;
     document.title = `${post.title || "Bài viết"} - Blog`;
@@ -7,11 +12,15 @@ function renderPostDetail(post) {
     const banner = document.getElementById("postBanner");
     const detail = document.getElementById("postDetail");
     const commentFormWrap = document.getElementById("commentFormWrap");
+    const authorId = idToString(post.author);
+    const authorName = escapeHtml(post.author?.username || "Ẩn danh");
+    const authorHtml = authorId ? `<a href="profile.html?id=${encodeURIComponent(authorId)}"><strong>${authorName}</strong></a>` : `<strong>${authorName}</strong>`;
+    const liked = isLikedByUser(post, currentUserId());
 
     if (banner) {
         banner.innerHTML = `
             <h1>${escapeHtml(post.title || "Không có tiêu đề")}</h1>
-            <p>Tác giả: <strong>${escapeHtml(post.author?.username || "Ẩn danh")}</strong> · ${formatDate(post.createdAt)}</p>
+            <p>Tác giả: ${authorHtml} · ${formatDate(post.createdAt)}</p>
         `;
     }
 
@@ -22,7 +31,10 @@ function renderPostDetail(post) {
             <div class="post-content-text">${escapeHtml(post.content || "")}</div>
             ${tags.length ? `<div class="tag-list post-tags">${tags.map(tag => `<a href="categories.html?tag=${encodeURIComponent(tag)}">#${escapeHtml(tag)}</a>`).join("")}</div>` : ""}
             <div class="post-actions-row">
-                <button type="button" class="button" id="btnLikePost">❤️ Yêu thích (${getLikeCount(post)})</button>
+                <button type="button" class="button ${liked ? "danger" : ""}" id="btnLikePost">
+                    ${liked ? "💔 Bỏ like" : "❤️ Like"} (${getLikeCount(post)})
+                </button>
+                <button type="button" class="button secondary" id="btnGoComment">💬 Bình luận (${getCommentCount(post)})</button>
                 <button type="button" class="button secondary" id="btnSharePost">🔗 Chia sẻ</button>
             </div>
         `;
@@ -35,7 +47,13 @@ function renderPostDetail(post) {
     }
 
     const btnLike = document.getElementById("btnLikePost");
-    if (btnLike) btnLike.addEventListener("click", handleLikePost);
+    if (btnLike) btnLike.addEventListener("click", handleToggleLikePost);
+
+    const btnGoComment = document.getElementById("btnGoComment");
+    if (btnGoComment) btnGoComment.addEventListener("click", () => {
+        document.getElementById("commentFormWrap")?.scrollIntoView({ behavior: "smooth", block: "center" });
+        document.getElementById("commentContent")?.focus();
+    });
 
     const btnShare = document.getElementById("btnSharePost");
     if (btnShare) btnShare.addEventListener("click", async () => {
@@ -55,9 +73,7 @@ async function loadPostDetail() {
         return;
     }
 
-    showLoading("Đang tải bài viết...");
     const result = await getPostDetail(slug);
-    hideLoading();
 
     if (!resultOk(result) || !result.data) {
         showError(getErrorMessage(result, "Không tìm thấy bài viết"), "postDetail");
@@ -67,20 +83,21 @@ async function loadPostDetail() {
     renderPostDetail(result.data);
 }
 
-async function handleLikePost() {
+async function handleToggleLikePost() {
     if (!isLoggedIn()) {
         window.location.href = "login.html";
         return;
     }
 
     if (!currentPost?._id) return;
-    const result = await likePost(currentPost._id);
+    const liked = isLikedByUser(currentPost, currentUserId());
+    const result = liked ? await unlikePost(currentPost._id) : await likePost(currentPost._id);
 
     if (resultOk(result)) {
-        toast(result.message || "Đã like bài viết", "success");
+        toast(result.message || (liked ? "Đã bỏ like bài viết" : "Đã like bài viết"), "success");
         await loadPostDetail();
     } else {
-        toast(getErrorMessage(result, "Không like được bài viết"), "error");
+        toast(getErrorMessage(result, liked ? "Không bỏ like được bài viết" : "Không like được bài viết"), "error");
     }
 }
 

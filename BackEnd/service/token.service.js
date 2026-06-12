@@ -60,10 +60,10 @@ const verifyAccessToken = (token) => {
 };
 
 // Làm mới access token bằng refresh token
-const refreshAccessToken = async (refreshToken) => {
+const refreshAccessToken = async (token) => {
     // Tìm refresh token trong database
-    const storedToken = await refreshToken.findOne({ 
-        token: refreshToken,
+    const storedToken = await RefreshToken.findOne({ 
+        token,
         expiresAt: { $gt: new Date() } // Chưa hết hạn
     });
 
@@ -97,11 +97,13 @@ const refreshAccessToken = async (refreshToken) => {
 
 const revokeToken = async (userId, res) => {
     await RefreshToken.deleteMany({ userId });
-    res.clearCookie("refreshToken", {
-        httpOnly: true,
-        secure: true,
-        sameSite: "strict"
-    });
+    if (res) {
+        res.clearCookie("refreshToken", {
+            httpOnly: true,
+            secure: true,
+            sameSite: "strict"
+        });
+    }
 };
 
 module.exports = {

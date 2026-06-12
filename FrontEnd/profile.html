@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hồ sơ</title>
+    <link rel="stylesheet" href="./asset/css/style-client.css">
+</head>
+<body>
+
+<header>
+    <div class="header-container">
+        <a class="logo" href="index.html">BLOG LOGO</a>
+        <nav class="header-nav">
+            <a href="index.html">Home</a>
+            <a href="categories.html">Categories</a>
+            <a href="faq.html">FAQ</a>
+            <a href="about.html">About</a>
+            <a href="contact.html">Contact</a>
+        </nav>
+        <div class="header-right">
+            <div class="search-wrapper">
+                <input type="text" id="headerSearch" placeholder="Tìm kiếm...">
+                <button class="btn-search-icon" onclick="toggleSearch()" title="Tìm kiếm">🔍</button>
+            </div>
+            <button class="btn-darkmode" onclick="toggleDarkMode()" id="btnDarkMode" title="Chế độ tối">🌙</button>
+            <a href="login.html" class="btn-dangnhap">Đăng nhập</a>
+            <a href="register.html" class="btn-dangky">Đăng ký</a>
+        </div>
+    </div>
+</header>
+
+<main class="profile-page">
+    <section id="profileHero" class="section-card profile-hero">
+        <div class="empty-state">Đang tải hồ sơ...</div>
+    </section>
+
+    <section class="profile-layout">
+        <aside id="profileSidebar" class="section-card profile-sidebar"></aside>
+        <section id="profileContent" class="section-card profile-content">
+            <div class="empty-state">Chọn một mục bên trái để quản lý.</div>
+        </section>
+    </section>
+</main>
+
+<footer class="footer">
+    <nav class="footer-nav">
+        <a href="index.html">Home</a>
+        <a href="about.html">Giới thiệu</a>
+        <a href="faq.html">FAQ</a>
+        <a href="contact.html">Liên hệ</a>
+        <a href="categories.html">Danh mục</a>
+        <a href="admin.html">Admin</a>
+        <a href="#">Điều khoản</a>
+        <a href="#">Quyền riêng tư</a>
+    </nav>
+    <p class="footer-copy">© 2026 Blog Platform. All rights reserved.</p>
+</footer>
+
+    <script src="./asset/script/main.js"></script>
+    <script src="./asset/script/utils.js"></script>
+    <script src="./asset/script/profile.js"></script>
+</body>
+</html>
