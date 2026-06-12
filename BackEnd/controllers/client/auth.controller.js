@@ -8,22 +8,16 @@ const { transporter } = require("../../config/email");
 module.exports.register = async (req, res, next) => {
   try {
     // Lấy dữ liệu từ request body
-    const { username, email, password, dateOfBirth} = req.body;
+    const { fullname, email, password, dateOfBirth} = req.body;
 
-    // Kiểm tra xem username hoặc email đã tồn tại chưa
-    const existingUser = await User.findOne({
-      // $or là toán tử của MongoDB dùng để kiểm tra: Chỉ cần một điều kiện đúng là document sẽ được tìm thấy.
-      $or: [
-        { username: username.toLowerCase() }, 
-        { email: email.toLowerCase() },
-      ],
-    });
+    // Kiểm tra xem email đã tồn tại chưa
+    const existingUser = await User.findOne({ email: email.toLowerCase() });
 
     if (existingUser) {
       // Nếu đã tồn tại, trả về lỗi 409 (Conflict)
       return res.status(409).json({
         success: false,
-        message: "Username hoặc email đã được sử dụng",
+        message: "Email đã được sử dụng",
         error: "DUPLICATE_USER",
       });
     }
@@ -33,7 +27,7 @@ module.exports.register = async (req, res, next) => {
 
     // Tạo user mới trong database
     const newUser = await User.create({
-      username: username.toLowerCase(), // Chuẩn hóa username
+      fullname: fullname,
       email: email.toLowerCase(),
       password: password, // Sẽ được mã hóa tự động bởi pre-save middleware
       dateOfBirth: dateOfBirth,
@@ -254,7 +248,7 @@ module.exports.login = async (req, res, next) => {
       data: {
         user: {
           _id: user._id,
-          username: user.username,
+          fullname: user.fullname,
           email: user.email,
           dateOfBirth: user.dateOfBirth,
           avatar: user.avatar,
@@ -418,7 +412,7 @@ module.exports.forgotPassword = async (req, res, next) => {
     await user.save({ validateBeforeSave: false });
     // validateBeforeSave: false dùng để bỏ qua toàn bộ validation của Mongoose khi gọi save().
     // Nếu dùng await user.save(); --> Mongoose sẽ kiểm tra lại tất cả validation trước khi lưu. (không bỏ qua middleware)
-    // Chỉ đang cập nhật (resetPasswordOTP, resetPasswordOTPExpires), không đụng tới (username, password, email)
+    // Chỉ đang cập nhật (resetPasswordOTP, resetPasswordOTPExpires), không đụng tới (fullname, password, email)
     // --> nên việc chạy lại toàn bộ validation là không cần thiết.
 
     await sendOTPEmail({

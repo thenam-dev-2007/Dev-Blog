@@ -15,7 +15,7 @@ module.exports.getMyProfile = async (req, res, next) => {
 
     const [user, profileStatus] = await Promise.all([
       User.findById(userId)
-        .select("username email avatar dateOfBirth")
+        .select("fullname email avatar dateOfBirth")
         .lean(),
 
       getProfileStatus(userId),
@@ -33,7 +33,7 @@ module.exports.getMyProfile = async (req, res, next) => {
       message: "Lấy thông tin profile thành công",
       data: {
         _id: user._id,
-        username: user.username,
+        fullname: user.fullname,
         email: user.email,
         avatar: user.avatar,
         dateOfBirth: user.dateOfBirth,
@@ -60,7 +60,7 @@ module.exports.getOtherProfile = async (req, res, next) => {
         message: "Lấy thông tin profile thành công",
         data: {
             _id: user._id,
-            username: user.username,
+            fullname: user.fullname,
             avatar: user.avatar,
             dateOfBirth: user.dateOfBirth,
 
@@ -104,10 +104,10 @@ module.exports.updateMyProfile = async (req, res, next) => {
     }
 
     // Lấy dữ liệu từ body request
-    const { username, dateOfBirth } = req.body;
+    const { fullname, dateOfBirth } = req.body;
 
     // Update dữ liệu
-    if (username !== undefined) user.username = username;
+    if (fullname !== undefined) user.fullname = fullname;
     if (dateOfBirth !== undefined) user.dateOfBirth = dateOfBirth;
 
     // Lưu avatar cũ để xóa sau khi save thành công
@@ -144,7 +144,7 @@ module.exports.updateMyProfile = async (req, res, next) => {
     // Response
     const userResponse = {
       _id: user._id,
-      username: user.username,
+      fullname: user.fullname,
       email: user.email,
       avatar: user.avatar,
       dateOfBirth: user.dateOfBirth,
@@ -179,8 +179,8 @@ module.exports.getMyPosts = async (req, res, next) => {
       )
 
       const posts = await Post.find({author: userId, isDeleted: false})
-        .populate("author", "username email avatar")
-        .populate("comments.user", "username avatar")
+        .populate("author", "fullname email avatar")
+        .populate("comments.user", "fullname avatar")
         .sort({ createdAt: -1 })
         .skip(objectPagination.skip)
         .limit(objectPagination.limitItem)
@@ -226,8 +226,8 @@ module.exports.getOthersPosts = async (req, res, next) => {
         )
 
     const posts = await Post.find({author: userId, isDeleted: false})
-        .populate("author", "username email avatar")
-        .populate("comments.user", "username avatar")
+        .populate("author", "fullname email avatar")
+        .populate("comments.user", "fullname avatar")
         .sort({ createdAt: -1 })
         .skip(objectPagination.skip)
         .limit(objectPagination.limitItem)
@@ -239,7 +239,7 @@ module.exports.getOthersPosts = async (req, res, next) => {
       data: {
         user: {
           id: user._id,
-          username: user.username,
+          fullname: user.fullname,
           avatar: user.avatar,
         },
         posts,

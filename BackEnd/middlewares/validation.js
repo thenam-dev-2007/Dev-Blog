@@ -27,12 +27,12 @@ const handleValidationErrors = async (req, res, next) => {
 };
 
 module.exports.validateRegister = [
-    // Kiểm tra username
-    body('username')
+    // Kiểm tra fullname
+    body('fullname')
         .trim()
-        .notEmpty().withMessage('Username là bắt buộc')
-        .isLength({ min: 3, max: 30 }).withMessage('Username phải từ 3-30 ký tự')
-        .matches(/^[a-zA-Z0-9_]+$/).withMessage('Username chỉ được chứa chữ, số và dấu gạch dưới'),
+        .notEmpty().withMessage('fullname là bắt buộc')
+        .isLength({ min: 3, max: 30 }).withMessage('fullname phải từ 3-30 ký tự')
+        .matches(/^[a-zA-Z0-9_]+$/).withMessage('fullname chỉ được chứa chữ, số và dấu gạch dưới'),
 
     // Kiểm tra email
     body('email')
@@ -84,23 +84,23 @@ module.exports.validateRegister = [
 ];
 
 module.exports.validateUpdateMyProfile = [
-    // Username
-    body('username')
+    // Fullname
+    body('fullname')
         .optional()
         .trim()
-        // .notEmpty().withMessage('Username là bắt buộc')
+        // .notEmpty().withMessage('Fullname là bắt buộc')
         .isLength({ min: 3, max: 30 })
-        .withMessage('Username phải từ 3-30 ký tự')
+        .withMessage('Fullname phải từ 3-30 ký tự')
         .matches(/^[a-zA-Z0-9_]+$/)
-        .withMessage('Username chỉ được chứa chữ, số và dấu gạch dưới')
+        .withMessage('Fullname chỉ được chứa chữ, số và dấu gạch dưới')
         .custom(async (value, { req }) => {
             const userId = req.user._id; 
             const existingUser = await User.findOne({
-                username: value,
+                fullname: value,
                 _id: { $ne: userId } // Loại trừ chính user hiện tại
             });
             if (existingUser) {
-                throw new Error("Username đã tồn tại"); 
+                throw new Error("Fullname đã tồn tại"); 
             }
             return true;
         }),

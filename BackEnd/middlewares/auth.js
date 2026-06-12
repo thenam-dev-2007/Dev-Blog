@@ -28,7 +28,7 @@ module.exports.authenticateToken = async (req, res, next) => {
         }
         
         // Tìm user từ decoded token
-        const user = await User.findById(decoded._id).select("_id username email role isActive").lean(); // nếu không có select sẽ lấy toàn bộ document
+        const user = await User.findById(decoded._id).select("_id fullname email role isActive").lean(); // nếu không có select sẽ lấy toàn bộ document
 
         if (!user) {
         return res.status(401).json({
@@ -53,13 +53,13 @@ module.exports.authenticateToken = async (req, res, next) => {
                 // Nếu middleware gắn:
                 // req.user = {
                 //     _id: "123",
-                //     username: "nam"
+                //     fullname: "nam"
                 // };
 
                 // thì controller sẽ nhận được:
                 // {
                 //     _id: "123",
-                //     username: "nam"
+                //     fullname: "nam"
                 // }
             
         // Có thể dùng req.user = decoded;

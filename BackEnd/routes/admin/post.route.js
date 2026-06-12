@@ -5,7 +5,7 @@ const controller = require("../../controllers/admin/post.controller.js");
 const validation = require("../../middlewares/validation.js");
 const upload = require("../../middlewares/upload.js");
 const auth = require("../../middlewares/auth.js");
-const authorize = require("../../middlewares/authorize.js")
+const authorize = require("../../middlewares/authorize.js");
 const postMiddleware = require("../../middlewares/post.middleware.js");
 
 router.get("/", controller.getAllPosts);

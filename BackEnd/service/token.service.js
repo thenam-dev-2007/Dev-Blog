@@ -11,7 +11,7 @@ const generateAccessToken = (user) => {
         _id: user._id.toString(), // newUser._id MongoDB trả về là ObjectId.
         role: user.role,
         // Sau payload có thể thêm:
-        //     username
+        //     fullname
         //     email
     },
     // Secret (khóa bí mật để mã hóa token)

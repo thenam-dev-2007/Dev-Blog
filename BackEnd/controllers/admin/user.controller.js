@@ -28,7 +28,7 @@ module.exports.getOtherProfile = async (req, res, next) => {
             message: "Lấy thông tin profile thành công",
             data: {
                 _id: user._id,
-                username: user.username,
+                fullname: user.fullname,
                 avatar: user.avatar,
                 dateOfBirth: user.dateOfBirth,
 

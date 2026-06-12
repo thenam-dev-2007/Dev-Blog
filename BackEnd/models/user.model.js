@@ -3,13 +3,16 @@ const bcrypt = require("bcryptjs");
 const crypto = require("crypto");
 
 const userSchema = new mongoose.Schema({
-        username: {
+        fullname: {
             type: String,
-            required: [true, 'Username là bắt buộc'],
+            required: [true, 'Fullname là bắt buộc'],
             trim: true,
-            minlength:  [3, 'Username phải có ít nhất 3 ký tự'],
-            maxlength: [30, 'Username không được vượt quá 30 ký tự'],
-            unique: true
+            minlength:  [3, 'Fullname phải có ít nhất 3 ký tự'],
+            maxlength: [30, 'Fullname không được vượt quá 30 ký tự'],
+            match: [
+                /^[a-zA-ZÀ-ỹ\s]+$/,
+                'Fullname chỉ được chứa chữ cái và khoảng trắng'
+            ]
         },
 
         password: {

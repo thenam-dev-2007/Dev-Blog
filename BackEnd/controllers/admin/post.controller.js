@@ -22,8 +22,8 @@ module.exports.getAllPosts = async (req, res, next) => {
         .sort({ createdAt: -1 })
         .limit(objectPagination.limitPost)
         .skip(objectPagination.skip)
-        .populate("author", "username avatar")
-        .populate("comments.user", "username avatar")
+        .populate("author", "fullname avatar")
+        .populate("comments.user", "fullname avatar")
         .lean(); // lean() --> trong Mongoose dùng để trả về object JavaScript thuần thay vì trả về Mongoose Document.
         // Nên dùng GET API
         // Không nên dùng UPDATE API vì cần dùng các method của Mongoose document. (ví dụ: .save())
@@ -50,8 +50,8 @@ module.exports.getPostBySlug = async (req, res, next) => {
         const { slug } = req.params;
 
         const post = await Post.findOne({ slug, isDeleted: false })
-        .populate("author", "username avatar")
-        .populate("comments.user", "username avatar")
+        .populate("author", "fullname avatar")
+        .populate("comments.user", "fullname avatar")
         .lean();
 
         if (!post) {
@@ -97,7 +97,7 @@ module.exports.createPost = async (req, res, next) => {
 
         const populatedPost = await newPost.populate(
         "author",
-        "username email avatar",
+        "fullname email avatar",
         );
 
         res.status(201).json({

@@ -32,8 +32,8 @@ module.exports.getAllPosts = async (req, res, next) => {
       .sort({ createdAt: -1 })
       .limit(objectPagination.limitItem)
       .skip(objectPagination.skip)
-      .populate("author", "username avatar")
-      .populate("comments.user", "username avatar")
+      .populate("author", "fullname avatar")
+      .populate("comments.user", "fullname avatar")
       .lean();
 
     res.status(200).json({
@@ -58,8 +58,8 @@ module.exports.getPostBySlug = async (req, res, next) => {
     const { slug } = req.params;
 
     const post = await Post.findOne({ slug, isDeleted: false })
-      .populate("author", "username avatar")
-      .populate("comments.user", "username avatar")
+      .populate("author", "fullname avatar")
+      .populate("comments.user", "fullname avatar")
       .lean();
 
     if (!post) {
@@ -95,8 +95,8 @@ module.exports.getPostsByTag = async (req, res, next) => {
     );
 
     const posts = await Post.find(find)
-      .populate("author", "username email avatar")
-      .populate("comments.user", "username avatar")
+      .populate("author", "fullname email avatar")
+      .populate("comments.user", "fullname avatar")
       .sort({ createdAt: -1 })
       .skip(objectPagination.skip)
       .limit(objectPagination.limitItem)
@@ -147,8 +147,8 @@ module.exports.searchPost = async (req, res, next) => {
     );
 
     const posts = await Post.find(find)
-      .populate("author", "username email avatar")
-      .populate("comments.user", "username avatar")
+      .populate("author", "fullname email avatar")
+      .populate("comments.user", "fullname avatar")
       .sort({ createdAt: -1 })
       .skip(objectPagination.skip)
       .limit(objectPagination.limitItem)
@@ -200,7 +200,7 @@ module.exports.createPost = async (req, res, next) => {
 
     const populatedPost = await newPost.populate(
       "author",
-      "username email avatar"
+      "fullname email avatar"
     );
 
     res.status(201).json({
@@ -257,8 +257,8 @@ module.exports.updatePost = async (req, res, next) => {
       new: true,
       runValidators: true,
     })
-      .populate("author", "username email avatar")
-      .populate("comments.user", "username avatar");
+      .populate("author", "fullname email avatar")
+      .populate("comments.user", "fullname avatar");
 
     if (oldThumbnailPath) {
       try { await fs.unlink(oldThumbnailPath); } 
@@ -417,8 +417,8 @@ module.exports.addComment = async (req, res, next) => {
     await post.save();
 
     const updatedPost = await Post.findOne({ _id: id, isDeleted: false })
-      .populate("author", "username email avatar")
-      .populate("comments.user", "username avatar");
+      .populate("author", "fullname email avatar")
+      .populate("comments.user", "fullname avatar");
 
     res.status(201).json({
       code: 201,
