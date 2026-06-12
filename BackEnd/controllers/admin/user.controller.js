@@ -1,13 +1,16 @@
 const User = require("../../models/user.model");
 const Post = require("../../models/post.model");
+const getProfileStatus = require("../../service/profile.service");
 
 // [GET] 
-module.exports.getAllUser = async () => {
+module.exports.getAllUser = async (req, res, next) => {
     try {
-        res.status(200).json({
+        const users = await User.find({ isDeleted: false }).select("-password");
+
+        return res.status(200).json({
             success: true,
-            count: User.length,
-            data: User,
+            count: users.length,
+            data: users
         });
     }
     catch(error) {
@@ -17,7 +20,7 @@ module.exports.getAllUser = async () => {
 }
 
 // [GET] - Lấy profile của user
-module.exports.getOtherProfile = async (req, res, next) => {
+module.exports.getProfile = async (req, res, next) => {
     try {
         const user = req.targetUser;
 
@@ -48,10 +51,18 @@ module.exports.deleteUser = async (req, res, next) => {
     try {
         const user = req.targetUser;
 
+        if (req.user._id.toString() === user._id.toString()) {
+            return res.status(400).json({
+                success: false,
+                message: "Không thể tự xóa tài khoản của chính mình"
+            });
+        }
+
         // Xóa toàn bộ bài viết của user
         await Post.updateMany(
             {
-                author: user._id
+                author: user._id,
+                isDeleted: false
             },
             {
                 isDeleted: true,
@@ -72,7 +83,13 @@ module.exports.deleteUser = async (req, res, next) => {
         );
 
         // Xóa user
-        await user.deleteOne();
+        await User.updateOne(
+            { _id: user._id },
+            {
+                isDeleted: true,
+                deletedAt: new Date()
+            }
+        );
 
         return res.status(200).json({
             success: true,

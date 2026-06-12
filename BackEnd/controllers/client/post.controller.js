@@ -47,7 +47,8 @@ module.exports.getAllPosts = async (req, res, next) => {
       },
       data: posts,
     });
-  } catch (error) {
+  } 
+  catch (error) {
     next(error);
   }
 };
@@ -304,7 +305,7 @@ module.exports.deletePost = async (req, res, next) => {
 module.exports.likePost = async (req, res, next) => {
   try {
     const { id } = req.params;
-    const userId = String(req.user._id);
+    const userId = req.user._id;
 
     const post = await Post.findOne({ _id: id, isDeleted: false });
 
@@ -342,7 +343,7 @@ module.exports.likePost = async (req, res, next) => {
 module.exports.unlikePost = async (req, res, next) => {
   try {
     const { id } = req.params;
-    const userId = String(req.user._id);
+    const userId = req.user._id;
 
     const post = await Post.findOne({ _id: id, isDeleted: false });
 
@@ -381,7 +382,7 @@ module.exports.addComment = async (req, res, next) => {
   try {
     const { id } = req.params;
     const { content } = req.body;
-    const userId = req.user?._id;
+    const userId = req.user._id;
 
     if (!userId) {
       return res.status(401).json({
@@ -435,7 +436,7 @@ module.exports.addComment = async (req, res, next) => {
 module.exports.deleteComment = async (req, res, next) => {
   try {
     const { postId, commentId } = req.params;
-    const userId = String(req.user?._id || "");
+    const userId = req.user._id;
 
     if (!userId) {
       return res.status(401).json({

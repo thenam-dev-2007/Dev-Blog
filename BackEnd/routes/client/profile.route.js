@@ -6,7 +6,7 @@ const validation = require("../../middlewares/validation.js");
 const upload = require("../../middlewares/upload.js");
 const auth = require("../../middlewares/auth.js");
 const authorize = require("../../middlewares/authorize.js");
-const userMiddleware = require("../../middlewares/user.middleware.js")
+const userMiddleware = require("../../middlewares/user.middleware.js");
 
 router.get("/me", auth.authenticateToken, controller.getMyProfile);
 
