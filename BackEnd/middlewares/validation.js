@@ -1,6 +1,7 @@
 const { body, validationResult } = require('express-validator');
 // express-validator: Cung cấp các hàm kiểm tra (validation chain) cho từng trường dữ liệu.
 // Validation chain: Mỗi trường có thể có nhiều điều kiện kiểm tra, được nối tiếp nhau bằng dấu chấm.
+const fs = require("fs/promises");
 const User = require("../models/user.model")
 const Post = require("../models/post.model")
 
@@ -8,6 +9,14 @@ const handleValidationErrors = (req, res, next) => {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
         // Nếu có lỗi, trả về status 400 (Bad Request) với danh sách lỗi
+        if (req.file && req.file.path) {
+            try {
+                await fs.unlink(req.file.path);
+            } 
+            catch (err) {
+                console.error("Lỗi xóa file khi validation thất bại:", err.message);
+            }
+        }
         return res.status(400).json({
             success: false,
             errors: errors.array()
@@ -83,7 +92,18 @@ module.exports.validateUpdateMyProfile = [
         .isLength({ min: 3, max: 30 })
         .withMessage('Username phải từ 3-30 ký tự')
         .matches(/^[a-zA-Z0-9_]+$/)
-        .withMessage('Username chỉ được chứa chữ, số và dấu gạch dưới'),
+        .withMessage('Username chỉ được chứa chữ, số và dấu gạch dưới')
+        .custom(async (value, { req }) => {
+            const userId = req.user._id; 
+            const existingUser = await User.findOne({
+                username: value,
+                _id: { $ne: userId } // Loại trừ chính user hiện tại
+            });
+            if (existingUser) {
+                throw new Error("Username đã tồn tại"); 
+            }
+            return true;
+        }),
 
     // Date of birth
     body('dateOfBirth')
@@ -249,9 +269,7 @@ module.exports.validateEmail = [
         .custom(async (value, { req }) => {
             //  { req } chính là Express request object --> có thể dùng req.params.id, req.body, req.user
             if (value.toLowerCase() === req.user.email.toLowerCase()) {
-                throw new Error(
-                    "Email mới phải khác email hiện tại"
-                );
+                throw new Error("Email mới phải khác email hiện tại");
             }
             const emailExists = await User.findOne({
                 email: value.toLowerCase() // Tìm email giống email người dùng nhập. (tránh khác chữ hoa/thường.)

@@ -2,6 +2,13 @@ const Post = require("../../models/post.model.js");
 const User = require("../../models/user.model.js");
 const paginationHelper = require("../../helper/pagination");
 
+const cleanUpNewFile = async () => {
+  if (req.file && req.file.path) {
+    try { await fs.unlink(req.file.path); } 
+    catch (err) { console.error("Không thể xóa file mới khi rollback:", err.message); }
+  }
+};
+
 // [GET] - Lấy tất cả bài viết 
 module.exports.getAllPosts = async (req, res, next) => {
   try {
@@ -131,7 +138,7 @@ module.exports.searchPost = async (req, res, next) => {
         ],
     };
 
-    const Posts = await Post.countDocuments(find);
+    const countPosts = await Post.countDocuments(find);
 
     let objectPagination = paginationHelper(
         {
@@ -165,8 +172,8 @@ module.exports.searchPost = async (req, res, next) => {
 // [POST] - Tạo bài viết mới
 module.exports.createPost = async (req, res, next) => {
   try {
-    const { title, content, thumbnail, tags } = req.body;
-    const authorId = req.user?.id; // Lấy từ middleware auth
+    const { title, content, tags } = req.body;
+    const authorId = req.user.id; // Lấy từ middleware auth
 
     if (!authorId) {
       return res.status(401).json({

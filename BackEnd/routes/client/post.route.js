@@ -13,6 +13,8 @@ router.get("/tag/:tag", controller.getPostsByTag);
 
 router.get("/:slug", controller.getPostBySlug);
 
+router.get("/search", controller.searchPost);
+
 router.post("/", auth.authenticateToken, upload.uploadThumbnail.single("thumbnail"), validation.validateCreatePost, controller.createPost);
 
 router.put("/:id", auth.authenticateToken, postMiddleware.loadPost, postMiddleware.canEditPost, upload.uploadThumbnail.single("thumbnail"), validation.validateUpdatePost, controller.updatePost);

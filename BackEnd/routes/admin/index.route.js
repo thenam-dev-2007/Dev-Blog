@@ -8,9 +8,9 @@ module.exports = (app) => {
     const PATH_API = systemConfig.prefixApi;
     const PATH_ADMIN = systemConfig.prefixAdmin;
 
-    app.use(PATH_API + "/auth", authRoute);
+    app.use(PATH_API + PATH_ADMIN + "/auth", authRoute);
 
-    app.use(PATH_API + "/posts", postRoute);
+    app.use(PATH_API + PATH_ADMIN + "/posts", postRoute);
 
-    app.use(PATH_API + "/profile", profileRoute);
+    app.use(PATH_API + PATH_ADMIN + "/profile", profileRoute);
 };

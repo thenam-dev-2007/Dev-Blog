@@ -77,17 +77,20 @@ module.exports.getOtherProfile = async (req, res, next) => {
 
 // [PATCH] //
 module.exports.updateMyProfile = async (req, res, next) => {
+  const cleanUpNewFile = async () => {
+    if (req.file && req.file.path) {
+      try {
+        await fs.unlink(req.file.path);
+      } 
+      catch (err) {
+        console.error("Không thể xóa file mới khi rollback:", err.message);
+      }
+    }
+  };
+
   try {
     // Lấy Id từ token
-    const userId = req.user._id.toString();
-
-    // Validate ObjectId
-    if (!mongoose.Types.ObjectId.isValid(userId)) {
-      return res.status(400).json({
-        code: 400,
-        message: "ID không hợp lệ",
-      });
-    }
+    const userId = req.user._id;
 
     // Tìm user
     const user = await User.findById(userId);
@@ -104,8 +107,8 @@ module.exports.updateMyProfile = async (req, res, next) => {
     const { username, dateOfBirth } = req.body;
 
     // Update dữ liệu
-    if (username) user.username = username.trim();
-    if (dateOfBirth && !isNaN(new Date(dateOfBirth))) user.dateOfBirth = dateOfBirth;
+    if (username !== undefined) user.username = username;
+    if (dateOfBirth !== undefined) user.dateOfBirth = dateOfBirth;
 
     // Lưu avatar cũ để xóa sau khi save thành công
     let oldAvatarPath = null;
@@ -124,29 +127,19 @@ module.exports.updateMyProfile = async (req, res, next) => {
       }
       // Cập nhật avatar mới
       user.avatar = `/upload/avatar/${req.file.filename}`;
+
       // Save user
       await user.save();
 
       if (oldAvatarPath) {
         try {
-          const exists = await fs.access(oldAvatarPath)
-            // Nếu file hoặc thư mục tồn tại và có quyền truy cập → Promise được resolve.
-            // Nếu file không tồn tại hoặc không có quyền truy cập → Promise bị reject (throw error).
-            .then(() => true)
-            .catch(() => false);
-          if (exists) await fs.unlink(oldAvatarPath); // Xóa file avatar cũ.
+          await fs.unlink(oldAvatarPath); // Xóa file avatar cũ.
         } 
         catch (err) {
           console.error(err.message);
         }
       }
-
-      // Cập nhật avatar mới
-      user.avatar = `/upload/avatar/${req.file.filename}`;
     }
-
-    // Save user
-    await user.save();
 
     // Response
     const userResponse = {
@@ -164,6 +157,7 @@ module.exports.updateMyProfile = async (req, res, next) => {
     });
   } 
   catch (error) {
+    await cleanUpNewFile();
     next(error);
   }
 };
