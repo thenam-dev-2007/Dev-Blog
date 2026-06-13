@@ -22,7 +22,7 @@ const generateOTPAndSave = async (user, otpField, otpExpiresField) => {
     user[otpExpiresField] = expiresAt;
     // user["emailOTP"] = hashedOTP;
     // user["emailOTPExpires"] = expiresAt;
-    // tuowgn đương:
+    // tương đương:
     // user.emailOTP = hashedOTP;
     // user.emailOTPExpires = expiresAt;
     user.otpResendAt = new Date();

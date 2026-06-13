@@ -4,23 +4,6 @@ const User = require("../models/user.model")
 const jwt = require("jsonwebtoken");
 const RefreshToken = require("../models/refreshToken.model")
 
-const generateAccessToken = (user) => {
-    return jwt.sign(
-    // Payload (dữ liệu được lưu trong token)
-    {
-        _id: user._id.toString(), // newUser._id MongoDB trả về là ObjectId.
-        role: user.role,
-        // Sau payload có thể thêm:
-        //     fullname
-        //     email
-    },
-    // Secret (khóa bí mật để mã hóa token)
-    process.env.ACCESS_TOKEN_SECRET,
-    // Options (cấu hình token)
-    { expiresIn: process.env.ACCESS_TOKEN_EXPIRY }
-    );
-};
-
 // Hàm dùng để tạo JWT token cho user
 // - user._id: MongoDB object ID
 // - user.role: Vai trò (user hoặc admin)
@@ -35,6 +18,22 @@ const generateAccessToken = (user) => {
 // Thời gian hết hạn:
 // - Mặc định 24 giờ (từ JWT_EXPIRES_IN environment variable)
 // - Có thể cấu hình trong .env
+const generateAccessToken = (user) => {
+    return jwt.sign(
+    // Payload (dữ liệu được lưu trong token)
+    {
+        _id: user._id.toString(), // user._id MongoDB trả về là ObjectId.
+        role: user.role,
+        // Sau payload có thể thêm:
+        //     fullname
+        //     email
+    },
+    // Secret (khóa bí mật để mã hóa token)
+    process.env.ACCESS_TOKEN_SECRET,
+    // Options (cấu hình token)
+    { expiresIn: process.env.ACCESS_TOKEN_EXPIRY }
+    );
+};
 
 // Tạo refresh token và lưu vào database
 const generateRefreshToken = async (user) => {
