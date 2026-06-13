@@ -109,7 +109,7 @@ module.exports.verifyEmail = async (req, res, next) => {
         }
     );
 
-    return res.status(200).json({
+    res.status(200).json({
       success: true,
       message: "Xác thực email thành công",
       data: {
@@ -158,7 +158,7 @@ module.exports.resendRegisterOTP = async (req, res, next) => {
         type: "verify"
       });
 
-      return res.status(200).json({
+      res.status(200).json({
           success: true,
           message: "OTP mới đã được gửi"
       });
@@ -280,7 +280,7 @@ module.exports.logout = async (req, res, next) => {
       sameSite: "strict"
     });
 
-    return res.status(200).json({
+    res.status(200).json({
         success: true,
         message: "Đăng xuất thành công"
     });
@@ -323,7 +323,7 @@ module.exports.refreshToken = async (req, res, next) => {
       maxAge: 7 * 24 * 60 * 60 * 1000
     });
     
-    res.json({
+    res.status(200).json({
       success: true,
       message: 'Access token đã được làm mới',
       data: {
@@ -358,7 +358,7 @@ module.exports.changePassword = async (req, res, next) => {
       // Đăng xuất toàn bộ thiết bị
       await revokeToken(user._id, res);
 
-      return res.status(200).json({
+      res.status(200).json({
           success: true,
           message: "Đổi mật khẩu thành công. Vui lòng đăng nhập lại."
       });
@@ -380,7 +380,7 @@ module.exports.changeEmail = async (req, res, next) => {
       // Đăng xuất toàn bộ thiết bị
       await revokeToken(user._id, res);
 
-      return res.status(200).json({
+      res.status(200).json({
           success: true,
           message: "Đổi email thành công. Vui lòng đăng nhập lại."
       });
@@ -398,7 +398,7 @@ module.exports.forgotPassword = async (req, res, next) => {
 
     if (!user) {
       return res.status(404).json({
-        status: 'fail',
+        success: false,
         message: 'Không tìm thấy người dùng với email này.'
       });
     }
@@ -421,7 +421,7 @@ module.exports.forgotPassword = async (req, res, next) => {
       type: "reset-password"
     })
 
-    return res.status(200).json({
+    res.status(200).json({
       success: true,
       message: "OTP đã được gửi"
     });
@@ -453,16 +453,14 @@ module.exports.verifyResetPasswordOTP = async ( req, res, next) => {
       if (user.resetPasswordOTP !== hashedOTP) {
         return res.status(400).json({
             success: false,
-            message:
-                "OTP không chính xác"
+            message: "OTP không chính xác"
         });
       }
 
       if (user.resetPasswordOTPExpires < Date.now()) {
         return res.status(400).json({
             success: false,
-            message:
-                "OTP đã hết hạn"
+            message: "OTP đã hết hạn"
         });
       }
 
@@ -470,7 +468,7 @@ module.exports.verifyResetPasswordOTP = async ( req, res, next) => {
 
       await user.save({ validateBeforeSave: false });
 
-      return res.status(200).json({
+      res.status(200).json({
         success: true,
         message: "OTP hợp lệ"
       });
@@ -489,7 +487,7 @@ module.exports.resetPassword = async (req, res, next) => {
 
     if (!user) {
       return res.status(400).json({
-        status: 'fail',
+        success: false,
         message: 'Không tìm thấy toàn khoản'
       });
     }
@@ -511,7 +509,6 @@ module.exports.resetPassword = async (req, res, next) => {
     await revokeToken(user._id, res) // Đăng xuất khỏi tất cả các thiết bị
     
     res.status(200).json({
-      status: 'success',
       success: true,
       message: "Đổi mật khẩu thành công"
     });
@@ -551,7 +548,7 @@ module.exports.resendResetPasswordOTP = async (req, res, next) => {
         type: "reset-password"
       });
 
-      return res.status(200).json({
+      res.status(200).json({
           success: true,
           message: "OTP mới đã được gửi"
       });

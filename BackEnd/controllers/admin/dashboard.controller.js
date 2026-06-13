@@ -119,7 +119,7 @@ module.exports.dashboard = async (req, res, next) => {
             totalComments: 0,
         };
 
-        return res.status(200).json({
+        res.status(200).json({
             success: true,
             message: "Lấy dữ liệu dashboard thành công",
             data: {

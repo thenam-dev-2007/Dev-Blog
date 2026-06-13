@@ -56,7 +56,7 @@ module.exports.getPostBySlug = async (req, res, next) => {
 
         if (!post) {
             return res.status(404).json({
-                code: 404,
+                success: false,
                 message: "Bài viết không tồn tại",
             });
         }
@@ -80,7 +80,7 @@ module.exports.createPost = async (req, res, next) => {
 
         if (!authorId) {
             return res.status(401).json({
-                code: 401,
+                success: false,
                 message: "Bạn phải đăng nhập để tạo bài viết",
             });
         }
@@ -101,7 +101,7 @@ module.exports.createPost = async (req, res, next) => {
         );
 
         res.status(201).json({
-            code: 201,
+            success: true,
             message: "Tạo bài viết thành công",
             data: populatedPost,
         });
@@ -126,7 +126,7 @@ module.exports.deletePost = async (req, res, next) => {
             { $pull: { posts: post._id } }, // $pull là một MongoDB update operator dùng để xóa phần tử khỏi mảng.
         );
 
-        return res.status(200).json({
+        res.status(200).json({
             success: true,
             message: "Xóa bài viết thành công",
         });

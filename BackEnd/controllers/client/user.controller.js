@@ -20,13 +20,13 @@ module.exports.getMyProfile = async (req, res, next) => {
 
     if (!user) {
       return res.status(404).json({
-        code: 404,
+        success: false,
         message: "User not found",
       });
     }
 
-    return res.status(200).json({
-      code: 200,
+    res.status(200).json({
+      success: true,
       message: "Lấy thông tin profile thành công",
       data: {
         _id: user._id,
@@ -40,7 +40,8 @@ module.exports.getMyProfile = async (req, res, next) => {
         totalComments: profileStatus.totalComments,
       },
     });
-  } catch (error) {
+  } 
+  catch (error) {
     next(error);
   }
 };
@@ -52,8 +53,8 @@ module.exports.getOtherProfile = async (req, res, next) => {
 
     const profileStatus = await getProfileStatus(user._id);
 
-    return res.status(200).json({
-      code: 200,
+    res.status(200).json({
+      success: true,
       message: "Lấy thông tin profile thành công",
       data: {
         _id: user._id,
@@ -93,7 +94,7 @@ module.exports.updateMyProfile = async (req, res, next) => {
     // Kiểm tra xem user có tồn tại không
     if (!user) {
       return res.status(404).json({
-        code: 404,
+        success: false,
         message: `User with ID ${userId} not found`,
       });
     }
@@ -145,12 +146,13 @@ module.exports.updateMyProfile = async (req, res, next) => {
       dateOfBirth: user.dateOfBirth,
     };
 
-    return res.status(200).json({
-      code: 200,
+    res.status(200).json({
+      success: true,
       message: "Cập nhật dữ liệu thành công",
       data: userResponse,
     });
-  } catch (error) {
+  } 
+  catch (error) {
     await cleanUpNewFile();
     next(error);
   }
@@ -184,12 +186,13 @@ module.exports.getMyPosts = async (req, res, next) => {
       .lean();
 
     res.status(200).json({
-      code: 200,
       success: true,
+      message: "Lấy bài viết của user thành công",
       data: posts,
       pagination: objectPagination,
     });
-  } catch (error) {
+  } 
+  catch (error) {
     next(error);
   }
 };
@@ -202,7 +205,7 @@ module.exports.getOthersPosts = async (req, res, next) => {
 
     if (!user) {
       return res.status(404).json({
-        code: 404,
+        success: false,
         message: "User not found",
       });
     }
@@ -231,8 +234,8 @@ module.exports.getOthersPosts = async (req, res, next) => {
       .limit(objectPagination.limitPost)
       .lean();
 
-    res.json({
-      code: 200,
+    res.status(200).json({
+      success: true,
       message: "Lấy bài viết của user thành công",
       data: {
         user: {
@@ -244,7 +247,8 @@ module.exports.getOthersPosts = async (req, res, next) => {
         pagination: objectPagination,
       },
     });
-  } catch (error) {
+  } 
+  catch (error) {
     next(error);
   }
 };

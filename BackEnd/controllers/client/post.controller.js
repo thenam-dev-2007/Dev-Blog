@@ -65,14 +65,12 @@ module.exports.getPostBySlug = async (req, res, next) => {
 
     if (!post) {
       return res.status(404).json({
-        code: 404,
         success: false,
         message: "Bài viết không tồn tại",
       });
     }
 
     res.status(200).json({
-      code: 200,
       success: true,
       message: "Lấy bài viết thành công",
       data: post,
@@ -103,8 +101,7 @@ module.exports.getPostsByTag = async (req, res, next) => {
       .limit(objectPagination.limitItem)
       .lean();
 
-    res.json({
-      code: 200,
+    res.status(200).json({
       success: true,
       message: "Lấy bài viết theo tag thành công",
       data: {
@@ -124,7 +121,6 @@ module.exports.searchPost = async (req, res, next) => {
     const { keyword } = req.query;
     if (!keyword?.trim()) {
       return res.status(400).json({
-        code: 400,
         success: false,
         message: "Vui lòng nhập từ khóa tìm kiếm",
       });
@@ -155,8 +151,7 @@ module.exports.searchPost = async (req, res, next) => {
       .limit(objectPagination.limitItem)
       .lean();
 
-    res.json({
-      code: 200,
+    res.status(200).json({
       success: true,
       message: "Tìm kiếm bài viết thành công",
       data: {
@@ -178,7 +173,6 @@ module.exports.createPost = async (req, res, next) => {
     if (!authorId) {
       await cleanUpNewFile();
       return res.status(401).json({
-        code: 401,
         success: false,
         message: "Bạn phải đăng nhập để tạo bài viết",
       });
@@ -205,7 +199,6 @@ module.exports.createPost = async (req, res, next) => {
     );
 
     res.status(201).json({
-      code: 201,
       success: true,
       message: "Tạo bài viết thành công",
       data: populatedPost,
@@ -227,7 +220,6 @@ module.exports.updatePost = async (req, res, next) => {
 
     if (!post) {
       return res.status(404).json({
-        code: 404,
         success: false,
         message: "Bài viết không tồn tại",
       });
@@ -235,7 +227,6 @@ module.exports.updatePost = async (req, res, next) => {
 
     if (post.author.toString() !== userId.toString()) {
       return res.status(403).json({
-        code: 403,
         success: false,
         message: "Bạn không có quyền sửa bài viết này",
       });
@@ -266,8 +257,7 @@ module.exports.updatePost = async (req, res, next) => {
       catch (err) { if (err.code !== 'ENOENT') console.error("Lỗi khi xóa thumbnail cũ:", err.message); }
     }
 
-    res.json({
-      code: 200,
+    res.status(200).json({
       success: true,
       message: "Cập nhật bài viết thành công",
       data: updatedPost,
@@ -291,8 +281,7 @@ module.exports.deletePost = async (req, res, next) => {
 
     await User.findByIdAndUpdate(post.author, { $pull: { posts: post._id } });
 
-    return res.status(200).json({
-      code: 200,
+    res.status(200).json({
       success: true,
       message: "Xóa bài viết thành công",
     });
@@ -311,7 +300,6 @@ module.exports.likePost = async (req, res, next) => {
 
     if (!post) {
       return res.status(404).json({
-        code: 404,
         success: false,
         message: "Bài viết không tồn tại",
       });
@@ -319,7 +307,6 @@ module.exports.likePost = async (req, res, next) => {
 
     if (post.likes.some(like => like.toString() === userId)) {
       return res.status(400).json({
-        code: 400,
         success: false,
         message: "Bạn đã like bài viết này rồi",
       });
@@ -328,13 +315,13 @@ module.exports.likePost = async (req, res, next) => {
     post.likes.push(req.user._id);
     await post.save();
 
-    res.json({
-      code: 200,
+    res.status(200).json({
       success: true,
       message: "Like bài viết thành công",
       likesCount: post.likes.length,
     });
-  } catch (error) {
+  } 
+  catch (error) {
     next(error);
   }
 };
@@ -349,7 +336,6 @@ module.exports.unlikePost = async (req, res, next) => {
 
     if (!post) {
       return res.status(404).json({
-        code: 404,
         success: false,
         message: "Bài viết không tồn tại",
       });
@@ -357,7 +343,6 @@ module.exports.unlikePost = async (req, res, next) => {
 
     if (!post.likes.some(like => like.toString() === userId)) {
       return res.status(400).json({
-        code: 400,
         success: false,
         message: "Bạn chưa like bài viết này",
       });
@@ -366,13 +351,13 @@ module.exports.unlikePost = async (req, res, next) => {
     post.likes = post.likes.filter(like => like.toString() !== userId);
     await post.save();
 
-    res.json({
-      code: 200,
+    res.status(200).json({
       success: true,
       message: "Bỏ like bài viết thành công",
       likesCount: post.likes.length,
     });
-  } catch (error) {
+  } 
+  catch (error) {
     next(error);
   }
 };
@@ -386,7 +371,6 @@ module.exports.addComment = async (req, res, next) => {
 
     if (!userId) {
       return res.status(401).json({
-        code: 401,
         success: false,
         message: "Bạn phải đăng nhập để bình luận",
       });
@@ -394,7 +378,6 @@ module.exports.addComment = async (req, res, next) => {
 
     if (!content || content.trim() === "") {
       return res.status(400).json({
-        code: 400,
         success: false,
         message: "Nội dung bình luận không được để trống",
       });
@@ -404,7 +387,6 @@ module.exports.addComment = async (req, res, next) => {
 
     if (!post) {
       return res.status(404).json({
-        code: 404,
         success: false,
         message: "Bài viết không tồn tại",
       });
@@ -422,7 +404,6 @@ module.exports.addComment = async (req, res, next) => {
       .populate("comments.user", "fullname avatar");
 
     res.status(201).json({
-      code: 201,
       success: true,
       message: "Thêm bình luận thành công",
       data: updatedPost,
@@ -440,7 +421,6 @@ module.exports.deleteComment = async (req, res, next) => {
 
     if (!userId) {
       return res.status(401).json({
-        code: 401,
         success: false,
         message: "Bạn phải đăng nhập để xóa bình luận",
       });
@@ -450,7 +430,6 @@ module.exports.deleteComment = async (req, res, next) => {
 
     if (!post) {
       return res.status(404).json({
-        code: 404,
         success: false,
         message: "Bài viết không tồn tại",
       });
@@ -460,7 +439,6 @@ module.exports.deleteComment = async (req, res, next) => {
 
     if (!comment) {
       return res.status(404).json({
-        code: 404,
         success: false,
         message: "Bình luận không tồn tại",
       });
@@ -468,7 +446,6 @@ module.exports.deleteComment = async (req, res, next) => {
 
     if (comment.user.toString() !== userId && post.author.toString() !== userId) {
       return res.status(403).json({
-        code: 403,
         success: false,
         message: "Bạn không có quyền xóa bình luận này",
       });
@@ -477,8 +454,7 @@ module.exports.deleteComment = async (req, res, next) => {
     post.comments.id(commentId).deleteOne();
     await post.save();
 
-    res.json({
-      code: 200,
+    res.status(200).json({
       success: true,
       message: "Xóa bình luận thành công",
     });

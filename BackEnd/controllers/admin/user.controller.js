@@ -24,7 +24,7 @@ module.exports.getAllUser = async (req, res, next) => {
             .skip(objectPagination.skip)
             .lean();
 
-        return res.status(200).json({
+        res.status(200).json({
             success: true,
             message: "Lấy danh sách người dùng thành công",
             pagination: {
@@ -49,19 +49,19 @@ module.exports.getProfile = async (req, res, next) => {
 
         const profileStatus = await getProfileStatus(user._id);
 
-        return res.status(200).json({
-        code: 200,
-        message: "Lấy thông tin profile thành công",
-        data: {
-            _id: user._id,
-            fullname: user.fullname,
-            avatar: user.avatar,
-            dateOfBirth: user.dateOfBirth,
+        res.status(200).json({
+            success: true,
+            message: "Lấy thông tin profile thành công",
+            data: {
+                _id: user._id,
+                fullname: user.fullname,
+                avatar: user.avatar,
+                dateOfBirth: user.dateOfBirth,
 
-            totalPosts: profileStatus.totalPosts,
-            totalLikes: profileStatus.totalLikes,
-            totalComments: profileStatus.totalComments,
-        },
+                totalPosts: profileStatus.totalPosts,
+                totalLikes: profileStatus.totalLikes,
+                totalComments: profileStatus.totalComments,
+            },
         });
     } 
     catch (error) {
@@ -115,7 +115,7 @@ module.exports.deleteUser = async (req, res, next) => {
             },
         );
 
-        return res.status(200).json({
+        res.status(200).json({
             success: true,
             message: "Xóa người dùng thành công",
         });
