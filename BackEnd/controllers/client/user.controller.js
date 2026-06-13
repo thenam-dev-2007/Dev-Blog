@@ -3,7 +3,7 @@ const User = require("../../models/user.model");
 const Post = require("../../models/post.model");
 
 const fs = require("fs/promises"); // file system (tạo, đọc, ghi, xóa, đổi tên file, ...)
-                                    // /promises: thêm phiên bản Promise của thư viện fs (để dùng async, await)
+// /promises: thêm phiên bản Promise của thư viện fs (để dùng async, await)
 const path = require("path"); // dùng để xử lý đường dẫn file/thư mục.
 const getProfileStatus = require("../../service/profile.service");
 const paginationHelper = require("../../helper/pagination");
@@ -14,10 +14,7 @@ module.exports.getMyProfile = async (req, res, next) => {
     const userId = req.user._id;
 
     const [user, profileStatus] = await Promise.all([
-      User.findById(userId)
-        .select("fullname email avatar dateOfBirth")
-        .lean(),
-
+      User.findById(userId).select("fullname email avatar dateOfBirth").lean(),
       getProfileStatus(userId),
     ]);
 
@@ -56,23 +53,22 @@ module.exports.getOtherProfile = async (req, res, next) => {
     const profileStatus = await getProfileStatus(user._id);
 
     return res.status(200).json({
-        code: 200,
-        message: "Lấy thông tin profile thành công",
-        data: {
-            _id: user._id,
-            fullname: user.fullname,
-            avatar: user.avatar,
-            dateOfBirth: user.dateOfBirth,
+      code: 200,
+      message: "Lấy thông tin profile thành công",
+      data: {
+        _id: user._id,
+        fullname: user.fullname,
+        avatar: user.avatar,
+        dateOfBirth: user.dateOfBirth,
 
-            totalPosts: profileStatus.totalPosts,
-            totalLikes: profileStatus.totalLikes,
-            totalComments: profileStatus.totalComments,
-        },
+        totalPosts: profileStatus.totalPosts,
+        totalLikes: profileStatus.totalLikes,
+        totalComments: profileStatus.totalComments,
+      },
     });
-    } 
-    catch (error) {
-      next(error);
-    }
+  } catch (error) {
+    next(error);
+  }
 };
 
 // [PATCH] //
@@ -81,8 +77,7 @@ module.exports.updateMyProfile = async (req, res, next) => {
     if (req.file && req.file.path) {
       try {
         await fs.unlink(req.file.path);
-      } 
-      catch (err) {
+      } catch (err) {
         console.error("Không thể xóa file mới khi rollback:", err.message);
       }
     }
@@ -116,11 +111,12 @@ module.exports.updateMyProfile = async (req, res, next) => {
     if (req.file) {
       // Xóa avatar cũ (nếu có)
       if (user.avatar && !user.avatar.includes("default-avatar.png")) {
-        oldAvatarPath = path.join( // Tạo biến chứa đường dẫn vật lý tới avatar cũ.
+        oldAvatarPath = path.join(
+          // Tạo biến chứa đường dẫn vật lý tới avatar cũ.
           process.cwd(), // Trả về thư mục gốc của project hiện tại.
-          user.avatar.replace(/^\/+/, "") // Regex: /^\//
-                                        // ^   : đầu chuỗi
-                                        // \/+  : loại bỏ nhiều dấu / (nếu có)
+          user.avatar.replace(/^\/+/, ""), // Regex: /^\//
+          // ^   : đầu chuỗi
+          // \/+  : loại bỏ nhiều dấu / (nếu có)
           // ví dụ: "/upload/avatar/old-avatar.png" sẽ đổi thành upload/avatar/old-avatar.png
           // Nếu không bỏ dấu / sẽ có thể tạo đường dẫn không đúng trên một số hệ điều hành.
         );
@@ -134,8 +130,7 @@ module.exports.updateMyProfile = async (req, res, next) => {
       if (oldAvatarPath) {
         try {
           await fs.unlink(oldAvatarPath); // Xóa file avatar cũ.
-        } 
-        catch (err) {
+        } catch (err) {
           console.error(err.message);
         }
       }
@@ -155,8 +150,7 @@ module.exports.updateMyProfile = async (req, res, next) => {
       message: "Cập nhật dữ liệu thành công",
       data: userResponse,
     });
-  } 
-  catch (error) {
+  } catch (error) {
     await cleanUpNewFile();
     next(error);
   }
@@ -164,39 +158,40 @@ module.exports.updateMyProfile = async (req, res, next) => {
 
 // [GET] - Lấy tất cả bài viết (me)
 module.exports.getMyPosts = async (req, res, next) => {
-    try {
-      const userId = req.user._id;
+  try {
+    const userId = req.user._id;
 
-      const countPosts = await Post.countDocuments({author: userId, isDeleted: false});
-      
-      let objectPagination = paginationHelper(
-        {
-          currentPage: 1,
-          limitPost: 9,
-        }, 
-        req.query, 
-        countPosts
-      )
+    const countPosts = await Post.countDocuments({
+      author: userId,
+      isDeleted: false,
+    });
 
-      const posts = await Post.find({author: userId, isDeleted: false})
-        .populate("author", "fullname email avatar")
-        .populate("comments.user", "fullname avatar")
-        .sort({ createdAt: -1 })
-        .skip(objectPagination.skip)
-        .limit(objectPagination.limitItem)
-        .lean();
+    let objectPagination = paginationHelper(
+      {
+        currentPage: 1,
+        limitPost: 9,
+      },
+      req.query,
+      countPosts,
+    );
 
-      res.status(200).json({
-          code: 200,
-          success: true,
-          data: posts,
-          pagination: objectPagination,
-      });
+    const posts = await Post.find({ author: userId, isDeleted: false })
+      .populate("author", "fullname email avatar")
+      .populate("comments.user", "fullname avatar")
+      .sort({ createdAt: -1 })
+      .skip(objectPagination.skip)
+      .limit(objectPagination.limitPost)
+      .lean();
 
-    } 
-    catch (error) {
-        next(error);
-    }
+    res.status(200).json({
+      code: 200,
+      success: true,
+      data: posts,
+      pagination: objectPagination,
+    });
+  } catch (error) {
+    next(error);
+  }
 };
 
 // [GET] - Lấy tất cả bài viết (others)
@@ -214,24 +209,27 @@ module.exports.getOthersPosts = async (req, res, next) => {
 
     const userId = id;
 
-    const countPosts = await Post.countDocuments({author: userId, isDeleted: false});
+    const countPosts = await Post.countDocuments({
+      author: userId,
+      isDeleted: false,
+    });
 
     let objectPagination = paginationHelper(
-          {
-            currentPage: 1,
-            limitPost: 9,
-          }, 
-          req.query, 
-          countPosts
-        )
+      {
+        currentPage: 1,
+        limitPost: 9,
+      },
+      req.query,
+      countPosts,
+    );
 
-    const posts = await Post.find({author: userId, isDeleted: false})
-        .populate("author", "fullname email avatar")
-        .populate("comments.user", "fullname avatar")
-        .sort({ createdAt: -1 })
-        .skip(objectPagination.skip)
-        .limit(objectPagination.limitItem)
-        .lean();
+    const posts = await Post.find({ author: userId, isDeleted: false })
+      .populate("author", "fullname email avatar")
+      .populate("comments.user", "fullname avatar")
+      .sort({ createdAt: -1 })
+      .skip(objectPagination.skip)
+      .limit(objectPagination.limitPost)
+      .lean();
 
     res.json({
       code: 200,
@@ -243,11 +241,10 @@ module.exports.getOthersPosts = async (req, res, next) => {
           avatar: user.avatar,
         },
         posts,
-        pagination: objectPagination
+        pagination: objectPagination,
       },
     });
-  } 
-  catch (error) {
+  } catch (error) {
     next(error);
   }
 };
