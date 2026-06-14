@@ -1,7 +1,9 @@
-const express = require("express");
 require("dotenv").config();
 
-const cookieParser = require('cookie-parser');
+const express = require("express");
+const cors = require("cors");
+const cookieParser = require("cookie-parser");
+
 const database = require("./config/database");
 const logger = require("./middlewares/logger");
 const errorHandler = require("./middlewares/errorHandler");
@@ -10,17 +12,28 @@ const routeClient = require("./routes/client/index.route");
 const routeAdmin = require("./routes/admin/index.route");
 
 const app = express();
-const port = process.env.PORT;
+const port = process.env.PORT || 3000;
+
+const corsOptions = {
+    origin: [
+        "http://127.0.0.1:5500",
+        "http://localhost:5500"
+    ],
+    credentials: true
+};
+
+// Bật CORS trước routes
+app.use(cors(corsOptions));
 
 // Kết nối database
 database.connect();
 
 // Middleware
-app.use(express.json({ limit: '10kb' })); // Dùng để đọc dữ liệu dạng JSON. Giới hạn kích thước body
-app.use(express.urlencoded({ extended: true })); // Dùng để đọc dữ liệu từ: form HTML, dữ liệu kiểu application/x-www-form-urlencoded
-app.use(cookieParser())
+app.use(express.json({ limit: "10kb" }));
+app.use(express.urlencoded({ extended: true }));
+app.use(cookieParser());
 
-// Sử dụng middleware logger cho tất cả request
+// Logger
 app.use(logger);
 
 // Cho phép truy cập file trong thư mục upload
@@ -30,10 +43,10 @@ app.use("/upload", express.static("upload"));
 routeClient(app);
 routeAdmin(app);
 
-// Middleware 404 dùng để xử lý các request đến đường dẫn không tồn tại trong hệ thống
+// Middleware 404
 app.use(notFound);
 
-// Middleware xử lý lỗi (phải đặt sau các route)
+// Middleware xử lý lỗi
 app.use(errorHandler);
 
 app.listen(port, () => {
