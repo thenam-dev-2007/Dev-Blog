@@ -1,5 +1,4 @@
 require("dotenv").config();
-
 const express = require("express");
 const cors = require("cors");
 const cookieParser = require("cookie-parser");
@@ -19,6 +18,7 @@ const corsOptions = {
         "http://127.0.0.1:5500",
         "http://localhost:5500"
     ],
+    methods: ["GET", "POST", "PUT", "PATCH", "DELETE"],
     credentials: true
 };
 
@@ -30,6 +30,10 @@ database.connect();
 
 // Middleware
 app.use(express.json({ limit: "10kb" }));
+app.use((req, res, next) => {
+    console.log("Request received:", req.method, req.url);
+    next();
+});
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 

@@ -2,274 +2,296 @@
 // Chạy trên mọi trang client/admin.
 // Đồng bộ frontend với backend hiện tại: base URL /api, token Bearer, cookie refresh token.
 
-const API_BASE_URL = "http://localhost:3000/api";
-const API_ORIGIN = "http://localhost:3000";
+const API_BASE_URL = "http://127.0.0.1:3000/api";
+const API_ORIGIN = "http://127.0.0.1:3000";
 
 function getAccessToken() {
-    return localStorage.getItem("accessToken") || "";
+  return localStorage.getItem("accessToken") || "";
 }
 
 function setAccessToken(token) {
-    if (token) localStorage.setItem("accessToken", token);
+  if (token) localStorage.setItem("accessToken", token);
 }
 
 function saveUserInfo(user) {
-    if (user) localStorage.setItem("user", JSON.stringify(user));
+  if (user) localStorage.setItem("user", JSON.stringify(user));
 }
 
 function getUserInfo() {
-    try {
-        const raw = localStorage.getItem("user");
-        return raw ? JSON.parse(raw) : null;
-    } catch (_) {
-        return null;
-    }
+  try {
+    const raw = localStorage.getItem("user");
+    return raw ? JSON.parse(raw) : null;
+  } catch (_) {
+    return null;
+  }
 }
 
 function clearAuth() {
-    localStorage.removeItem("accessToken");
-    localStorage.removeItem("user");
+  localStorage.removeItem("accessToken");
+  localStorage.removeItem("user");
 }
 
 function isLoggedIn() {
-    return Boolean(getAccessToken());
+  return Boolean(getAccessToken());
 }
 
 function normalizeApiResult(result, response) {
-    const safe = result && typeof result === "object" ? result : {};
-    if (!safe.code && response) safe.code = response.status;
-    if (typeof safe.success !== "boolean") safe.success = response ? response.ok : false;
-    if (!safe.message && safe.errors && Array.isArray(safe.errors)) {
-        safe.message = safe.errors.map(e => e.msg || e.message).join("\n");
-    }
-    return safe;
+  const safe = result && typeof result === "object" ? result : {};
+  if (!safe.code && response) safe.code = response.status;
+  if (typeof safe.success !== "boolean")
+    safe.success = response ? response.ok : false;
+  if (!safe.message && safe.errors && Array.isArray(safe.errors)) {
+    safe.message = safe.errors.map((e) => e.msg || e.message).join("\n");
+  }
+  return safe;
 }
 
 // Hàm gọi API dùng chung.
 async function apiCall(endpoint, method = "GET", data = null, options = {}) {
-    const url = endpoint.startsWith("http") ? endpoint : `${API_BASE_URL}${endpoint}`;
-    const isFormData = typeof FormData !== "undefined" && data instanceof FormData;
+  const url = endpoint.startsWith("http")
+    ? endpoint
+    : `${API_BASE_URL}${endpoint}`;
+  const isFormData =
+    typeof FormData !== "undefined" && data instanceof FormData;
 
-    const headers = {};
-    if (!isFormData) {
-        headers["Content-Type"] = "application/json";
-    }
+  const headers = {};
+  if (!isFormData) {
+    headers["Content-Type"] = "application/json";
+  }
 
-    const token = getAccessToken();
-    if (token) {
-        headers.Authorization = `Bearer ${token}`;
-    }
+  const token = getAccessToken();
+  if (token) {
+    headers.Authorization = `Bearer ${token}`;
+  }
 
-    const fetchOptions = {
-        method,
-        credentials: "include",
-        ...options,
-        headers: {
-            ...headers,
-            ...(options.headers || {})
-        }
-    };
+  const fetchOptions = {
+    method,
+    credentials: "include",
+    ...options,
+    headers: {
+      ...headers,
+      ...(options.headers || {}),
+    },
+  };
 
-    if (data) {
-        fetchOptions.body = isFormData ? data : JSON.stringify(data);
-    }
+  if (data) {
+    fetchOptions.body = isFormData ? data : JSON.stringify(data);
+  }
+
+  try {
+    const response = await fetch(url, fetchOptions);
+    const text = await response.text();
+    let result = {};
 
     try {
-        const response = await fetch(url, fetchOptions);
-        const text = await response.text();
-        let result = {};
-
-        try {
-            result = text ? JSON.parse(text) : {};
-        } catch (_) {
-            result = { message: text || "Response không phải JSON" };
-        }
-
-        return normalizeApiResult(result, response);
-    } catch (error) {
-        console.error("API Error:", error);
-        return {
-            code: 0,
-            success: false,
-            message: "Không kết nối được backend. Hãy kiểm tra server BackEnd đã chạy ở http://localhost:3000 chưa.",
-            error: error.message
-        };
+      result = text ? JSON.parse(text) : {};
+    } catch (_) {
+      result = { message: text || "Response không phải JSON" };
     }
+
+    return normalizeApiResult(result, response);
+  } catch (error) {
+    console.error("API Error:", error);
+    return {
+      code: 0,
+      success: false,
+      message:
+        "Không kết nối được backend. Hãy kiểm tra server BackEnd đã chạy ở http://localhost:3000 chưa.",
+      error: error.message,
+    };
+  }
 }
 
 // ==================== AUTH API ====================
 async function login(email, password) {
-    return apiCall("/auth/login", "POST", { email, password });
+  return apiCall("/auth/login", "POST", { email, password });
 }
 
 async function register(username, email, password, dateOfBirth) {
-    return apiCall("/auth/register", "POST", { username, email, password, dateOfBirth });
+  return apiCall("/auth/register", "POST", {
+    username,
+    email,
+    password,
+    dateOfBirth,
+  });
 }
 
 async function verifyRegisterEmail(email, otp) {
-    return apiCall("/auth/verify-email", "POST", { email, otp });
+  return apiCall("/auth/verify-email", "POST", { email, otp });
 }
 
 async function resendRegisterOTP(email) {
-    return apiCall("/auth/resend-otp", "POST", { email });
+  return apiCall("/auth/resend-otp", "POST", { email });
 }
 
 async function forgotPassword(email) {
-    return apiCall("/auth/forgot-password", "POST", { email });
+  return apiCall("/auth/forgot-password", "POST", { email });
 }
 
 async function verifyResetPasswordOTP(email, otp) {
-    return apiCall("/auth/verify-reset-password-otp", "POST", { email, otp });
+  return apiCall("/auth/verify-reset-password-otp", "POST", { email, otp });
 }
 
 async function resendResetPasswordOTP(email) {
-    return apiCall("/auth/resend-reset-password-otp", "POST", { email });
+  return apiCall("/auth/resend-reset-password-otp", "POST", { email });
 }
 
 async function resetPassword(email, newPassword, confirmPassword) {
-    // Backend hiện dùng chung validatePassword nên cần currentPassword dù controller reset không dùng.
-    return apiCall("/auth/reset-password", "PATCH", {
-        email,
-        currentPassword: "ResetFlow123!",
-        newPassword,
-        confirmPassword
-    });
+  // Backend hiện dùng chung validatePassword nên cần currentPassword dù controller reset không dùng.
+  return apiCall("/auth/reset-password", "PATCH", {
+    email,
+    currentPassword: "ResetFlow123!",
+    newPassword,
+    confirmPassword,
+  });
 }
 
 async function changePassword(currentPassword, newPassword, confirmPassword) {
-    return apiCall("/auth/change-password", "PATCH", {
-        currentPassword,
-        newPassword,
-        confirmPassword
-    });
+  return apiCall("/auth/change-password", "PATCH", {
+    currentPassword,
+    newPassword,
+    confirmPassword,
+  });
 }
 
 async function logout() {
-    const result = await apiCall("/auth/logout", "POST");
-    clearAuth();
-    return result;
+  const result = await apiCall("/auth/logout", "POST");
+  clearAuth();
+  return result;
 }
 
 // ==================== PROFILE API ====================
 async function getProfile() {
-    return apiCall("/profile/me", "GET");
+  return apiCall("/profile/me", "GET");
 }
 
 async function getUserProfile(userId) {
-    return apiCall(`/profile/${encodeURIComponent(userId)}`, "GET");
+  return apiCall(`/profile/${encodeURIComponent(userId)}`, "GET");
 }
 
 async function updateProfile(formDataOrJson) {
-    return apiCall("/profile/me", "PATCH", formDataOrJson);
+  return apiCall("/profile/me", "PATCH", formDataOrJson);
 }
 
 async function getMyPosts(page = 1, limit = 9) {
-    return apiCall(`/profile/me/posts?page=${page}&limit=${limit}`, "GET");
+  return apiCall(`/profile/me/posts?page=${page}&limit=${limit}`, "GET");
 }
 
 async function getUserPosts(userId, page = 1, limit = 9) {
-    return apiCall(`/profile/${encodeURIComponent(userId)}/posts?page=${page}&limit=${limit}`, "GET");
+  return apiCall(
+    `/profile/${encodeURIComponent(userId)}/posts?page=${page}&limit=${limit}`,
+    "GET",
+  );
 }
 
 // ==================== POST API ====================
 async function getPosts(page = 1, limit = 4) {
-    return apiCall(`/posts?page=${page}&limit=${limit}`, "GET");
+  return apiCall(`/posts?page=${page}&limit=${limit}`, "GET");
 }
 
 async function getPostDetail(slug) {
-    return apiCall(`/posts/${encodeURIComponent(slug)}`, "GET");
+  return apiCall(`/posts/${encodeURIComponent(slug)}`, "GET");
 }
 
 async function getPostsByTag(tag, page = 1, limit = 9) {
-    return apiCall(`/posts/tag/${encodeURIComponent(tag)}?page=${page}&limit=${limit}`, "GET");
+  return apiCall(
+    `/posts/tag/${encodeURIComponent(tag)}?page=${page}&limit=${limit}`,
+    "GET",
+  );
 }
 
 async function createPost(data) {
-    return apiCall("/posts", "POST", data);
+  return apiCall("/posts", "POST", data);
 }
 
 async function updatePost(postId, data) {
-    return apiCall(`/posts/${encodeURIComponent(postId)}`, "PUT", data);
+  return apiCall(`/posts/${encodeURIComponent(postId)}`, "PUT", data);
 }
 
 async function deletePostById(postId) {
-    return apiCall(`/posts/${encodeURIComponent(postId)}`, "DELETE");
+  return apiCall(`/posts/${encodeURIComponent(postId)}`, "DELETE");
 }
 
 async function likePost(postId) {
-    return apiCall(`/posts/${postId}/like`, "POST");
+  return apiCall(`/posts/${postId}/like`, "POST");
 }
 
 async function unlikePost(postId) {
-    return apiCall(`/posts/${postId}/like`, "DELETE");
+  return apiCall(`/posts/${postId}/like`, "DELETE");
 }
 
 async function commentPost(postId, content) {
-    return apiCall(`/posts/${postId}/comments`, "POST", { content });
+  return apiCall(`/posts/${postId}/comments`, "POST", { content });
 }
 
 // ==================== UI CHUNG ====================
 function toggleDarkMode() {
-    document.body.classList.toggle("dark");
-    const btn = document.getElementById("btnDarkMode");
+  document.body.classList.toggle("dark");
+  const btn = document.getElementById("btnDarkMode");
 
-    if (document.body.classList.contains("dark")) {
-        if (btn) btn.textContent = "☀️";
-        localStorage.setItem("theme", "dark");
-    } else {
-        if (btn) btn.textContent = "🌙";
-        localStorage.setItem("theme", "light");
-    }
+  if (document.body.classList.contains("dark")) {
+    if (btn) btn.textContent = "☀️";
+    localStorage.setItem("theme", "dark");
+  } else {
+    if (btn) btn.textContent = "🌙";
+    localStorage.setItem("theme", "light");
+  }
 }
 
 function toggleSearch() {
-    const input = document.getElementById("headerSearch");
-    if (!input) return;
+  const input = document.getElementById("headerSearch");
+  if (!input) return;
 
-    input.classList.toggle("open");
-    if (input.classList.contains("open")) {
-        input.focus();
-    } else {
-        input.value = "";
-    }
+  input.classList.toggle("open");
+  if (input.classList.contains("open")) {
+    input.focus();
+  } else {
+    input.value = "";
+  }
 }
 
 function normalizeHeaderAvatar(src) {
-    if (!src) return "https://via.placeholder.com/80?text=U";
-    if (src.startsWith("http://") || src.startsWith("https://") || src.startsWith("data:")) return src;
-    if (src.startsWith("../upload")) return `${API_ORIGIN}/${src.replace(/^\.\.\//, "")}`;
-    if (src.startsWith("/upload")) return `${API_ORIGIN}${src}`;
+  if (!src) return "https://via.placeholder.com/80?text=U";
+  if (
+    src.startsWith("http://") ||
+    src.startsWith("https://") ||
+    src.startsWith("data:")
+  )
     return src;
+  if (src.startsWith("../upload"))
+    return `${API_ORIGIN}/${src.replace(/^\.\.\//, "")}`;
+  if (src.startsWith("/upload")) return `${API_ORIGIN}${src}`;
+  return src;
 }
 
 function closeHeaderDropdown() {
-    const dropdown = document.getElementById("headerAvatarDropdown");
-    if (dropdown) dropdown.classList.remove("open");
+  const dropdown = document.getElementById("headerAvatarDropdown");
+  if (dropdown) dropdown.classList.remove("open");
 }
 
 function updateHeaderAuthUI() {
-    const headerRight = document.querySelector(".header-right");
-    if (!headerRight) return;
+  const headerRight = document.querySelector(".header-right");
+  if (!headerRight) return;
 
-    const oldLogin = headerRight.querySelector(".btn-dangnhap");
-    const oldRegister = headerRight.querySelector(".btn-dangky");
-    const oldUserMenu = headerRight.querySelector(".user-menu-header");
+  const oldLogin = headerRight.querySelector(".btn-dangnhap");
+  const oldRegister = headerRight.querySelector(".btn-dangky");
+  const oldUserMenu = headerRight.querySelector(".user-menu-header");
 
-    if (oldUserMenu) oldUserMenu.remove();
+  if (oldUserMenu) oldUserMenu.remove();
 
-    if (!isLoggedIn()) {
-        if (oldLogin) oldLogin.style.display = "inline-block";
-        if (oldRegister) oldRegister.style.display = "inline-block";
-        return;
-    }
+  if (!isLoggedIn()) {
+    if (oldLogin) oldLogin.style.display = "inline-block";
+    if (oldRegister) oldRegister.style.display = "inline-block";
+    return;
+  }
 
-    const user = getUserInfo() || {};
-    if (oldLogin) oldLogin.style.display = "none";
-    if (oldRegister) oldRegister.style.display = "none";
+  const user = getUserInfo() || {};
+  if (oldLogin) oldLogin.style.display = "none";
+  if (oldRegister) oldRegister.style.display = "none";
 
-    const menu = document.createElement("div");
-    menu.className = "user-menu-header";
-    menu.innerHTML = `
+  const menu = document.createElement("div");
+  menu.className = "user-menu-header";
+  menu.innerHTML = `
         <button type="button" class="avatar-toggle" id="btnHeaderAvatar" aria-label="Mở menu người dùng">
             <img src="${normalizeHeaderAvatar(user.avatar)}" alt="Avatar">
             <span class="header-username">${user.username || "User"}</span>
@@ -279,46 +301,47 @@ function updateHeaderAuthUI() {
             <button type="button" id="btnHeaderLogout">🚪 Đăng xuất</button>
         </div>
     `;
-    headerRight.appendChild(menu);
+  headerRight.appendChild(menu);
 
-    const btnAvatar = document.getElementById("btnHeaderAvatar");
-    const dropdown = document.getElementById("headerAvatarDropdown");
-    const btnLogout = document.getElementById("btnHeaderLogout");
+  const btnAvatar = document.getElementById("btnHeaderAvatar");
+  const dropdown = document.getElementById("headerAvatarDropdown");
+  const btnLogout = document.getElementById("btnHeaderLogout");
 
-    if (btnAvatar && dropdown) {
-        btnAvatar.addEventListener("click", (event) => {
-            event.stopPropagation();
-            dropdown.classList.toggle("open");
-        });
-    }
+  if (btnAvatar && dropdown) {
+    btnAvatar.addEventListener("click", (event) => {
+      event.stopPropagation();
+      dropdown.classList.toggle("open");
+    });
+  }
 
-    if (btnLogout) {
-        btnLogout.addEventListener("click", async () => {
-            await logout();
-            window.location.href = "login.html";
-        });
-    }
+  if (btnLogout) {
+    btnLogout.addEventListener("click", async () => {
+      await logout();
+      window.location.href = "login.html";
+    });
+  }
 }
 
 function initMainUI() {
-    const btnDarkMode = document.getElementById("btnDarkMode");
-    const headerSearch = document.getElementById("headerSearch");
+  const btnDarkMode = document.getElementById("btnDarkMode");
+  const headerSearch = document.getElementById("headerSearch");
 
-    if (localStorage.getItem("theme") === "dark") {
-        document.body.classList.add("dark");
-        if (btnDarkMode) btnDarkMode.textContent = "☀️";
-    }
+  if (localStorage.getItem("theme") === "dark") {
+    document.body.classList.add("dark");
+    if (btnDarkMode) btnDarkMode.textContent = "☀️";
+  }
 
-    if (headerSearch) {
-        headerSearch.addEventListener("keydown", function (e) {
-            if (e.key === "Enter" && this.value.trim() !== "") {
-                window.location.href = "search.html?q=" + encodeURIComponent(this.value.trim());
-            }
-        });
-    }
+  if (headerSearch) {
+    headerSearch.addEventListener("keydown", function (e) {
+      if (e.key === "Enter" && this.value.trim() !== "") {
+        window.location.href =
+          "search.html?q=" + encodeURIComponent(this.value.trim());
+      }
+    });
+  }
 
-    document.addEventListener("click", closeHeaderDropdown);
-    updateHeaderAuthUI();
+  document.addEventListener("click", closeHeaderDropdown);
+  updateHeaderAuthUI();
 }
 
 document.addEventListener("DOMContentLoaded", initMainUI);

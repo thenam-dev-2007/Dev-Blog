@@ -35,3 +35,5 @@ POST /verify-reset-password-otp
 Người dùng không phải nhập lại email.
 
 Nhưng backend vẫn nhận được email.
+
+Vấn đề phân giải địa chỉ: localhost đôi khi bị ánh xạ sang địa chỉ IPv6 (::1) trong khi server chỉ lắng nghe IPv4 (127.0.0.1).
