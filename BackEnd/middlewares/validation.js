@@ -8,18 +8,20 @@ const Post = require("../models/post.model");
 const handleValidationErrors = async (req, res, next) => {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
-        // Nếu có lỗi, trả về status 400 (Bad Request) với danh sách lỗi
-        if (req.file && req.file.path) {
+      // validation thất bại --> xóa avatar/thumbnail
+      if (req.file && req.file.path) {
         try {
-            await fs.unlink(req.file.path);
-        } catch (err) {
-            console.error("Lỗi xóa file khi validation thất bại:", err.message);
+          await fs.unlink(req.file.path);
+        } 
+        catch (err) {
+          console.error("Lỗi xóa file khi validation thất bại:", err.message);
         }
-        }
-        return res.status(400).json({
+      }
+      // Nếu có lỗi, trả về status 400 (Bad Request) với danh sách lỗi
+      return res.status(400).json({
         success: false,
         errors: errors.array(),
-        });
+      });
     }
 
     next(); // Không có lỗi, tiếp tục xử lý
@@ -31,19 +33,31 @@ module.exports.validateRegister = [
     .trim()
     .notEmpty()
     .withMessage("fullname là bắt buộc")
+    .bail() // bail() sẽ dừng khi validation thất bại
     .isLength({ min: 3, max: 30 })
     .withMessage("fullname phải từ 3-30 ký tự")
+    .bail()
     .matches(/^[a-zA-ZÀ-ỹ\s]+$/)
-    .withMessage("fullname chỉ được chứa chữ cái và khoảng trắng"),
+    .withMessage("fullname chỉ được chứa chữ cái và khoảng trắng")
+    .bail(),
 
   // Kiểm tra email
   body("email")
     .trim()
     .notEmpty()
     .withMessage("Email là bắt buộc")
+    .bail()
     .isEmail()
     .withMessage("Email không hợp lệ")
-    .normalizeEmail(), // Chuẩn hóa email (chuyển thành chữ thường, loại bỏ dấu chấm trong Gmail...)
+    .bail()
+    .normalizeEmail() // Chuẩn hóa email (chuyển thành chữ thường, loại bỏ dấu chấm trong Gmail...)
+    .custom(async (value) => {
+      const user = await User.findOne({ email: value });
+      if (user) {
+          throw new Error("Email đã tồn tại");
+      }
+      return true;
+    }),
 
   // Kiểm tra dateOfBirth (nếu có)
   body("dateOfBirth")
@@ -117,25 +131,21 @@ module.exports.validateUpdateMyProfile = [
 
     // Date of birth
     body("dateOfBirth")
-        .optional()
-        // .notEmpty().withMessage('Ngày sinh là bắt buộc')
-        .matches(/^(0[1-9]|[12][0-9]|3[01])\/(0[1-9]|1[0-2])\/\d{4}$/)
-        .withMessage("Ngày sinh phải theo định dạng dd/mm/yyyy")
-        .custom((value) => {
-            const [day, month, year] = value.split("/").map(Number);
-            const date = new Date(year, month - 1, day);
-            if (
-                date.getFullYear() !== year ||
-                date.getMonth() !== month - 1 ||
-                date.getDate() !== day
-            ) {
-                throw new Error("Ngày sinh không tồn tại");
-            }
-            if (date > new Date()) {
-                throw new Error("Ngày sinh không được trong tương lai");
-            }
-            return true;
-        }),
+      .isISO8601()
+      .withMessage("Ngày sinh không hợp lệ") // isISO8601() dùng để kiểm tra định dạng ngày hợp lệ (YYYY-MM-DD)
+      .custom((value) => {
+        if (new Date(value) > new Date()) {
+          throw new Error("Ngày sinh không hợp lệ");
+        }
+        return true;
+      })
+      // custom() cho phép tự định nghĩa điều kiện kiểm tra. value là giá trị của field hiện tại.
+      // new Date(value) --> Chuyển string thành đối tượng Date.
+      // new Date() --> Lấy thời gian hiện tại.
+      // Nếu điều kiện sai:
+      // express-validator sẽ đánh dấu validation failed
+      // message lỗi sẽ là: Ngày sinh không hợp lệ
+      .toDate(),
 
     handleValidationErrors,
 ];
@@ -293,7 +303,7 @@ module.exports.validatePassword = [
 ];
 
 module.exports.validateEmail = [
-    // New Password
+    // New Email
     body("newEmail")
         .trim()
         .notEmpty()

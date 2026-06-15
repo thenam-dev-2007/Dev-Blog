@@ -1,35 +1,14 @@
 const crypto = require("crypto");
 const User = require("../../models/user.model");
 const RefreshToken = require("../../models/refreshToken.model");
-const {
-  generateAccessToken,
-  generateRefreshToken,
-  refreshAccessToken,
-  revokeToken,
-} = require("../../service/token.service");
-const {
-  generateEmailOTP,
-  generateOTPAndSave,
-  sendOTPEmail,
-} = require("../../service/email.service");
+const { generateAccessToken, generateRefreshToken, refreshAccessToken, revokeToken } = require("../../service/token.service");
+const { generateEmailOTP, generateOTPAndSave, sendOTPEmail } = require("../../service/email.service");
 const { transporter } = require("../../config/email");
 
 module.exports.register = async (req, res, next) => {
   try {
     // Lấy dữ liệu từ request body
     const { fullname, email, password, dateOfBirth } = req.body;
-
-    // Kiểm tra xem email đã tồn tại chưa
-    const existingUser = await User.findOne({ email: email.toLowerCase() });
-
-    if (existingUser) {
-      // Nếu đã tồn tại, trả về lỗi 409 (Conflict)
-      return res.status(409).json({
-        success: false,
-        message: "Email đã được sử dụng",
-        error: "DUPLICATE_USER",
-      });
-    }
 
     // Tạo otp xác nhận
     const { otp, hashedOTP, expiresAt } = generateEmailOTP();
@@ -128,7 +107,6 @@ module.exports.verifyEmail = async (req, res, next) => {
 };
 
 module.exports.resendRegisterOTP = async (req, res, next) => {
-  console.log("resendRegisterOTP called");
   try {
     const { email } = req.body;
 

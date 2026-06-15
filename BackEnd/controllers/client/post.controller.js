@@ -1,8 +1,10 @@
 const Post = require("../../models/post.model.js");
 const User = require("../../models/user.model.js");
 const paginationHelper = require("../../helper/pagination");
+const fs = require("fs/promises");
+const path = require("path");
 
-const cleanUpNewFile = async () => {
+const cleanUpNewFile = async (req) => {
   if (req.file && req.file.path) {
     try { await fs.unlink(req.file.path); } 
     catch (err) { console.error("Không thể xóa file mới khi rollback:", err.message); }
@@ -171,7 +173,7 @@ module.exports.createPost = async (req, res, next) => {
     const authorId = req.user._id; // Lấy từ middleware auth
 
     if (!authorId) {
-      await cleanUpNewFile();
+      await cleanUpNewFile(req);
       return res.status(401).json({
         success: false,
         message: "Bạn phải đăng nhập để tạo bài viết",
@@ -264,7 +266,7 @@ module.exports.updatePost = async (req, res, next) => {
     });
   } 
   catch (error) {
-    await cleanUpNewFile();
+    await cleanUpNewFile(req);
     next(error);
   }
 };
@@ -296,29 +298,33 @@ module.exports.likePost = async (req, res, next) => {
     const { id } = req.params;
     const userId = req.user._id;
 
-    const post = await Post.findOne({ _id: id, isDeleted: false });
+    const post = await Post.findOneAndUpdate(
+      {
+        _id: id,
+        isDeleted: false,
+        likes: { $ne: userId } // chưa like
+      },
+      {
+        $addToSet: {
+          likes: userId
+        }
+      },
+      {
+        new: true
+      }
+    );
 
     if (!post) {
-      return res.status(404).json({
-        success: false,
-        message: "Bài viết không tồn tại",
-      });
-    }
-
-    if (post.likes.some(like => like.toString() === userId)) {
       return res.status(400).json({
         success: false,
-        message: "Bạn đã like bài viết này rồi",
+        message: "Bạn đã like bài viết này hoặc bài viết không tồn tại"
       });
     }
 
-    post.likes.push(req.user._id);
-    await post.save();
-
-    res.status(200).json({
+    return res.status(200).json({
       success: true,
       message: "Like bài viết thành công",
-      likesCount: post.likes.length,
+      likesCount: post.likes.length
     });
   } 
   catch (error) {
@@ -332,29 +338,33 @@ module.exports.unlikePost = async (req, res, next) => {
     const { id } = req.params;
     const userId = req.user._id;
 
-    const post = await Post.findOne({ _id: id, isDeleted: false });
+    const post = await Post.findOneAndUpdate(
+      {
+        _id: id,
+        isDeleted: false,
+        likes: userId // đã like
+      },
+      {
+        $pull: {
+          likes: userId
+        }
+      },
+      {
+        new: true
+      }
+    );
 
     if (!post) {
-      return res.status(404).json({
-        success: false,
-        message: "Bài viết không tồn tại",
-      });
-    }
-
-    if (!post.likes.some(like => like.toString() === userId)) {
       return res.status(400).json({
         success: false,
-        message: "Bạn chưa like bài viết này",
+        message: "Bạn chưa like bài viết này hoặc bài viết không tồn tại"
       });
     }
 
-    post.likes = post.likes.filter(like => like.toString() !== userId);
-    await post.save();
-
-    res.status(200).json({
+    return res.status(200).json({
       success: true,
       message: "Bỏ like bài viết thành công",
-      likesCount: post.likes.length,
+      likesCount: post.likes.length
     });
   } 
   catch (error) {
@@ -369,46 +379,49 @@ module.exports.addComment = async (req, res, next) => {
     const { content } = req.body;
     const userId = req.user._id;
 
-    if (!userId) {
-      return res.status(401).json({
-        success: false,
-        message: "Bạn phải đăng nhập để bình luận",
-      });
-    }
-
-    if (!content || content.trim() === "") {
+    if (!content?.trim()) {
       return res.status(400).json({
         success: false,
         message: "Nội dung bình luận không được để trống",
       });
     }
 
-    const post = await Post.findOne({ _id: id, isDeleted: false });
+    const updatedPost = await Post.findOneAndUpdate(
+      {
+        _id: id,
+        isDeleted: false,
+      },
+      {
+        $push: {
+          comments: {
+            user: userId,
+            content: content.trim(),
+            createdAt: new Date(),
+          },
+        },
+      },
+      {
+        new: true,
+        runValidators: true,
+      }
+    )
+      .populate("author", "fullname email avatar")
+      .populate("comments.user", "fullname avatar");
 
-    if (!post) {
+    if (!updatedPost) {
       return res.status(404).json({
         success: false,
         message: "Bài viết không tồn tại",
       });
     }
 
-    post.comments.push({
-      user: userId,
-      content: content.trim(),
-      createdAt: new Date(),
-    });
-    await post.save();
-
-    const updatedPost = await Post.findOne({ _id: id, isDeleted: false })
-      .populate("author", "fullname email avatar")
-      .populate("comments.user", "fullname avatar");
-
-    res.status(201).json({
+    return res.status(201).json({
       success: true,
       message: "Thêm bình luận thành công",
       data: updatedPost,
     });
-  } catch (error) {
+  } 
+  catch (error) {
     next(error);
   }
 };
