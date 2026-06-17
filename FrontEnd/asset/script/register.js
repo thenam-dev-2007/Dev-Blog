@@ -7,20 +7,36 @@ function showOtpStep(email) {
 
   document.getElementById("register-form")?.classList.add("hidden");
   document.getElementById("register-otp-box")?.classList.remove("hidden");
-  document.getElementById("otp-email-target").textContent = email;
+  const target = document.getElementById("otp-email-target");
+  if (target) target.textContent = email;
 }
 
-function showMessage(message, type = "success") {
+function showRegisterMessage(message, type = "success") {
   const messageBox = document.getElementById("register-message");
+  if (!messageBox) return;
 
   messageBox.innerHTML = `
         <div class="${type}">
-            ${message}
+            ${escapeHtml(message || "")}
         </div>
     `;
 }
 
+function getRegisterError(result, fallback = "Đăng ký thất bại") {
+  return (
+    result?.message ||
+    result?.errors?.[0]?.msg ||
+    result?.errors?.[0]?.message ||
+    fallback
+  );
+}
+
 document.addEventListener("DOMContentLoaded", () => {
+  // Nếu trước đó còn token cũ/token của user đã bị xóa, xóa luôn khi vào trang đăng ký.
+  // Tránh trường hợp đăng ký xong bị dashboard/profile dùng lại phiên đăng nhập lỗi.
+  clearAuth();
+  updateHeaderAuthUI();
+
   const registerForm = document.getElementById("register-form");
   const otpForm = document.getElementById("register-otp-form");
   const resendBtn = document.getElementById("btn-resend-register-otp");
@@ -29,23 +45,23 @@ document.addEventListener("DOMContentLoaded", () => {
   registerForm?.addEventListener("submit", async (event) => {
     event.preventDefault();
 
-    const fullname = document.getElementById("reg-fullname").value.trim();
-    const email = document.getElementById("reg-email").value.trim();
-    const password = document.getElementById("reg-password").value;
-    const confirm = document.getElementById("reg-confirm").value;
-    const dateOfBirth = document.getElementById("reg-dob").value;
-    const agree = document.getElementById("agree").checked;
+    const fullname = document.getElementById("reg-fullname")?.value.trim();
+    const email = document.getElementById("reg-email")?.value.trim();
+    const password = document.getElementById("password")?.value.trim();
+    const confirmPassword = document.getElementById("confirmPassword")?.value.trim();
+    const dateOfBirth = document.getElementById("reg-dob")?.value;
+    const agree = document.getElementById("agree")?.checked;
 
-    if (!fullname || !email || !password || !confirm || !dateOfBirth) {
-      return showMessage("Vui lòng nhập đầy đủ thông tin", "error");
+    if (!fullname || !email || !password || !confirmPassword || !dateOfBirth) {
+      return showRegisterMessage("Vui lòng nhập đầy đủ thông tin", "error");
     }
 
-    if (password !== confirm) {
-      return showMessage("Mật khẩu xác nhận không khớp", "error");
+    if (password !== confirmPassword) {
+      return showRegisterMessage("Mật khẩu xác nhận không khớp", "error");
     }
 
     if (!agree) {
-      return showMessage("Bạn cần đồng ý điều khoản", "error");
+      return showRegisterMessage("Bạn cần đồng ý điều khoản", "error");
     }
 
     try {
@@ -59,7 +75,7 @@ document.addEventListener("DOMContentLoaded", () => {
           fullname,
           email,
           password,
-          confirmPassword: confirm, // Đổi từ confirm thành confirmPassword để khớp với Backend validation
+          confirmPassword,
           dateOfBirth,
         }),
       });
@@ -69,19 +85,17 @@ document.addEventListener("DOMContentLoaded", () => {
         .catch(() => ({ message: "Lỗi phản hồi từ server" }));
 
       if (!response.ok) {
-        // Backend trả về mảng 'errors' nếu validation thất bại
-        const errorMsg =
-          result.message ||
-          (result.errors && result.errors[0].msg) ||
-          "Đăng ký thất bại";
-        return showMessage(errorMsg, "error");
+        return showRegisterMessage(getRegisterError(result), "error");
       }
 
-      showMessage(result.message, "success");
-      showOtpStep(result.data.email);
+      showRegisterMessage(
+        result.message || "Đăng ký thành công! Vui lòng kiểm tra email để lấy OTP.",
+        "success",
+      );
+      showOtpStep(result.data?.email || email);
     } catch (error) {
       console.error(error);
-      showMessage("Không thể kết nối tới server", "error");
+      showRegisterMessage("Không thể kết nối tới server", "error");
     }
   });
 
@@ -89,7 +103,10 @@ document.addEventListener("DOMContentLoaded", () => {
   otpForm?.addEventListener("submit", async (event) => {
     event.preventDefault();
 
-    const otp = document.getElementById("register-otp").value.trim();
+    const otp = document.getElementById("register-otp")?.value.trim();
+    if (!registeredEmail || !otp) {
+      return showRegisterMessage("Vui lòng nhập OTP", "error");
+    }
 
     try {
       const response = await fetch(`${API_URL}/verify-email`, {
@@ -104,27 +121,33 @@ document.addEventListener("DOMContentLoaded", () => {
         }),
       });
 
-      const result = await response.json();
+      const result = await response.json().catch(() => ({ message: "Lỗi phản hồi từ server" }));
 
       if (!response.ok) {
-        return showMessage(result.message, "error");
+        return showRegisterMessage(getRegisterError(result, "Xác thực OTP thất bại"), "error");
       }
 
-      localStorage.setItem("accessToken", result.data.accessToken);
-
-      showMessage("Xác thực email thành công", "success");
+      // Backend verify-email hiện chỉ trả accessToken, không trả đầy đủ user.
+      // Vì vậy không lưu token ở bước này để tránh dashboard/profile dùng token/user không đồng bộ.
+      // Sau xác thực OTP, bắt người dùng đăng nhập lại để nhận token + user chuẩn.
+      clearAuth();
+      showRegisterMessage("Xác thực email thành công. Vui lòng đăng nhập.", "success");
 
       setTimeout(() => {
-        window.location.href = "index.html";
+        window.location.href = "login.html";
       }, 1000);
     } catch (error) {
       console.error(error);
-      showMessage("Không thể kết nối tới server", "error");
+      showRegisterMessage("Không thể kết nối tới server", "error");
     }
   });
 
   // ================= RESEND OTP =================
   resendBtn?.addEventListener("click", async () => {
+    if (!registeredEmail) {
+      return showRegisterMessage("Chưa có email để gửi lại OTP", "error");
+    }
+
     try {
       const response = await fetch(`${API_URL}/resend-otp`, {
         method: "POST",
@@ -137,16 +160,16 @@ document.addEventListener("DOMContentLoaded", () => {
         }),
       });
 
-      const result = await response.json();
+      const result = await response.json().catch(() => ({ message: "Lỗi phản hồi từ server" }));
 
       if (!response.ok) {
-        return showMessage(result.message, "error");
+        return showRegisterMessage(getRegisterError(result, "Không gửi lại được OTP"), "error");
       }
 
-      showMessage(result.message, "success");
+      showRegisterMessage(result.message || "OTP mới đã được gửi", "success");
     } catch (error) {
       console.error(error);
-      showMessage("Không thể kết nối tới server", "error");
+      showRegisterMessage("Không thể kết nối tới server", "error");
     }
   });
 });

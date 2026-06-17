@@ -13,7 +13,7 @@ function renderPostDetail(post) {
     const detail = document.getElementById("postDetail");
     const commentFormWrap = document.getElementById("commentFormWrap");
     const authorId = idToString(post.author);
-    const authorName = escapeHtml(post.author?.username || "Ẩn danh");
+    const authorName = escapeHtml(post.author?.fullname || post.author?.username || "Ẩn danh");
     const authorHtml = authorId ? `<a href="profile.html?id=${encodeURIComponent(authorId)}"><strong>${authorName}</strong></a>` : `<strong>${authorName}</strong>`;
     const liked = isLikedByUser(post, currentUserId());
 

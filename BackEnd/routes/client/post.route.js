@@ -11,9 +11,9 @@ router.get("/", controller.getAllPosts);
 
 router.get("/tag/:tag", controller.getPostsByTag);
 
-router.get("/:slug", controller.getPostBySlug);
-
 router.get("/search", controller.searchPost);
+
+router.get("/:slug", controller.getPostBySlug);
 
 router.post("/", auth.authenticateToken, upload.uploadThumbnail.single("thumbnail"), validation.validateCreatePost, controller.createPost);
 

@@ -131,6 +131,7 @@ module.exports.validateUpdateMyProfile = [
 
     // Date of birth
     body("dateOfBirth")
+      .optional({ nullable: true, checkFalsy: true })
       .isISO8601()
       .withMessage("Ngày sinh không hợp lệ") // isISO8601() dùng để kiểm tra định dạng ngày hợp lệ (YYYY-MM-DD)
       .custom((value) => {

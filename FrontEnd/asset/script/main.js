@@ -11,17 +11,36 @@ function getAccessToken() {
 
 function setAccessToken(token) {
   if (token) localStorage.setItem("accessToken", token);
+  else localStorage.removeItem("accessToken");
+}
+
+function normalizeUserInfo(user = null) {
+  if (!user || typeof user !== "object") return null;
+  const fullname = user.fullname || user.username || user.name || "";
+  return {
+    ...user,
+    fullname,
+    username: user.username || fullname,
+  };
+}
+
+function getDisplayName(user = null, fallback = "User") {
+  const safeUser = user || getUserInfo();
+  return safeUser?.fullname || safeUser?.username || safeUser?.name || fallback;
 }
 
 function saveUserInfo(user) {
-  if (user) localStorage.setItem("user", JSON.stringify(user));
+  const normalized = normalizeUserInfo(user);
+  if (normalized) localStorage.setItem("user", JSON.stringify(normalized));
 }
 
 function getUserInfo() {
   try {
     const raw = localStorage.getItem("user");
-    return raw ? JSON.parse(raw) : null;
+    const parsed = raw ? JSON.parse(raw) : null;
+    return normalizeUserInfo(parsed);
   } catch (_) {
+    localStorage.removeItem("user");
     return null;
   }
 }
@@ -38,21 +57,42 @@ function isLoggedIn() {
 function normalizeApiResult(result, response) {
   const safe = result && typeof result === "object" ? result : {};
   if (!safe.code && response) safe.code = response.status;
-  if (typeof safe.success !== "boolean")
+  if (typeof safe.success !== "boolean") {
     safe.success = response ? response.ok : false;
+  }
   if (!safe.message && safe.errors && Array.isArray(safe.errors)) {
     safe.message = safe.errors.map((e) => e.msg || e.message).join("\n");
   }
   return safe;
 }
 
+function isAuthError(result) {
+  if (!result) return false;
+  const message = String(result.message || "").toLowerCase();
+  return (
+    result.code === 401 ||
+    result.code === 403 ||
+    message.includes("token") ||
+    message.includes("phiên đăng nhập") ||
+    message.includes("người dùng không tồn tại") ||
+    message.includes("vui lòng đăng nhập") ||
+    message.includes("access token")
+  );
+}
+
+function redirectToLogin(message = "Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.") {
+  clearAuth();
+  try {
+    sessionStorage.setItem("authMessage", message);
+  } catch (_) {}
+  window.location.href = "login.html";
+}
+
 // Hàm gọi API dùng chung.
+// options.skipAuth = true: không gửi Bearer token, dùng cho login/register/OTP.
 async function apiCall(endpoint, method = "GET", data = null, options = {}) {
-  const url = endpoint.startsWith("http")
-    ? endpoint
-    : `${API_BASE_URL}${endpoint}`;
-  const isFormData =
-    typeof FormData !== "undefined" && data instanceof FormData;
+  const url = endpoint.startsWith("http") ? endpoint : `${API_BASE_URL}${endpoint}`;
+  const isFormData = typeof FormData !== "undefined" && data instanceof FormData;
 
   const headers = {};
   if (!isFormData) {
@@ -60,17 +100,18 @@ async function apiCall(endpoint, method = "GET", data = null, options = {}) {
   }
 
   const token = getAccessToken();
-  if (token) {
+  if (token && !options.skipAuth) {
     headers.Authorization = `Bearer ${token}`;
   }
 
+  const { skipAuth, ...fetchOptionOverrides } = options;
   const fetchOptions = {
     method,
     credentials: "include",
-    ...options,
+    ...fetchOptionOverrides,
     headers: {
       ...headers,
-      ...(options.headers || {}),
+      ...(fetchOptionOverrides.headers || {}),
     },
   };
 
@@ -89,7 +130,17 @@ async function apiCall(endpoint, method = "GET", data = null, options = {}) {
       result = { message: text || "Response không phải JSON" };
     }
 
-    return normalizeApiResult(result, response);
+    const normalized = normalizeApiResult(result, response);
+
+    // Nếu token cũ/hỏng được gửi lên và backend báo lỗi xác thực,
+    // xóa token ngay để header/profile không còn dùng phiên đăng nhập lỗi.
+    if (token && !options.skipAuth && isAuthError(normalized)) {
+      normalized.authInvalid = true;
+      clearAuth();
+      updateHeaderAuthUI();
+    }
+
+    return normalized;
   } catch (error) {
     console.error("API Error:", error);
     return {
@@ -104,46 +155,52 @@ async function apiCall(endpoint, method = "GET", data = null, options = {}) {
 
 // ==================== AUTH API ====================
 async function login(email, password) {
-  return apiCall("/auth/login", "POST", { email, password });
+  clearAuth();
+  return apiCall("/auth/login", "POST", { email, password }, { skipAuth: true });
 }
 
-async function register(username, email, password, dateOfBirth) {
-  return apiCall("/auth/register", "POST", {
-    username,
-    email,
-    password,
-    dateOfBirth,
-  });
+async function register(fullname, email, password, confirmPassword, dateOfBirth) {
+  return apiCall(
+    "/auth/register",
+    "POST",
+    { fullname, email, password, confirmPassword, dateOfBirth },
+    { skipAuth: true },
+  );
 }
 
 async function verifyRegisterEmail(email, otp) {
-  return apiCall("/auth/verify-email", "POST", { email, otp });
+  return apiCall("/auth/verify-email", "POST", { email, otp }, { skipAuth: true });
 }
 
 async function resendRegisterOTP(email) {
-  return apiCall("/auth/resend-otp", "POST", { email });
+  return apiCall("/auth/resend-otp", "POST", { email }, { skipAuth: true });
 }
 
 async function forgotPassword(email) {
-  return apiCall("/auth/forgot-password", "POST", { email });
+  return apiCall("/auth/forgot-password", "POST", { email }, { skipAuth: true });
 }
 
 async function verifyResetPasswordOTP(email, otp) {
-  return apiCall("/auth/verify-reset-password-otp", "POST", { email, otp });
+  return apiCall("/auth/verify-reset-password-otp", "POST", { email, otp }, { skipAuth: true });
 }
 
 async function resendResetPasswordOTP(email) {
-  return apiCall("/auth/resend-reset-password-otp", "POST", { email });
+  return apiCall("/auth/resend-reset-password-otp", "POST", { email }, { skipAuth: true });
 }
 
 async function resetPassword(email, newPassword, confirmPassword) {
   // Backend hiện dùng chung validatePassword nên cần currentPassword dù controller reset không dùng.
-  return apiCall("/auth/reset-password", "PATCH", {
-    email,
-    currentPassword: "ResetFlow123!",
-    newPassword,
-    confirmPassword,
-  });
+  return apiCall(
+    "/auth/reset-password",
+    "PATCH",
+    {
+      email,
+      currentPassword: "ResetFlow123!",
+      newPassword,
+      confirmPassword,
+    },
+    { skipAuth: true },
+  );
 }
 
 async function changePassword(currentPassword, newPassword, confirmPassword) {
@@ -157,6 +214,7 @@ async function changePassword(currentPassword, newPassword, confirmPassword) {
 async function logout() {
   const result = await apiCall("/auth/logout", "POST");
   clearAuth();
+  updateHeaderAuthUI();
   return result;
 }
 
@@ -258,8 +316,7 @@ function normalizeHeaderAvatar(src) {
     src.startsWith("data:")
   )
     return src;
-  if (src.startsWith("../upload"))
-    return `${API_ORIGIN}/${src.replace(/^\.\.\//, "")}`;
+  if (src.startsWith("../upload")) return `${API_ORIGIN}/${src.replace(/^\.\.\//, "")}`;
   if (src.startsWith("/upload")) return `${API_ORIGIN}${src}`;
   return src;
 }
@@ -294,7 +351,7 @@ function updateHeaderAuthUI() {
   menu.innerHTML = `
         <button type="button" class="avatar-toggle" id="btnHeaderAvatar" aria-label="Mở menu người dùng">
             <img src="${normalizeHeaderAvatar(user.avatar)}" alt="Avatar">
-            <span class="header-username">${user.username || "User"}</span>
+            <span class="header-username">${escapeHtml(getDisplayName(user, "Tài khoản"))}</span>
         </button>
         <div class="avatar-dropdown" id="headerAvatarDropdown">
             <a href="profile.html">👤 Xem hồ sơ</a>
@@ -379,6 +436,10 @@ window.saveUserInfo = saveUserInfo;
 window.getUserInfo = getUserInfo;
 window.clearAuth = clearAuth;
 window.isLoggedIn = isLoggedIn;
+window.isAuthError = isAuthError;
+window.redirectToLogin = redirectToLogin;
+window.normalizeUserInfo = normalizeUserInfo;
+window.getDisplayName = getDisplayName;
 window.toggleDarkMode = toggleDarkMode;
 window.toggleSearch = toggleSearch;
 window.updateHeaderAuthUI = updateHeaderAuthUI;

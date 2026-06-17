@@ -93,7 +93,7 @@ function renderPost(post) {
     const title = escapeHtml(post.title || "Không có tiêu đề");
     const slug = encodeURIComponent(post.slug || post._id || "");
     const thumb = normalizeImageUrl(post.thumbnail, "https://via.placeholder.com/800x400?text=Blog+Post");
-    const authorName = escapeHtml(post.author?.username || "Ẩn danh");
+    const authorName = escapeHtml(post.author?.fullname || post.author?.username || "Ẩn danh");
     const authorId = idToString(post.author);
     const authorHtml = authorId ? `<a href="profile.html?id=${encodeURIComponent(authorId)}"><b>${authorName}</b></a>` : `<b>${authorName}</b>`;
     const tags = Array.isArray(post.tags) ? post.tags : [];
@@ -192,7 +192,7 @@ function renderComment(comment) {
             <div class="comment-meta">
                 <img src="${normalizeImageUrl(comment.user?.avatar, "https://via.placeholder.com/36?text=U")}" alt="Avatar">
                 <div>
-                    <b>${escapeHtml(comment.user?.username || "Ẩn danh")}</b><br>
+                    <b>${escapeHtml(comment.user?.fullname || comment.user?.username || "Ẩn danh")}</b><br>
                     <span>${formatDate(comment.createdAt)}</span>
                 </div>
             </div>

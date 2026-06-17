@@ -1,39 +1,38 @@
 const User = require("../models/user.model");
-
-const jwt = require("jsonwebtoken");
 const { verifyAccessToken } = require("../service/token.service");
 
 module.exports.authenticateToken = async (req, res, next) => {
     try {
-        // Lấy token từ header Authorization
-        // Format: "Bearer <token>"
         const authHeader = req.headers.authorization;
+
         if (!authHeader || !authHeader.startsWith("Bearer ")) {
             return res.status(401).json({
                 success: false,
                 message: "Không tìm thấy token xác thực. Vui lòng đăng nhập.",
             });
         }
-        // Tách token từ chuỗi "Bearer <token>"
-        const token = authHeader.split(" ")[1];
 
-        // Xác thực token
+        const token = authHeader.split(" ")[1];
         const decoded = verifyAccessToken(token);
 
-        if (!decoded) {
+        const userId =
+            decoded?._id ||
+            decoded?.id ||
+            decoded?.userId ||
+            decoded?.userID;
+
+        if (!userId) {
             return res.status(401).json({
                 success: false,
-                message: "Access token không hợp lệ hoặc đã hết hạn",
+                message: "Token không hợp lệ. Thiếu thông tin người dùng.",
             });
         }
 
-        // Tìm user từ decoded token, đảm bảo user chưa bị xóa
-        const user = await User.findOne({
-            _id: decoded._id,
-            isDeleted: false,
-        })
-        .select("_id fullname email role isActive")
-        .lean();
+        // User model hiện tại dùng isActive, không có field isDeleted.
+        // Không lọc isDeleted:false vì sẽ làm user hợp lệ bị trả về null.
+        const user = await User.findById(userId)
+            .select("_id fullname email avatar dateOfBirth role isActive")
+            .lean();
 
         if (!user) {
             return res.status(401).json({
@@ -42,51 +41,28 @@ module.exports.authenticateToken = async (req, res, next) => {
             });
         }
 
-        if (!user.isActive) {
+        if (user.isActive === false) {
             return res.status(403).json({
                 success: false,
                 message: "Tài khoản đã bị khóa",
             });
         }
-        // Gắn thông tin user vào request để sử dụng ở các middleware/controller tiếp theo
+
         req.user = user;
-        // req.user không phải thuộc tính có sẵn của Express. Đây là một thuộc tính mà middleware xác thực tự thêm vào object req
-        // Ví dụ: router.get("/profile", authenticateToken, (req, res) => {
-        //     console.log(req.user);
-        // });
-
-        // Nếu middleware gắn:
-        // req.user = {
-        //     _id: "123",
-        //     fullname: "nam"
-        // };
-
-        // thì controller sẽ nhận được:
-        // {
-        //     _id: "123",
-        //     fullname: "nam"
-        // }
-
-        // Có thể dùng req.user = decoded;
-        // Ưu điểm:
-        //     Nhanh hơn.
-        // Nhược điểm:
-        //     User bị khóa vẫn dùng token được.
-        //     User bị xóa vẫn dùng token được.
-        //     Role thay đổi không có tác dụng ngay.
         req.accessToken = token;
         next();
-    } 
-    catch (error) {
-        // Xử lý các lỗi JWT cụ thể
+    } catch (error) {
         if (
             error.name === "JsonWebTokenError" ||
-            error.name === "TokenExpiredError"
+            error.name === "TokenExpiredError" ||
+            error.name === "NotBeforeError"
         ) {
             return res.status(401).json({
                 success: false,
                 message: "Phiên đăng nhập đã hết hạn hoặc không hợp lệ",
             });
         }
+
+        next(error);
     }
 };

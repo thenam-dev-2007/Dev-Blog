@@ -1,106 +1,93 @@
 const crypto = require("crypto");
 
-const User = require("../models/user.model")
+const User = require("../models/user.model");
 const jwt = require("jsonwebtoken");
-const RefreshToken = require("../models/refreshToken.model")
+const RefreshToken = require("../models/refreshToken.model");
 
-// Hàm dùng để tạo JWT token cho user
-// - user._id: MongoDB object ID
-// - user.role: Vai trò (user hoặc admin)
+const getAccessSecret = () => {
+    return process.env.ACCESS_TOKEN_SECRET || process.env.JWT_SECRET || "blog_platform_access_secret_dev";
+};
 
-// Cấu trúc JWT token:
-// - Header: { "alg": "HS256", "typ": "JWT" }
-// - Payload: { _id, role, iat, exp}
-//          iat: thời điểm tạo token (tự động thêm)
-//          exp: thời điểm hết hạn (tự động thêm)
-// - Signature: Mã hóa bằng JWT_SECRET
+const getAccessExpiry = () => {
+    return process.env.ACCESS_TOKEN_EXPIRY || process.env.JWT_EXPIRES_IN || "7d";
+};
 
-// Thời gian hết hạn:
-// - Mặc định 24 giờ (từ JWT_EXPIRES_IN environment variable)
-// - Có thể cấu hình trong .env
+// Hàm dùng để tạo JWT token cho user.
+// Lưu đồng thời _id, id, userId để middleware/FE cũ mới đều đọc được.
 const generateAccessToken = (user) => {
+    const id = String(user._id || user.id);
+
     return jwt.sign(
-    // Payload (dữ liệu được lưu trong token)
-    {
-        _id: user._id.toString(), // user._id MongoDB trả về là ObjectId.
-        role: user.role,
-        // Sau payload có thể thêm:
-        //     fullname
-        //     email
-    },
-    // Secret (khóa bí mật để mã hóa token)
-    process.env.ACCESS_TOKEN_SECRET,
-    // Options (cấu hình token)
-    { expiresIn: process.env.ACCESS_TOKEN_EXPIRY }
+        {
+            _id: id,
+            id,
+            userId: id,
+            role: user.role || "user",
+        },
+        getAccessSecret(),
+        { expiresIn: getAccessExpiry() }
     );
 };
 
 // Tạo refresh token và lưu vào database
 const generateRefreshToken = async (user) => {
-    // Tạo token ngẫu nhiên an toàn thay vì dùng JWT
-    const token = crypto.randomBytes(40).toString('hex');
-    
+    const token = crypto.randomBytes(40).toString("hex");
+
     const expiresAt = new Date();
-    expiresAt.setDate(expiresAt.getDate() + 7); // 7 ngày
-    
-    // Lưu vào database
+    expiresAt.setDate(expiresAt.getDate() + 7);
+
     await RefreshToken.create({
         token,
         userId: user._id,
-        expiresAt
+        expiresAt,
     });
-    
+
     return { token, expiresAt };
-}
+};
 
 // Xác thực access token
 const verifyAccessToken = (token) => {
-    return jwt.verify(token, process.env.ACCESS_TOKEN_SECRET);
+    return jwt.verify(token, getAccessSecret());
 };
 
 // Làm mới access token bằng refresh token
 const refreshAccessToken = async (token) => {
-    // Tìm refresh token trong database
-    const storedToken = await RefreshToken.findOne({ 
+    const storedToken = await RefreshToken.findOne({
         token,
-        expiresAt: { $gt: new Date() } // Chưa hết hạn
+        expiresAt: { $gt: new Date() },
     });
 
     if (!storedToken) {
-        return null; // Token không hợp lệ hoặc đã hết hạn
+        return null;
     }
 
-    // Tìm user
     const user = await User.findById(storedToken.userId);
 
     if (!user) {
-        // Xóa token nếu user không tồn tại
         await RefreshToken.deleteOne({ _id: storedToken._id });
         return null;
     }
-    
-    // Tạo access token mới
+
     const newAccessToken = generateAccessToken(user);
-    
-    // Xóa refresh token cũ (rotation)
+
     await RefreshToken.deleteOne({ _id: storedToken._id });
-    
-    // Tạo refresh token mới
+
     const newRefreshToken = await generateRefreshToken(user);
-    
+
     return {
         accessToken: newAccessToken,
-        refreshToken: newRefreshToken.token
+        refreshToken: newRefreshToken.token,
     };
-}
+};
 
 const revokeToken = async (userId, res) => {
     await RefreshToken.deleteMany({ userId });
+
     if (res) {
         res.clearCookie("refreshToken", {
             httpOnly: true,
-            secure: true,
-            sameSite: "strict"
+            secure: false,
+            sameSite: "lax",
         });
     }
 };
@@ -110,5 +97,5 @@ module.exports = {
     generateRefreshToken,
     verifyAccessToken,
     refreshAccessToken,
-    revokeToken
+    revokeToken,
 };

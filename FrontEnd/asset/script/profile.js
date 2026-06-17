@@ -23,12 +23,12 @@ function renderProfileHero() {
     const hero = document.getElementById("profileHero");
     if (!hero || !viewedUser) return;
 
-    document.title = `${viewedUser.username || "Hồ sơ"} - Blog`;
+    document.title = `${getDisplayName(viewedUser, "Hồ sơ")} - Blog`;
     hero.innerHTML = `
         <div class="profile-hero-inner">
             <img class="profile-hero-avatar" src="${normalizeImageUrl(viewedUser.avatar, "https://via.placeholder.com/120?text=U")}" alt="Avatar">
             <div class="profile-hero-info">
-                <h1>${escapeHtml(viewedUser.username || "Người dùng")}</h1>
+                <h1>${escapeHtml(getDisplayName(viewedUser, "Người dùng"))}</h1>
                 <p>${ownProfile ? escapeHtml(viewedUser.email || "") : "Hồ sơ công khai"}</p>
                 <div class="profile-stats">
                     <span><b>${viewedUser.totalPosts || 0}</b> bài viết</span>
@@ -98,7 +98,7 @@ function renderOverviewTab() {
                 <h2>Hồ sơ</h2>
             </div>
             <div class="profile-info-list">
-                <p><b>Tên người dùng:</b> ${escapeHtml(viewedUser.username || "")}</p>
+                <p><b>Tên người dùng:</b> ${escapeHtml(getDisplayName(viewedUser, ""))}</p>
                 <p><b>Ngày sinh:</b> ${viewedUser.dateOfBirth ? formatDate(viewedUser.dateOfBirth) : "Chưa cập nhật"}</p>
                 <p><b>Số bài viết:</b> ${viewedUser.totalPosts || 0}</p>
                 <p><b>Tổng lượt thích:</b> ${viewedUser.totalLikes || 0}</p>
@@ -116,8 +116,8 @@ function renderOverviewTab() {
         <div id="profile-message"></div>
         <form id="profile-update-form" class="profile-form" enctype="multipart/form-data">
             <div class="form-group">
-                <label for="profile-username">Tên người dùng</label>
-                <input id="profile-username" type="text" value="${escapeHtml(viewedUser.username || "")}" required>
+                <label for="profile-fullname">Tên người dùng</label>
+                <input id="profile-fullname" type="text" value="${escapeHtml(getDisplayName(viewedUser, ""))}" required>
             </div>
             <div class="form-group">
                 <label for="profile-email">Email</label>
@@ -142,23 +142,23 @@ function renderOverviewTab() {
 async function handleProfileUpdate(event) {
     event.preventDefault();
 
-    const username = document.getElementById("profile-username")?.value.trim();
+    const fullname = document.getElementById("profile-fullname")?.value.trim();
     const dateOfBirth = document.getElementById("profile-dob")?.value;
     const avatar = document.getElementById("profile-avatar")?.files?.[0];
 
-    if (!username || username.length < 3) {
+    if (!fullname || fullname.length < 3) {
         showMessage("Tên người dùng phải có ít nhất 3 ký tự.", "profile-message", "error");
         return;
     }
 
     const formData = new FormData();
-    formData.append("username", username);
+    formData.append("fullname", fullname);
     if (dateOfBirth) formData.append("dateOfBirth", dateOfBirth);
     if (avatar) formData.append("avatar", avatar);
 
     const result = await updateProfile(formData);
     if (resultOk(result)) {
-        viewedUser = { ...viewedUser, ...result.data };
+        viewedUser = normalizeUserInfo({ ...viewedUser, ...result.data });
         saveUserInfo({ ...(getUserInfo() || {}), ...result.data });
         renderProfileHero();
         updateHeaderAuthUI();
@@ -368,11 +368,19 @@ async function initProfilePage() {
 
     const result = ownProfile ? await getProfile() : await getUserProfile(requestedId);
     if (!resultOk(result) || !result.data) {
-        document.getElementById("profileHero").innerHTML = `<div class="alert alert-error">${escapeHtml(getErrorMessage(result, "Không tải được hồ sơ"))}</div>`;
+        if (result?.authInvalid || isAuthError(result)) {
+            redirectToLogin("Phiên đăng nhập đã hết hạn hoặc tài khoản không tồn tại. Vui lòng đăng nhập lại.");
+            return;
+        }
+
+        const hero = document.getElementById("profileHero");
+        if (hero) {
+            hero.innerHTML = `<div class="alert alert-error">${escapeHtml(getErrorMessage(result, "Không tải được hồ sơ"))}</div>`;
+        }
         return;
     }
 
-    viewedUser = result.data;
+    viewedUser = normalizeUserInfo(result.data);
     viewedUserId = userIdOf(viewedUser);
 
     if (ownProfile) {

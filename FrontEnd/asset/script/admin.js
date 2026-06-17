@@ -53,7 +53,7 @@ async function loadDashboard() {
             <tr>
                 <td>${index + 1}</td>
                 <td><a href="post.html?slug=${encodeURIComponent(post.slug || post._id)}">${escapeHtml(post.title || "Không tiêu đề")}</a></td>
-                <td>${escapeHtml(post.author?.username || "Ẩn danh")}</td>
+                <td>${escapeHtml(post.author?.fullname || post.author?.username || "Ẩn danh")}</td>
                 <td>${formatDate(post.createdAt)}</td>
                 <td><span class="badge badge-success">Đang hiển thị</span></td>
             </tr>
@@ -90,7 +90,7 @@ async function loadAdminPosts(page = 1) {
                         <tr>
                             <td>${start + index + 1}</td>
                             <td>${escapeHtml(post.title || "Không tiêu đề")}</td>
-                            <td>${escapeHtml(post.author?.username || "Ẩn danh")}</td>
+                            <td>${escapeHtml(post.author?.fullname || post.author?.username || "Ẩn danh")}</td>
                             <td>${formatDate(post.createdAt)}</td>
                             <td><a href="post.html?slug=${encodeURIComponent(post.slug || post._id)}">Xem</a></td>
                         </tr>

@@ -90,7 +90,7 @@ module.exports.verifyEmail = async (req, res, next) => {
     res.cookie("refreshToken", refreshToken.token, {
       httpOnly: true,
       secure: false,
-      sameSite: "strict",
+      sameSite: "lax",
       maxAge: 7 * 24 * 60 * 60 * 1000,
     });
 
@@ -98,6 +98,14 @@ module.exports.verifyEmail = async (req, res, next) => {
       success: true,
       message: "Xác thực email thành công",
       data: {
+        user: {
+          _id: user._id,
+          fullname: user.fullname,
+          email: user.email,
+          dateOfBirth: user.dateOfBirth,
+          avatar: user.avatar,
+          role: user.role,
+        },
         accessToken,
       },
     });
@@ -208,8 +216,8 @@ module.exports.login = async (req, res, next) => {
     // Lưu refresh token vào cookie
     res.cookie("refreshToken", refreshToken.token, {
       httpOnly: true,
-      secure: true,
-      sameSite: "strict",
+      secure: false,
+      sameSite: "lax",
       maxAge: 7 * 24 * 60 * 60 * 1000,
     });
 
@@ -251,8 +259,8 @@ module.exports.logout = async (req, res, next) => {
 
     res.clearCookie("refreshToken", {
       httpOnly: true,
-      secure: true,
-      sameSite: "strict",
+      secure: false,
+      sameSite: "lax",
     });
 
     res.status(200).json({

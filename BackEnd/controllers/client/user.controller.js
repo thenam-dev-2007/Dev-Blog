@@ -125,9 +125,6 @@ module.exports.updateMyProfile = async (req, res, next) => {
       // Cập nhật avatar mới
       user.avatar = `/upload/avatar/${req.file.filename}`;
 
-      // Save user
-      await user.save();
-
       if (oldAvatarPath) {
         try {
           await fs.unlink(oldAvatarPath); // Xóa file avatar cũ.
@@ -136,6 +133,9 @@ module.exports.updateMyProfile = async (req, res, next) => {
         }
       }
     }
+
+    // Save user sau khi cập nhật fullname/dateOfBirth/avatar.
+    await user.save();
 
     // Response
     const userResponse = {
@@ -182,7 +182,7 @@ module.exports.getMyPosts = async (req, res, next) => {
       .populate("comments.user", "fullname avatar")
       .sort({ createdAt: -1 })
       .skip(objectPagination.skip)
-      .limit(objectPagination.limitPost)
+      .limit(objectPagination.limitItem)
       .lean();
 
     res.status(200).json({
@@ -231,7 +231,7 @@ module.exports.getOthersPosts = async (req, res, next) => {
       .populate("comments.user", "fullname avatar")
       .sort({ createdAt: -1 })
       .skip(objectPagination.skip)
-      .limit(objectPagination.limitPost)
+      .limit(objectPagination.limitItem)
       .lean();
 
     res.status(200).json({

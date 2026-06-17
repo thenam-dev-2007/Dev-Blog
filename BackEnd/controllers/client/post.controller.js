@@ -182,7 +182,7 @@ module.exports.createPost = async (req, res, next) => {
 
     let thumbnailPath = ""; 
     if (req.file) {
-      thumbnailPath = `/upload/post/${req.file.filename}`; // Đảm bảo thư mục này tồn tại
+      thumbnailPath = `/upload/thumbnail/${req.file.filename}`; // Đảm bảo thư mục này tồn tại
     }
 
     const newPost = await Post.create({
@@ -244,7 +244,7 @@ module.exports.updatePost = async (req, res, next) => {
       if (post.thumbnail && !post.thumbnail.includes("default")) {
         oldThumbnailPath = path.join(process.cwd(), post.thumbnail.replace(/^\/+/, ""));
       }
-      updateData.thumbnail = `/upload/post/${req.file.filename}`;
+      updateData.thumbnail = `/upload/thumbnail/${req.file.filename}`;
     };
 
     const updatedPost = await Post.findByIdAndUpdate(id, updateData, {
@@ -457,7 +457,7 @@ module.exports.deleteComment = async (req, res, next) => {
       });
     }
 
-    if (comment.user.toString() !== userId && post.author.toString() !== userId) {
+    if (comment.user.toString() !== userId.toString() && post.author.toString() !== userId.toString()) {
       return res.status(403).json({
         success: false,
         message: "Bạn không có quyền xóa bình luận này",
