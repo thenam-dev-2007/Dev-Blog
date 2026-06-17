@@ -194,7 +194,7 @@ async function renderPostsTab(page = 1) {
 
     const posts = getPostsFromResponse(result);
     const pagination = getPaginationFromResponse(result, page, 1);
-    renderManagedPosts(posts, "profile-posts-list", { canDelete: ownProfile, canUnlike: false });
+    renderManagedPosts(posts, "profile-posts-list", { canDelete: ownProfile, canEdit: ownProfile, canUnlike: false });
     renderPhanTrang("phan-trang-profile-posts", pagination.currentPage, pagination.totalPage, renderPostsTab);
 }
 
@@ -242,6 +242,7 @@ function renderManagedPostCard(post, options = {}) {
                 </div>
                 <div class="profile-post-actions">
                     <a href="post.html?slug=${slug}" class="button secondary">Xem bài</a>
+                    ${options.canEdit ? `<a href="create_post.html?edit=${encodeURIComponent(post._id || "")}&slug=${slug}" class="button secondary">Sửa</a>` : ""}
                     ${options.canDelete ? `<button type="button" class="button danger" data-delete-post="${escapeHtml(post._id)}">Xóa</button>` : ""}
                     ${options.canUnlike ? `<button type="button" class="button danger" data-unlike-post="${escapeHtml(post._id)}">Bỏ like</button>` : ""}
                 </div>

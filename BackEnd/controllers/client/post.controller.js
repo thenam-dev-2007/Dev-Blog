@@ -426,6 +426,62 @@ module.exports.addComment = async (req, res, next) => {
   }
 };
 
+// [PATCH] - Sửa bình luận
+module.exports.updateComment = async (req, res, next) => {
+  try {
+    const { postId, commentId } = req.params;
+    const { content } = req.body;
+    const userId = req.user._id;
+
+    if (!content?.trim()) {
+      return res.status(400).json({
+        success: false,
+        message: "Nội dung bình luận không được để trống",
+      });
+    }
+
+    const post = await Post.findOne({ _id: postId, isDeleted: false });
+
+    if (!post) {
+      return res.status(404).json({
+        success: false,
+        message: "Bài viết không tồn tại",
+      });
+    }
+
+    const comment = post.comments.id(commentId);
+
+    if (!comment) {
+      return res.status(404).json({
+        success: false,
+        message: "Bình luận không tồn tại",
+      });
+    }
+
+    if (comment.user.toString() !== userId.toString()) {
+      return res.status(403).json({
+        success: false,
+        message: "Bạn chỉ có thể sửa bình luận của chính mình",
+      });
+    }
+
+    comment.content = content.trim();
+    await post.save();
+
+    const updatedPost = await Post.findOne({ _id: postId, isDeleted: false })
+      .populate("author", "fullname email avatar")
+      .populate("comments.user", "fullname avatar");
+
+    res.status(200).json({
+      success: true,
+      message: "Cập nhật bình luận thành công",
+      data: updatedPost,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
 // [DELETE] - Xóa bình luận
 module.exports.deleteComment = async (req, res, next) => {
   try {
@@ -467,9 +523,14 @@ module.exports.deleteComment = async (req, res, next) => {
     post.comments.id(commentId).deleteOne();
     await post.save();
 
+    const updatedPost = await Post.findOne({ _id: postId, isDeleted: false })
+      .populate("author", "fullname email avatar")
+      .populate("comments.user", "fullname avatar");
+
     res.status(200).json({
       success: true,
       message: "Xóa bình luận thành công",
+      data: updatedPost,
     });
   } catch (error) {
     next(error);

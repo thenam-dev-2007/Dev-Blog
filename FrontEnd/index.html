@@ -31,13 +31,41 @@
 </header>
 
 <main>
-    <section class="section-card page-banner">
+    <section class="section-card page-banner home-banner">
+        <p class="eyebrow">Cộng đồng chia sẻ kiến thức</p>
         <h1>Blog Platform</h1>
-        <p>Khám phá bài viết mới nhất, chia sẻ nội dung và thảo luận cùng cộng đồng.</p>
+        <p>Khám phá bài viết mới nhất, chia sẻ kiến thức học tập, công nghệ, đời sống và thảo luận cùng cộng đồng.</p>
+        <div class="hero-actions">
+            <a href="create_post.html" class="button hero-write-btn" id="homeWriteBtn">✍️ Đăng bài chia sẻ</a>
+            <a href="categories.html" class="button secondary">Khám phá chủ đề</a>
+        </div>
+    </section>
+
+    <section class="home-stats-grid" id="homeStats">
+        <div class="stat-card"><strong id="statPosts">0</strong><span>Bài viết</span></div>
+        <div class="stat-card"><strong id="statTags">0</strong><span>Chủ đề</span></div>
+        <div class="stat-card"><strong id="statLikes">0</strong><span>Lượt thích</span></div>
     </section>
 
     <div class="content-grid">
         <div>
+            <section class="section-card home-section-head">
+                <div>
+                    <h2>Bài viết nổi bật</h2>
+                    <p>Những nội dung có nhiều tương tác trong cộng đồng.</p>
+                </div>
+            </section>
+            <div class="article-grid" id="featuredPosts">
+                <div class="section-card empty-state">Đang tải bài viết nổi bật...</div>
+            </div>
+
+            <section class="section-card home-section-head">
+                <div>
+                    <h2>Bài viết mới nhất</h2>
+                    <p>Cập nhật những chia sẻ vừa được đăng.</p>
+                </div>
+                <a href="create_post.html" class="button" id="homeWriteBtnSmall">➕ Đăng bài</a>
+            </section>
             <div class="article-grid" id="latestPosts">
                 <div class="section-card empty-state">Đang tải bài viết...</div>
             </div>
@@ -47,22 +75,35 @@
         </div>
 
         <aside class="aside section-card">
-            <div>
+            <div class="home-author-box" id="homeAuthorBox">
+                <h3>Chia sẻ của bạn</h3>
+                <p>Đăng bài viết mới để lưu lại kiến thức và nhận góp ý từ mọi người.</p>
+                <a href="create_post.html" class="button btn-full" id="sidebarWriteBtn">✍️ Đăng bài</a>
+            </div>
+            <div style="margin-top:20px;">
                 <h3>Danh mục gợi ý</h3>
                 <ul>
                     <li><a href="categories.html?tag=cong-nghe">Công nghệ</a></li>
                     <li><a href="categories.html?tag=hoc-tap">Học tập</a></li>
+                    <li><a href="categories.html?tag=lap-trinh">Lập trình</a></li>
                     <li><a href="categories.html?tag=doi-song">Đời sống</a></li>
-                    <li><a href="categories.html?tag=nghe-thuat">Nghệ thuật</a></li>
                 </ul>
             </div>
             <div style="margin-top:20px;">
                 <h3>Xu hướng</h3>
-                <p class="list-links">
+                <p class="list-links" id="popularTags">
                     <a href="categories.html?tag=cong-nghe">#cong-nghe</a>
                     <a href="categories.html?tag=hoc-tap">#hoc-tap</a>
                     <a href="categories.html?tag=lap-trinh">#lap-trinh</a>
                 </p>
+            </div>
+            <div class="knowledge-tips" style="margin-top:20px;">
+                <h3>Gợi ý viết bài</h3>
+                <ul>
+                    <li>Đặt tiêu đề rõ vấn đề.</li>
+                    <li>Dùng tag để người khác dễ tìm.</li>
+                    <li>Chia nội dung thành các ý nhỏ.</li>
+                </ul>
             </div>
         </aside>
     </div>

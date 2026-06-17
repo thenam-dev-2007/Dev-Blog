@@ -36,6 +36,36 @@ function formatDate(value) {
     return date.toLocaleDateString("vi-VN");
 }
 
+function estimateReadingMinutes(content = "") {
+    const words = stripHtml(content).trim().split(/\s+/).filter(Boolean).length;
+    return Math.max(1, Math.ceil(words / 220));
+}
+
+function currentStoredUserId() {
+    try {
+        const user = typeof getUserInfo === "function" ? getUserInfo() : JSON.parse(localStorage.getItem("user") || "null");
+        return user?._id || user?.id || "";
+    } catch (_) {
+        return "";
+    }
+}
+
+function getPostId(post) {
+    return post?._id || post?.id || "";
+}
+
+function getPostSlug(post) {
+    return encodeURIComponent(post?.slug || post?._id || post?.id || "");
+}
+
+function getPostUrl(post, hash = "") {
+    return `post.html?slug=${getPostSlug(post)}${hash}`;
+}
+
+function getLikeButtonLabel(liked, count) {
+    return `${liked ? "💔 Bỏ like" : "❤️ Like"} ${Number(count) || 0}`;
+}
+
 function getLikeCount(post) {
     if (Array.isArray(post?.likes)) return post.likes.length;
     if (typeof post?.likes === "number") return post.likes;
@@ -91,28 +121,38 @@ function isLikedByUser(post, userId) {
 
 function renderPost(post) {
     const title = escapeHtml(post.title || "Không có tiêu đề");
-    const slug = encodeURIComponent(post.slug || post._id || "");
+    const slug = getPostSlug(post);
+    const postUrl = getPostUrl(post);
+    const commentUrl = getPostUrl(post, "#comments");
     const thumb = normalizeImageUrl(post.thumbnail, "https://via.placeholder.com/800x400?text=Blog+Post");
     const authorName = escapeHtml(post.author?.fullname || post.author?.username || "Ẩn danh");
     const authorId = idToString(post.author);
     const authorHtml = authorId ? `<a href="profile.html?id=${encodeURIComponent(authorId)}"><b>${authorName}</b></a>` : `<b>${authorName}</b>`;
     const tags = Array.isArray(post.tags) ? post.tags : [];
+    const postId = escapeHtml(getPostId(post));
+    const liked = isLikedByUser(post, currentStoredUserId());
+    const likeCount = getLikeCount(post);
 
     return `
         <article class="section-card article-card">
-            <a href="post.html?slug=${slug}">
+            <a href="${postUrl}">
                 <img src="${thumb}" alt="${title}">
             </a>
             <div>
-                <h3><a href="post.html?slug=${slug}">${title}</a></h3>
+                <h3><a href="${postUrl}">${title}</a></h3>
+                <div class="article-meta-line">
+                    <span>${authorHtml}</span>
+                    <span>${formatDate(post.createdAt)}</span>
+                    <span>${estimateReadingMinutes(post.content)} phút đọc</span>
+                </div>
                 <p>${escapeHtml(truncateText(post.content, 150))}</p>
                 ${tags.length ? `<div class="tag-list">${tags.map(tag => `<a href="categories.html?tag=${encodeURIComponent(tag)}">#${escapeHtml(tag)}</a>`).join("")}</div>` : ""}
             </div>
             <div class="card-footer">
-                <small>${authorHtml} | ${formatDate(post.createdAt)}</small>
+                <small>Chia sẻ kiến thức</small>
                 <div class="article-actions">
-                    <button type="button">❤️ ${getLikeCount(post)}</button>
-                    <button type="button">💬 ${getCommentCount(post)}</button>
+                    <button type="button" class="post-card-like ${liked ? "liked" : ""}" data-card-like="${postId}" data-liked="${liked}" data-count="${likeCount}">${getLikeButtonLabel(liked, likeCount)}</button>
+                    <a class="post-card-comment" href="${commentUrl}">💬 ${getCommentCount(post)}</a>
                 </div>
             </div>
         </article>
@@ -129,6 +169,47 @@ function renderPosts(posts, containerId) {
     }
 
     container.innerHTML = posts.map(post => renderPost(post)).join("");
+    bindPostCardActions(container);
+}
+
+function bindPostCardActions(scope = document) {
+    scope.querySelectorAll("[data-card-like]").forEach(button => {
+        button.addEventListener("click", handlePostCardLikeClick);
+    });
+}
+
+async function handlePostCardLikeClick(event) {
+    event.preventDefault();
+    event.stopPropagation();
+
+    const button = event.currentTarget;
+    const postId = button.dataset.cardLike;
+    if (!postId) return;
+
+    if (typeof isLoggedIn === "function" && !isLoggedIn()) {
+        try { sessionStorage.setItem("authMessage", "Vui lòng đăng nhập để like bài viết."); } catch (_) {}
+        window.location.href = "login.html";
+        return;
+    }
+
+    const liked = button.dataset.liked === "true";
+    const oldCount = Number(button.dataset.count || 0);
+    button.disabled = true;
+
+    const result = liked ? await unlikePost(postId) : await likePost(postId);
+    if (resultOk(result)) {
+        const newLiked = !liked;
+        const newCount = Number(result.likesCount ?? result.data?.likesCount ?? (newLiked ? oldCount + 1 : Math.max(0, oldCount - 1)));
+        button.dataset.liked = String(newLiked);
+        button.dataset.count = String(newCount);
+        button.classList.toggle("liked", newLiked);
+        button.textContent = getLikeButtonLabel(newLiked, newCount);
+        toast(newLiked ? "Đã like bài viết" : "Đã bỏ like bài viết", "success");
+    } else {
+        toast(getErrorMessage(result, "Không cập nhật được lượt thích"), "error");
+    }
+
+    button.disabled = false;
 }
 
 function renderPhanTrang(containerId, trangHT, tongTrang, hamLoad) {
@@ -186,17 +267,43 @@ function renderCategories(categories) {
     `).join("");
 }
 
+function getCommentId(comment) {
+    return comment?._id || comment?.id || "";
+}
+
+function canEditComment(comment) {
+    const userId = currentStoredUserId();
+    return Boolean(userId && idToString(comment?.user) === String(userId));
+}
+
+function canDeleteComment(comment) {
+    const userId = currentStoredUserId();
+    const postAuthorId = idToString(window.currentPost?.author);
+    return Boolean(userId && (idToString(comment?.user) === String(userId) || postAuthorId === String(userId)));
+}
+
 function renderComment(comment) {
+    const commentId = escapeHtml(getCommentId(comment));
+    const canEdit = canEditComment(comment);
+    const canDelete = canDeleteComment(comment);
+    const actions = (canEdit || canDelete) ? `
+                <div class="comment-actions">
+                    ${canEdit ? `<button type="button" class="comment-action-btn" data-comment-edit="${commentId}">Sửa</button>` : ""}
+                    ${canDelete ? `<button type="button" class="comment-action-btn danger" data-comment-delete="${commentId}">Xóa</button>` : ""}
+                </div>
+            ` : "";
+
     return `
-        <div class="comment-item">
+        <div class="comment-item" data-comment-id="${commentId}">
             <div class="comment-meta">
                 <img src="${normalizeImageUrl(comment.user?.avatar, "https://via.placeholder.com/36?text=U")}" alt="Avatar">
                 <div>
                     <b>${escapeHtml(comment.user?.fullname || comment.user?.username || "Ẩn danh")}</b><br>
                     <span>${formatDate(comment.createdAt)}</span>
                 </div>
+                ${actions}
             </div>
-            <p>${escapeHtml(comment.content || "")}</p>
+            <p class="comment-content">${escapeHtml(comment.content || "")}</p>
         </div>
     `;
 }
@@ -270,6 +377,12 @@ window.stripHtml = stripHtml;
 window.truncateText = truncateText;
 window.normalizeImageUrl = normalizeImageUrl;
 window.formatDate = formatDate;
+window.estimateReadingMinutes = estimateReadingMinutes;
+window.currentStoredUserId = currentStoredUserId;
+window.getPostId = getPostId;
+window.getPostSlug = getPostSlug;
+window.getPostUrl = getPostUrl;
+window.bindPostCardActions = bindPostCardActions;
 window.getLikeCount = getLikeCount;
 window.getCommentCount = getCommentCount;
 window.idToString = idToString;
@@ -283,6 +396,9 @@ window.renderPosts = renderPosts;
 window.renderPhanTrang = renderPhanTrang;
 window.renderPhanTrangAdmin = renderPhanTrangAdmin;
 window.renderCategories = renderCategories;
+window.getCommentId = getCommentId;
+window.canEditComment = canEditComment;
+window.canDeleteComment = canDeleteComment;
 window.renderComment = renderComment;
 window.renderComments = renderComments;
 window.loadAllPosts = loadAllPosts;

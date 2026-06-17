@@ -7,6 +7,7 @@ function currentUserId() {
 
 function renderPostDetail(post) {
     currentPost = post;
+    window.currentPost = post;
     document.title = `${post.title || "Bài viết"} - Blog`;
 
     const banner = document.getElementById("postBanner");
@@ -20,7 +21,7 @@ function renderPostDetail(post) {
     if (banner) {
         banner.innerHTML = `
             <h1>${escapeHtml(post.title || "Không có tiêu đề")}</h1>
-            <p>Tác giả: ${authorHtml} · ${formatDate(post.createdAt)}</p>
+            <p>Tác giả: ${authorHtml} · ${formatDate(post.createdAt)} · ${estimateReadingMinutes(post.content)} phút đọc</p>
         `;
     }
 
@@ -41,6 +42,7 @@ function renderPostDetail(post) {
     }
 
     renderComments(post.comments || [], "commentsList");
+    bindCommentControls();
 
     if (commentFormWrap && !isLoggedIn()) {
         commentFormWrap.innerHTML = `<div class="alert alert-info">Bạn cần <a href="login.html">đăng nhập</a> để bình luận.</div>`;
@@ -66,6 +68,34 @@ function renderPostDetail(post) {
     });
 }
 
+async function loadRelatedPosts(post) {
+    const container = document.getElementById("relatedPosts");
+    const section = document.getElementById("relatedSection");
+    if (!container || !post) return;
+
+    const tags = Array.isArray(post.tags) ? post.tags : [];
+    if (!tags.length) {
+        if (section) section.classList.add("hidden");
+        return;
+    }
+
+    const allPosts = await loadAllPosts(30);
+    const currentId = idToString(post._id || post.id);
+    const related = allPosts
+        .filter(item => idToString(item._id || item.id) !== currentId)
+        .filter(item => (item.tags || []).some(tag => tags.includes(tag)))
+        .sort((a, b) => (getLikeCount(b) + getCommentCount(b)) - (getLikeCount(a) + getCommentCount(a)))
+        .slice(0, 4);
+
+    if (!related.length) {
+        if (section) section.classList.add("hidden");
+        return;
+    }
+
+    if (section) section.classList.remove("hidden");
+    renderPosts(related, "relatedPosts");
+}
+
 async function loadPostDetail() {
     const slug = getQueryParam("slug");
     if (!slug) {
@@ -81,6 +111,7 @@ async function loadPostDetail() {
     }
 
     renderPostDetail(result.data);
+    loadRelatedPosts(result.data);
 }
 
 async function handleToggleLikePost() {
@@ -98,6 +129,79 @@ async function handleToggleLikePost() {
         await loadPostDetail();
     } else {
         toast(getErrorMessage(result, liked ? "Không bỏ like được bài viết" : "Không like được bài viết"), "error");
+    }
+}
+
+function getCurrentPostId() {
+    return currentPost?._id || currentPost?.id || "";
+}
+
+function bindCommentControls() {
+    const container = document.getElementById("commentsList");
+    if (!container) return;
+
+    container.querySelectorAll("[data-comment-edit]").forEach((btn) => {
+        btn.addEventListener("click", () => handleEditComment(btn.dataset.commentEdit));
+    });
+
+    container.querySelectorAll("[data-comment-delete]").forEach((btn) => {
+        btn.addEventListener("click", () => handleDeleteComment(btn.dataset.commentDelete));
+    });
+}
+
+function findCommentById(commentId) {
+    return (currentPost?.comments || []).find((comment) => idToString(comment) === String(commentId));
+}
+
+async function handleEditComment(commentId) {
+    if (!isLoggedIn()) {
+        window.location.href = "login.html";
+        return;
+    }
+
+    const comment = findCommentById(commentId);
+    if (!comment) {
+        toast("Không tìm thấy bình luận cần sửa", "error");
+        return;
+    }
+
+    const oldContent = comment.content || "";
+    const newContent = window.prompt("Sửa nội dung bình luận:", oldContent);
+    if (newContent === null) return;
+
+    const content = newContent.trim();
+    if (!content) {
+        toast("Nội dung bình luận không được để trống", "error");
+        return;
+    }
+
+    if (content === oldContent.trim()) return;
+
+    const result = await updateComment(getCurrentPostId(), commentId, content);
+    if (resultOk(result)) {
+        toast("Đã cập nhật bình luận", "success");
+        if (result.data) renderPostDetail(result.data);
+        else await loadPostDetail();
+    } else {
+        toast(getErrorMessage(result, "Không sửa được bình luận"), "error");
+    }
+}
+
+async function handleDeleteComment(commentId) {
+    if (!isLoggedIn()) {
+        window.location.href = "login.html";
+        return;
+    }
+
+    if (!confirm("Bạn có chắc muốn xóa bình luận này không?")) return;
+
+    const result = await deleteCommentById(getCurrentPostId(), commentId);
+    if (resultOk(result)) {
+        toast("Đã xóa bình luận", "success");
+        if (result.data) renderPostDetail(result.data);
+        else await loadPostDetail();
+    } else {
+        toast(getErrorMessage(result, "Không xóa được bình luận"), "error");
     }
 }
 

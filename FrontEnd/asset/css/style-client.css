@@ -1047,3 +1047,251 @@ input[type="file"] {
         display: none;
     }
 }
+
+/* =====================
+   HOME KNOWLEDGE BLOG UPGRADES
+   ===================== */
+.home-banner .eyebrow {
+    display: inline-block;
+    font-size: 0.78rem;
+    text-transform: uppercase;
+    letter-spacing: 1.2px;
+    color: var(--mau-chinh);
+    font-weight: bold;
+    margin-bottom: 8px;
+}
+.hero-actions {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-top: 22px;
+}
+.hero-write-btn {
+    padding-left: 24px;
+    padding-right: 24px;
+}
+.home-stats-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 14px;
+    margin-bottom: 20px;
+}
+.stat-card {
+    background: var(--mau-trang);
+    border: 1px solid var(--mau-vien);
+    border-radius: 10px;
+    padding: 18px;
+    text-align: center;
+}
+.stat-card strong {
+    display: block;
+    font-size: 1.7rem;
+    color: var(--mau-chinh);
+    margin-bottom: 4px;
+}
+.stat-card span {
+    color: var(--mau-chu-nhat);
+    font-size: 0.9rem;
+}
+.home-section-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    flex-wrap: wrap;
+    padding: 18px 20px;
+}
+.home-section-head.no-margin {
+    margin-bottom: 14px;
+}
+.home-section-head h2 {
+    font-size: 1.15rem;
+    margin-bottom: 4px;
+}
+.home-section-head p,
+.home-author-box p {
+    color: var(--mau-chu-nhat);
+    font-size: 0.9rem;
+    line-height: 1.5;
+}
+.home-author-box .button {
+    margin-top: 12px;
+}
+.knowledge-tips ul li {
+    color: var(--mau-chu-nhat);
+    line-height: 1.6;
+}
+.btn-write-header {
+    font-size: 0.85rem;
+    font-weight: bold;
+    color: white;
+    background: var(--mau-chinh);
+    padding: 8px 14px;
+    border-radius: 20px;
+    text-decoration: none;
+    white-space: nowrap;
+}
+.btn-write-header:hover {
+    background: var(--mau-chu);
+    color: white;
+    text-decoration: none;
+}
+.article-meta-line {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    font-size: 0.78rem;
+    color: var(--mau-chu-nhat);
+    margin: 6px 0 8px;
+}
+.article-meta-line span:not(:last-child)::after {
+    content: "·";
+    margin-left: 8px;
+    color: var(--mau-vien);
+}
+.article-actions a.post-card-comment,
+.article-actions button.post-card-like {
+    border: 1px solid var(--mau-vien);
+    background: transparent;
+    color: var(--mau-chu-nhat);
+    font-size: 0.78rem;
+    padding: 4px 10px;
+    border-radius: 20px;
+    cursor: pointer;
+    transition: background 0.2s, color 0.2s, border-color 0.2s;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+}
+.article-actions a.post-card-comment:hover,
+.article-actions button.post-card-like:hover {
+    background: var(--mau-vien);
+    color: var(--mau-chu);
+    text-decoration: none;
+}
+.article-actions button.post-card-like.liked {
+    background: rgba(229, 62, 62, 0.12);
+    border-color: rgba(229, 62, 62, 0.35);
+    color: #e53e3e;
+}
+.article-actions button.post-card-like:disabled {
+    opacity: 0.65;
+    cursor: wait;
+}
+.post-content-text {
+    white-space: pre-line;
+    line-height: 1.8;
+}
+.post-actions-row {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-top: 18px;
+}
+.post-hero-image {
+    width: 100%;
+    max-height: 460px;
+    object-fit: cover;
+    border-radius: 10px;
+    margin-bottom: 18px;
+}
+.post-tags {
+    margin-top: 18px;
+}
+@media (max-width: 700px) {
+    .home-stats-grid {
+        grid-template-columns: 1fr;
+    }
+    .hero-actions,
+    .home-section-head {
+        align-items: stretch;
+    }
+    .hero-actions .button,
+    .home-section-head .button {
+        width: 100%;
+        text-align: center;
+    }
+    .btn-write-header {
+        display: none;
+    }
+}
+
+
+/* =====================
+   UX/UI FIXES - DARK MODE + COMMENT ACTIONS
+   ===================== */
+
+/* Nút đăng ký ở dark mode: tránh trùng màu nền/chữ */
+body.dark .btn-dangky {
+    background-color: var(--mau-chinh);
+    color: #111111;
+    border: 1px solid var(--mau-chinh);
+}
+body.dark .btn-dangky:hover {
+    background-color: #ffffff;
+    color: #111111;
+}
+
+/* Khi đã đăng nhập, nút dark mode được gom vào dropdown avatar */
+.avatar-dropdown #btnDarkModeMenu {
+    display: block;
+    width: 100%;
+    text-align: left;
+}
+body.dark .avatar-dropdown {
+    box-shadow: 0 12px 30px rgba(0,0,0,0.45);
+}
+body.dark .avatar-toggle,
+body.dark .avatar-dropdown {
+    background: var(--mau-trang);
+    color: var(--mau-chu);
+}
+
+/* Bình luận: nút sửa/xóa nhỏ gọn, hợp layout */
+.comment-meta {
+    position: relative;
+}
+.comment-actions {
+    margin-left: auto;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+.comment-action-btn {
+    border: 1px solid var(--mau-vien);
+    background: var(--mau-nen);
+    color: var(--mau-chu-nhat);
+    border-radius: 999px;
+    padding: 5px 10px;
+    font-size: 0.78rem;
+    cursor: pointer;
+    transition: background 0.2s, color 0.2s, border-color 0.2s;
+}
+.comment-action-btn:hover {
+    background: var(--mau-vien);
+    color: var(--mau-chu);
+}
+.comment-action-btn.danger {
+    color: #e53e3e;
+    border-color: rgba(229, 62, 62, 0.35);
+}
+.comment-action-btn.danger:hover {
+    background: rgba(229, 62, 62, 0.12);
+    color: #e53e3e;
+}
+.comment-content {
+    word-break: break-word;
+}
+
+@media (max-width: 560px) {
+    .comment-meta {
+        align-items: flex-start;
+    }
+    .comment-actions {
+        width: 100%;
+        margin-left: 46px;
+        margin-top: 6px;
+    }
+}
+

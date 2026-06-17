@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Viết bài mới</title>
+    <title id="createPostDocumentTitle">Viết bài mới</title>
     <link rel="stylesheet" href="./asset/css/style-client.css">
 </head>
 <body>
@@ -32,8 +32,8 @@
 
 <main>
     <section class="section-card page-banner">
-        <h1>Tạo bài viết mới</h1>
-        <p>Viết và chia sẻ nội dung mới với cộng đồng.</p>
+        <h1 id="createPostTitle">Tạo bài viết mới</h1>
+        <p id="createPostDesc">Viết và chia sẻ nội dung mới với cộng đồng.</p>
     </section>
 
     <section id="create-post-gate" class="section-card hidden">
@@ -61,7 +61,7 @@
                 <label for="content">Nội dung <span class="required">*</span></label>
                 <textarea id="content" placeholder="Nội dung bài viết..." required></textarea>
             </div>
-            <button type="submit" class="button">Đăng bài</button>
+            <button type="submit" class="button" id="create-post-submit-btn">Đăng bài</button>
             <a href="profile.html?tab=posts" class="button secondary">Quay lại bài viết của tôi</a>
         </form>
     </section>

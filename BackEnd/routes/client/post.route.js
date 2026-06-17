@@ -27,6 +27,8 @@ router.delete("/:id/like", auth.authenticateToken, controller.unlikePost);
 
 router.post("/:id/comments", auth.authenticateToken, validation.validateComment, controller.addComment);
 
+router.patch("/:postId/comments/:commentId", auth.authenticateToken, validation.validateComment, controller.updateComment);
+
 router.delete("/:postId/comments/:commentId", auth.authenticateToken, controller.deleteComment);
 
 module.exports = router;

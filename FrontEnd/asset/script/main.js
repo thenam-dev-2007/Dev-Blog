@@ -258,6 +258,15 @@ async function getPostsByTag(tag, page = 1, limit = 9) {
   );
 }
 
+async function searchPosts(keyword, page = 1, limit = 9) {
+  return apiCall(
+    `/posts/search?keyword=${encodeURIComponent(keyword)}&page=${page}&limit=${limit}`,
+    "GET",
+    null,
+    { skipAuth: true },
+  );
+}
+
 async function createPost(data) {
   return apiCall("/posts", "POST", data);
 }
@@ -282,18 +291,43 @@ async function commentPost(postId, content) {
   return apiCall(`/posts/${postId}/comments`, "POST", { content });
 }
 
+async function updateComment(postId, commentId, content) {
+  return apiCall(`/posts/${encodeURIComponent(postId)}/comments/${encodeURIComponent(commentId)}`, "PATCH", { content });
+}
+
+async function deleteCommentById(postId, commentId) {
+  return apiCall(`/posts/${encodeURIComponent(postId)}/comments/${encodeURIComponent(commentId)}`, "DELETE");
+}
+
 // ==================== UI CHUNG ====================
+function updateDarkModeControls() {
+  const darkModeOn = document.body.classList.contains("dark");
+  const icon = darkModeOn ? "☀️" : "🌙";
+  const label = darkModeOn ? "Chế độ sáng" : "Chế độ tối";
+
+  document.querySelectorAll("#btnDarkMode").forEach((btn) => {
+    btn.textContent = icon;
+    btn.title = label;
+    btn.setAttribute("aria-label", label);
+  });
+
+  document.querySelectorAll("#btnDarkModeMenu").forEach((btn) => {
+    btn.textContent = `${icon} ${label}`;
+    btn.title = label;
+    btn.setAttribute("aria-label", label);
+  });
+}
+
 function toggleDarkMode() {
   document.body.classList.toggle("dark");
-  const btn = document.getElementById("btnDarkMode");
 
   if (document.body.classList.contains("dark")) {
-    if (btn) btn.textContent = "☀️";
     localStorage.setItem("theme", "dark");
   } else {
-    if (btn) btn.textContent = "🌙";
     localStorage.setItem("theme", "light");
   }
+
+  updateDarkModeControls();
 }
 
 function toggleSearch() {
@@ -333,18 +367,30 @@ function updateHeaderAuthUI() {
   const oldLogin = headerRight.querySelector(".btn-dangnhap");
   const oldRegister = headerRight.querySelector(".btn-dangky");
   const oldUserMenu = headerRight.querySelector(".user-menu-header");
+  const oldWriteBtn = headerRight.querySelector(".btn-write-header");
+  const oldDarkMode = headerRight.querySelector(".btn-darkmode");
 
   if (oldUserMenu) oldUserMenu.remove();
+  if (oldWriteBtn) oldWriteBtn.remove();
 
   if (!isLoggedIn()) {
     if (oldLogin) oldLogin.style.display = "inline-block";
     if (oldRegister) oldRegister.style.display = "inline-block";
+    if (oldDarkMode) oldDarkMode.style.display = "inline-flex";
+    updateDarkModeControls();
     return;
   }
 
   const user = getUserInfo() || {};
   if (oldLogin) oldLogin.style.display = "none";
   if (oldRegister) oldRegister.style.display = "none";
+  if (oldDarkMode) oldDarkMode.style.display = "none";
+
+  const writeBtn = document.createElement("a");
+  writeBtn.href = "create_post.html";
+  writeBtn.className = "btn-write-header";
+  writeBtn.textContent = "✍️ Đăng bài";
+  headerRight.appendChild(writeBtn);
 
   const menu = document.createElement("div");
   menu.className = "user-menu-header";
@@ -355,6 +401,7 @@ function updateHeaderAuthUI() {
         </button>
         <div class="avatar-dropdown" id="headerAvatarDropdown">
             <a href="profile.html">👤 Xem hồ sơ</a>
+            <button type="button" id="btnDarkModeMenu">🌙 Chế độ tối</button>
             <button type="button" id="btnHeaderLogout">🚪 Đăng xuất</button>
         </div>
     `;
@@ -362,6 +409,7 @@ function updateHeaderAuthUI() {
 
   const btnAvatar = document.getElementById("btnHeaderAvatar");
   const dropdown = document.getElementById("headerAvatarDropdown");
+  const btnDarkModeMenu = document.getElementById("btnDarkModeMenu");
   const btnLogout = document.getElementById("btnHeaderLogout");
 
   if (btnAvatar && dropdown) {
@@ -371,12 +419,22 @@ function updateHeaderAuthUI() {
     });
   }
 
+  if (btnDarkModeMenu) {
+    btnDarkModeMenu.addEventListener("click", (event) => {
+      event.stopPropagation();
+      toggleDarkMode();
+      closeHeaderDropdown();
+    });
+  }
+
   if (btnLogout) {
     btnLogout.addEventListener("click", async () => {
       await logout();
       window.location.href = "login.html";
     });
   }
+
+  updateDarkModeControls();
 }
 
 function initMainUI() {
@@ -385,8 +443,8 @@ function initMainUI() {
 
   if (localStorage.getItem("theme") === "dark") {
     document.body.classList.add("dark");
-    if (btnDarkMode) btnDarkMode.textContent = "☀️";
   }
+  updateDarkModeControls();
 
   if (headerSearch) {
     headerSearch.addEventListener("keydown", function (e) {
@@ -424,12 +482,15 @@ window.getUserPosts = getUserPosts;
 window.getPosts = getPosts;
 window.getPostDetail = getPostDetail;
 window.getPostsByTag = getPostsByTag;
+window.searchPosts = searchPosts;
 window.createPost = createPost;
 window.updatePost = updatePost;
 window.deletePostById = deletePostById;
 window.likePost = likePost;
 window.unlikePost = unlikePost;
 window.commentPost = commentPost;
+window.updateComment = updateComment;
+window.deleteCommentById = deleteCommentById;
 window.getAccessToken = getAccessToken;
 window.setAccessToken = setAccessToken;
 window.saveUserInfo = saveUserInfo;
@@ -441,5 +502,6 @@ window.redirectToLogin = redirectToLogin;
 window.normalizeUserInfo = normalizeUserInfo;
 window.getDisplayName = getDisplayName;
 window.toggleDarkMode = toggleDarkMode;
+window.updateDarkModeControls = updateDarkModeControls;
 window.toggleSearch = toggleSearch;
 window.updateHeaderAuthUI = updateHeaderAuthUI;
