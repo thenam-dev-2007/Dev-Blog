@@ -3,8 +3,9 @@ const { verifyAccessToken } = require("../service/token.service");
 
 module.exports.authenticateToken = async (req, res, next) => {
     try {
+        // Lấy token từ header Authorization
+        // Format: "Bearer <token>"
         const authHeader = req.headers.authorization;
-
         if (!authHeader || !authHeader.startsWith("Bearer ")) {
             return res.status(401).json({
                 success: false,
@@ -12,25 +13,20 @@ module.exports.authenticateToken = async (req, res, next) => {
             });
         }
 
+        // Tách token từ chuỗi "Bearer <token>"
         const token = authHeader.split(" ")[1];
+
+        // Xác thực token
         const decoded = verifyAccessToken(token);
 
-        const userId =
-            decoded?._id ||
-            decoded?.id ||
-            decoded?.userId ||
-            decoded?.userID;
-
-        if (!userId) {
+        if (!decoded) {
             return res.status(401).json({
                 success: false,
-                message: "Token không hợp lệ. Thiếu thông tin người dùng.",
+                message: "Access token không hợp lệ hoặc đã hết hạn",
             });
         }
 
-        // User model hiện tại dùng isActive, không có field isDeleted.
-        // Không lọc isDeleted:false vì sẽ làm user hợp lệ bị trả về null.
-        const user = await User.findById(userId)
+        const user = await User.findById(decoded._id)
             .select("_id fullname email avatar dateOfBirth role isActive")
             .lean();
 
@@ -41,17 +37,41 @@ module.exports.authenticateToken = async (req, res, next) => {
             });
         }
 
-        if (user.isActive === false) {
+        if (!user.isActive) {
             return res.status(403).json({
                 success: false,
                 message: "Tài khoản đã bị khóa",
             });
         }
-
+        // Gắn thông tin user vào request để sử dụng ở các middleware/controller tiếp theo
         req.user = user;
+        // req.user không phải thuộc tính có sẵn của Express. Đây là một thuộc tính mà middleware xác thực tự thêm vào object req
+        // Ví dụ: router.get("/profile", authenticateToken, (req, res) => {
+        //     console.log(req.user);
+        // });
+
+        // Nếu middleware gắn:
+        // req.user = {
+        //     _id: "123",
+        //     fullname: "nam"
+        // };
+
+        // thì controller sẽ nhận được:
+        // {
+        //     _id: "123",
+        //     fullname: "nam"
+        // }
+
+        // Có thể dùng req.user = decoded;
+        // Ưu điểm:
+        //     Nhanh hơn.
+        // Nhược điểm:
+        //     User bị xóa vẫn dùng token được.
+        //     Role thay đổi không có tác dụng ngay.
         req.accessToken = token;
         next();
     } catch (error) {
+        // Xử lý các lỗi JWT cụ thể
         if (
             error.name === "JsonWebTokenError" ||
             error.name === "TokenExpiredError" ||

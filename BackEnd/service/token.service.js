@@ -5,24 +5,32 @@ const jwt = require("jsonwebtoken");
 const RefreshToken = require("../models/refreshToken.model");
 
 const getAccessSecret = () => {
-    return process.env.ACCESS_TOKEN_SECRET || process.env.JWT_SECRET || "blog_platform_access_secret_dev";
+    return process.env.ACCESS_TOKEN_SECRET; // Secret (khóa bí mật để mã hóa token)
 };
 
 const getAccessExpiry = () => {
-    return process.env.ACCESS_TOKEN_EXPIRY || process.env.JWT_EXPIRES_IN || "7d";
+    return process.env.ACCESS_TOKEN_EXPIRY; // Options (cấu hình token)
 };
 
-// Hàm dùng để tạo JWT token cho user.
-// Lưu đồng thời _id, id, userId để middleware/FE cũ mới đều đọc được.
-const generateAccessToken = (user) => {
-    const id = String(user._id || user.id);
+// Hàm dùng để tạo JWT token cho user
+// - user._id: MongoDB object ID
+// - user.role: Vai trò (user hoặc admin)
 
+// Cấu trúc JWT token:
+// - Header: { "alg": "HS256", "typ": "JWT" }
+// - Payload: { _id, role, iat, exp}
+//          iat: thời điểm tạo token (tự động thêm)
+//          exp: thời điểm hết hạn (tự động thêm)
+// - Signature: Mã hóa bằng JWT_SECRET
+const generateAccessToken = (user) => {
     return jwt.sign(
+        // Payload (dữ liệu được lưu trong token)
         {
-            _id: id,
-            id,
-            userId: id,
-            role: user.role || "user",
+            _id: user._id.toString(), // user._id MongoDB trả về là ObjectId.
+            role: user.role,
+            // Sau payload có thể thêm:
+            //     fullname
+            //     email
         },
         getAccessSecret(),
         { expiresIn: getAccessExpiry() }
@@ -31,11 +39,13 @@ const generateAccessToken = (user) => {
 
 // Tạo refresh token và lưu vào database
 const generateRefreshToken = async (user) => {
+    // Tạo token ngẫu nhiên an toàn thay vì dùng JWT
     const token = crypto.randomBytes(40).toString("hex");
 
     const expiresAt = new Date();
     expiresAt.setDate(expiresAt.getDate() + 7);
 
+    // Lưu vào database
     await RefreshToken.create({
         token,
         userId: user._id,
@@ -52,26 +62,32 @@ const verifyAccessToken = (token) => {
 
 // Làm mới access token bằng refresh token
 const refreshAccessToken = async (token) => {
+    // Tìm refresh token trong database
     const storedToken = await RefreshToken.findOne({
         token,
         expiresAt: { $gt: new Date() },
     });
 
     if (!storedToken) {
-        return null;
+        return null; // Token không hợp lệ hoặc đã hết hạn
     }
 
+    // Tìm user
     const user = await User.findById(storedToken.userId);
 
     if (!user) {
+        // Xóa token nếu user không tồn tại
         await RefreshToken.deleteOne({ _id: storedToken._id });
         return null;
     }
 
+    // Tạo access token mới
     const newAccessToken = generateAccessToken(user);
 
+    // Xóa refresh token cũ (rotation)
     await RefreshToken.deleteOne({ _id: storedToken._id });
 
+    // Tạo refresh token mới
     const newRefreshToken = await generateRefreshToken(user);
 
     return {

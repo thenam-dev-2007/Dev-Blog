@@ -263,6 +263,8 @@ module.exports.logout = async (req, res, next) => {
       sameSite: "lax",
     });
 
+    await revokeToken(req.user._id, res);
+    
     res.status(200).json({
       success: true,
       message: "Đăng xuất thành công",
@@ -334,7 +336,6 @@ module.exports.changePassword = async (req, res, next) => {
     user.password = newPassword;
     await user.save();
 
-    // Đăng xuất toàn bộ thiết bị
     await revokeToken(user._id, res);
 
     res.status(200).json({
@@ -355,7 +356,6 @@ module.exports.changeEmail = async (req, res, next) => {
     user.email = newEmail.toLowerCase();
     await user.save();
 
-    // Đăng xuất toàn bộ thiết bị
     await revokeToken(user._id, res);
 
     res.status(200).json({

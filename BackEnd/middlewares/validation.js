@@ -63,6 +63,7 @@ module.exports.validateRegister = [
   body("dateOfBirth")
     .isISO8601()
     .withMessage("Ngày sinh không hợp lệ") // isISO8601() dùng để kiểm tra định dạng ngày hợp lệ (YYYY-MM-DD)
+    .bail() // bail() sẽ dừng khi validation thất bại
     .custom((value) => {
       if (new Date(value) > new Date()) {
         throw new Error("Ngày sinh không hợp lệ");
@@ -82,20 +83,26 @@ module.exports.validateRegister = [
     .trim()
     .notEmpty()
     .withMessage("Mật khẩu là bắt buộc")
+    .bail() // bail() sẽ dừng khi validation thất bại
     .isLength({ min: 8 })
     .withMessage("Mật khẩu phải có ít nhất 8 ký tự")
+    .bail() // bail() sẽ dừng khi validation thất bại
     .matches(/[a-zA-Z]/)
     .withMessage("Mật khẩu phải chứa ít nhất 1 chữ cái")
+    .bail() // bail() sẽ dừng khi validation thất bại
     .matches(/[0-9]/)
     .withMessage("Mật khẩu phải chứa ít nhất 1 số")
+    .bail() // bail() sẽ dừng khi validation thất bại
     .matches(/[!@#$%^&*(),.?":{}|<>]/)
-    .withMessage("Mật khẩu phải chứa ít nhất 1 ký tự đặc biệt"),
+    .withMessage("Mật khẩu phải chứa ít nhất 1 ký tự đặc biệt")
+    .bail(), // bail() sẽ dừng khi validation thất bại
 
   // Confirm Password
   body("confirmPassword")
     .trim()
     .notEmpty()
     .withMessage("Xác nhận mật khẩu là bắt buộc")
+    .bail() // bail() sẽ dừng khi validation thất bại
     .custom((value, { req }) => {
       if (value !== req.body.password) {
         throw new Error("Xác nhận mật khẩu không trùng khớp");
@@ -115,18 +122,20 @@ module.exports.validateUpdateMyProfile = [
         // .notEmpty().withMessage('Fullname là bắt buộc')
         .isLength({ min: 3, max: 30 })
         .withMessage("Fullname phải từ 3-30 ký tự")
+        .bail() // bail() sẽ dừng khi validation thất bại
         .matches(/^[a-zA-ZÀ-ỹ\s]+$/)
         .withMessage("Fullname chỉ được chứa chữ, số và dấu gạch dưới")
+        .bail() // bail() sẽ dừng khi validation thất bại
         .custom(async (value, { req }) => {
-        const userId = req.user._id;
-        const existingUser = await User.findOne({
-            fullname: value,
-            _id: { $ne: userId }, // Loại trừ chính user hiện tại
-        });
-        if (existingUser) {
-            throw new Error("Fullname đã tồn tại");
-        }
-        return true;
+          const userId = req.user._id;
+          const existingUser = await User.findOne({
+              fullname: value,
+              _id: { $ne: userId }, // Loại trừ chính user hiện tại
+          });
+          if (existingUser) {
+              throw new Error("Fullname đã tồn tại");
+          }
+          return true;
         }),
 
     // Date of birth
@@ -134,6 +143,7 @@ module.exports.validateUpdateMyProfile = [
       .optional({ nullable: true, checkFalsy: true })
       .isISO8601()
       .withMessage("Ngày sinh không hợp lệ") // isISO8601() dùng để kiểm tra định dạng ngày hợp lệ (YYYY-MM-DD)
+      .bail() // bail() sẽ dừng khi validation thất bại
       .custom((value) => {
         if (new Date(value) > new Date()) {
           throw new Error("Ngày sinh không hợp lệ");
@@ -159,10 +169,14 @@ module.exports.validateLogin = [
     .bail() // bail() sẽ dừng validate nếu bước trước thất bại.
     .isEmail()
     .withMessage("Email không hợp lệ")
+    .bail() // bail() sẽ dừng khi validation thất bại
     .normalizeEmail(), // Chuẩn hóa email
   // Ví dụ: USER@GMAIL.COM --> user@gmail.com
 
-  body("password").notEmpty().withMessage("Mật khẩu là bắt buộc"),
+  body("password")
+    .notEmpty()
+    .withMessage("Mật khẩu là bắt buộc")
+    .bail(), // bail() sẽ dừng khi validation thất bại
 
   handleValidationErrors,
 ];
@@ -172,8 +186,10 @@ module.exports.validateComment = [
     .trim()
     .notEmpty()
     .withMessage("Nội dung bình luận không được để trống")
+    .bail() // bail() sẽ dừng khi validation thất bại
     .isLength({ max: 1000 })
-    .withMessage("Nội dung bình luận không được vượt quá 1000 ký tự"),
+    .withMessage("Nội dung bình luận không được vượt quá 1000 ký tự")
+    .bail(), // bail() sẽ dừng khi validation thất bại
 
   handleValidationErrors,
 ];
@@ -184,16 +200,20 @@ module.exports.validateCreatePost = [
     .trim()
     .notEmpty()
     .withMessage("Tiêu đề là bắt buộc")
+    .bail() // bail() sẽ dừng khi validation thất bại
     .isLength({ max: 200 })
-    .withMessage("Tiêu đề không được vượt quá 200 ký tự"),
+    .withMessage("Tiêu đề không được vượt quá 200 ký tự")
+    .bail(), // bail() sẽ dừng khi validation thất bại
 
   // Content
   body("content")
     .trim()
     .notEmpty()
     .withMessage("Nội dung bài viết là bắt buộc")
+    .bail() // bail() sẽ dừng khi validation thất bại
     .isLength({ min: 10 })
-    .withMessage("Nội dung phải có ít nhất 10 ký tự"),
+    .withMessage("Nội dung phải có ít nhất 10 ký tự")
+    .bail(), // bail() sẽ dừng khi validation thất bại
 
   // Tags
   body("tags")
@@ -201,6 +221,7 @@ module.exports.validateCreatePost = [
     .customSanitizer((value) => (Array.isArray(value) ? value : [value]))
     .isArray()
     .withMessage("Tags phải là một mảng")
+    .bail() // bail() sẽ dừng khi validation thất bại
     .custom((value) => {
       if (value.length > 10) {
         throw new Error("Không được vượt quá 10 tags");
@@ -225,8 +246,10 @@ module.exports.validateUpdatePost = [
     .trim()
     .notEmpty()
     .withMessage("Tiêu đề không được để trống")
+    .bail() // bail() sẽ dừng khi validation thất bại
     .isLength({ max: 200 })
-    .withMessage("Tiêu đề không được vượt quá 200 ký tự"),
+    .withMessage("Tiêu đề không được vượt quá 200 ký tự")
+    .bail(), // bail() sẽ dừng khi validation thất bại
 
   // Content
   body("content")
@@ -234,8 +257,10 @@ module.exports.validateUpdatePost = [
     .trim()
     .notEmpty()
     .withMessage("Nội dung không được để trống")
+    .bail() // bail() sẽ dừng khi validation thất bại
     .isLength({ min: 10 })
-    .withMessage("Nội dung phải có ít nhất 10 ký tự"),
+    .withMessage("Nội dung phải có ít nhất 10 ký tự")
+    .bail(), // bail() sẽ dừng khi validation thất bại
 
   // Tags
   body("tags")
@@ -243,6 +268,7 @@ module.exports.validateUpdatePost = [
     .customSanitizer((value) => (Array.isArray(value) ? value : [value]))
     .isArray()
     .withMessage("Tags phải là một mảng")
+    .bail() // bail() sẽ dừng khi validation thất bại
     .custom((value) => {
       if (value.length > 10) {
         throw new Error("Không được vượt quá 10 tags");
@@ -265,21 +291,27 @@ module.exports.validatePassword = [
   body("currentPassword")
     .trim()
     .notEmpty()
-    .withMessage("Mật khẩu hiện tại là bắt buộc"),
+    .withMessage("Mật khẩu hiện tại là bắt buộc")
+    .bail(), // bail() sẽ dừng khi validation thất bại
 
   // New Password
   body("newPassword")
     .trim()
     .notEmpty()
     .withMessage("Mật khẩu mới là bắt buộc")
+    .bail() // bail() sẽ dừng khi validation thất bại
     .isLength({ min: 8, max: 128 })
     .withMessage("Mật khẩu phải có ít nhất 8 ký tự")
+    .bail() // bail() sẽ dừng khi validation thất bại
     .matches(/[a-zA-Z]/)
     .withMessage("Mật khẩu phải chứa ít nhất 1 chữ cái")
+    .bail() // bail() sẽ dừng khi validation thất bại
     .matches(/[0-9]/)
     .withMessage("Mật khẩu phải chứa ít nhất 1 số")
+    .bail() // bail() sẽ dừng khi validation thất bại
     .matches(/[!@#$%^&*(),.?":{}|<>]/)
     .withMessage("Mật khẩu phải chứa ít nhất 1 ký tự đặc biệt")
+    .bail() // bail() sẽ dừng khi validation thất bại
     .custom((value, { req }) => {
       // Kiểm tra mật khẩu mới không được trùng với mật khẩu hiện tại
       if (value === req.body.currentPassword) {
@@ -293,6 +325,7 @@ module.exports.validatePassword = [
     .trim()
     .notEmpty()
     .withMessage("Xác nhận mật khẩu là bắt buộc")
+    .bail() // bail() sẽ dừng khi validation thất bại
     .custom((value, { req }) => {
       if (value !== req.body.newPassword) {
         throw new Error("Xác nhận mật khẩu không trùng khớp");
@@ -309,8 +342,10 @@ module.exports.validateEmail = [
         .trim()
         .notEmpty()
         .withMessage("Email là bắt buộc")
+        .bail() // bail() sẽ dừng khi validation thất bại
         .isEmail()
         .withMessage("Email không hợp lệ")
+        .bail() // bail() sẽ dừng khi validation thất bại
         .normalizeEmail()
         .custom(async (value, { req }) => {
             //  { req } chính là Express request object --> có thể dùng req.params.id, req.body, req.user
@@ -333,7 +368,8 @@ module.exports.validationOTP = [
   body("otp")
     .trim()
     .isLength({ min: 6, max: 6 })
-    .withMessage("OTP gồm 6 chữ số"),
+    .withMessage("OTP gồm 6 chữ số")
+    .bail(), // bail() sẽ dừng khi validation thất bại
 
   handleValidationErrors,
 ];

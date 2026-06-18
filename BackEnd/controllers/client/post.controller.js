@@ -32,7 +32,7 @@ module.exports.getAllPosts = async (req, res, next) => {
 
     const posts = await Post.find(find)
       .sort({ createdAt: -1 })
-      .limit(objectPagination.limitItem)
+      .limit(objectPagination.limitPost)
       .skip(objectPagination.skip)
       .populate("author", "fullname avatar")
       .populate("comments.user", "fullname avatar")
@@ -45,7 +45,7 @@ module.exports.getAllPosts = async (req, res, next) => {
         currentPage: objectPagination.currentPage,
         totalPage: objectPagination.totalPage,
         totalPosts: countPosts,
-        limit: objectPagination.limitItem,
+        limit: objectPagination.likePost,
       },
       data: posts,
     });
@@ -100,7 +100,7 @@ module.exports.getPostsByTag = async (req, res, next) => {
       .populate("comments.user", "fullname avatar")
       .sort({ createdAt: -1 })
       .skip(objectPagination.skip)
-      .limit(objectPagination.limitItem)
+      .limit(objectPagination.limitPost)
       .lean();
 
     res.status(200).json({
@@ -150,7 +150,7 @@ module.exports.searchPost = async (req, res, next) => {
       .populate("comments.user", "fullname avatar")
       .sort({ createdAt: -1 })
       .skip(objectPagination.skip)
-      .limit(objectPagination.limitItem)
+      .limit(objectPagination.limitPost)
       .lean();
 
     res.status(200).json({
