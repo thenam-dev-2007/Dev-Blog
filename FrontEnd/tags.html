@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Đăng nhập</title>
+    <title>Tags - Blog Platform</title>
     <link rel="stylesheet" href="./asset/css/style-client.css">
 </head>
 <body>
@@ -31,28 +31,19 @@
 </header>
 
 
-<main class="auth-page">
-    <div class="auth-box">
-        <h1>Đăng nhập</h1>
-        <p class="chu-nho">Chưa có tài khoản? <a href="register.html">Đăng ký miễn phí</a></p>
+<main>
+    <section class="section-card page-banner">
+        <h1 id="categoryTitle">Tags</h1>
+        <p id="categoryDesc">Khám phá các tag/chủ đề được người dùng gắn vào bài viết.</p>
+    </section>
 
-        <div id="login-message"></div>
-
-        <form id="login-form">
-            <div class="form-group">
-                <label for="login-email">Email</label>
-                <input id="login-email" type="email" placeholder="you@example.com" autocomplete="email" required>
-            </div>
-            <div class="form-group">
-                <label for="login-password">Mật khẩu</label>
-                <input id="login-password" type="password" placeholder="Nhập mật khẩu" autocomplete="current-password" required>
-            </div>
-            <div style="text-align:right; margin-bottom:16px;">
-                <a href="forgot_password.html" style="font-size:0.82rem; color:var(--mau-chu-nhat);">Quên mật khẩu?</a>
-            </div>
-            <button type="submit" class="button btn-full">Đăng nhập</button>
-        </form>
+    <div class="card-row" id="categoryContent">
+        <section class="section-card empty-state">Đang tải tags...</section>
     </div>
+
+    <section class="section-card">
+        <div class="phan-trang" id="phan-trang-category"></div>
+    </section>
 </main>
 
 
@@ -72,6 +63,6 @@
 
     <script src="./asset/script/main.js"></script>
     <script src="./asset/script/utils.js"></script>
-    <script src="./asset/script/login.js"></script>
+    <script src="./asset/script/tags.js"></script>
 </body>
 </html>

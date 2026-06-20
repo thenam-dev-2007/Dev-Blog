@@ -234,7 +234,7 @@ function renderManagedPostCard(post, options = {}) {
             <div class="profile-post-card-body">
                 <h3><a href="post.html?slug=${slug}">${title}</a></h3>
                 <p>${escapeHtml(truncateText(post.content || "", 170))}</p>
-                ${tags.length ? `<div class="tag-list">${tags.map(tag => `<a href="categories.html?tag=${encodeURIComponent(tag)}">#${escapeHtml(tag)}</a>`).join("")}</div>` : ""}
+                ${tags.length ? `<div class="tag-list">${tags.map(tag => `<a href="tags.html?tag=${encodeURIComponent(tag)}">#${escapeHtml(tag)}</a>`).join("")}</div>` : ""}
                 <div class="profile-post-meta">
                     <span>${formatDate(post.createdAt)}</span>
                     <span>❤️ ${getLikeCount(post)}</span>

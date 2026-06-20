@@ -146,7 +146,7 @@ function renderPost(post) {
                     <span>${estimateReadingMinutes(post.content)} phút đọc</span>
                 </div>
                 <p>${escapeHtml(truncateText(post.content, 150))}</p>
-                ${tags.length ? `<div class="tag-list">${tags.map(tag => `<a href="categories.html?tag=${encodeURIComponent(tag)}">#${escapeHtml(tag)}</a>`).join("")}</div>` : ""}
+                ${tags.length ? `<div class="tag-list">${tags.map(tag => `<a href="tags.html?tag=${encodeURIComponent(tag)}">#${escapeHtml(tag)}</a>`).join("")}</div>` : ""}
             </div>
             <div class="card-footer">
                 <small>Chia sẻ kiến thức</small>
@@ -259,7 +259,7 @@ function renderCategories(categories) {
 
     return categories.map(cat => `
         <section class="section-card category-card">
-            <a href="categories.html?tag=${encodeURIComponent(cat._id)}">
+            <a href="tags.html?tag=${encodeURIComponent(cat._id)}">
                 <h2>#${escapeHtml(cat._id)}</h2>
                 <p>${cat.count} bài viết</p>
             </a>

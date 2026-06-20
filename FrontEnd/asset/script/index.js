@@ -36,7 +36,7 @@ function renderPopularTags(posts) {
 
     if (!tags.length) return;
     container.innerHTML = tags.map(item =>
-        `<a href="categories.html?tag=${encodeURIComponent(item.tag)}">#${escapeHtml(item.tag)} <small>(${item.count})</small></a>`
+        `<a href="tags.html?tag=${encodeURIComponent(item.tag)}">#${escapeHtml(item.tag)} <small>(${item.count})</small></a>`
     ).join("");
 }
 
@@ -63,7 +63,7 @@ function renderFeaturedPosts(posts) {
             const scoreA = getLikeCount(a) * 2 + getCommentCount(a);
             return scoreB - scoreA || new Date(b.createdAt || 0) - new Date(a.createdAt || 0);
         })
-        .slice(0, 4);
+        .slice(0, 6);
 
     renderPosts(featured, "featuredPosts");
 }

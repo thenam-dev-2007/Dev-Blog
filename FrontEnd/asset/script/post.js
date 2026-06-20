@@ -30,7 +30,7 @@ function renderPostDetail(post) {
         detail.innerHTML = `
             <img class="post-hero-image" src="${normalizeImageUrl(post.thumbnail, "https://via.placeholder.com/900x420?text=Blog+Post")}" alt="${escapeHtml(post.title || "Bài viết")}">
             <div class="post-content-text">${escapeHtml(post.content || "")}</div>
-            ${tags.length ? `<div class="tag-list post-tags">${tags.map(tag => `<a href="categories.html?tag=${encodeURIComponent(tag)}">#${escapeHtml(tag)}</a>`).join("")}</div>` : ""}
+            ${tags.length ? `<div class="tag-list post-tags">${tags.map(tag => `<a href="tags.html?tag=${encodeURIComponent(tag)}">#${escapeHtml(tag)}</a>`).join("")}</div>` : ""}
             <div class="post-actions-row">
                 <button type="button" class="button ${liked ? "danger" : ""}" id="btnLikePost">
                     ${liked ? "💔 Bỏ like" : "❤️ Like"} (${getLikeCount(post)})

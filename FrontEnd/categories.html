@@ -3,66 +3,22 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Danh mục</title>
+    <title>Chuyển đến Tags</title>
     <link rel="stylesheet" href="./asset/css/style-client.css">
+    <script>
+        const next = "tags.html" + window.location.search + window.location.hash;
+        window.location.replace(next);
+    </script>
 </head>
 <body>
-
-<header>
-    <div class="header-container">
-        <a class="logo" href="index.html">BLOG LOGO</a>
-        <nav class="header-nav">
-            <a href="index.html">Home</a>
-            <a href="categories.html">Categories</a>
-            <a href="faq.html">FAQ</a>
-            <a href="about.html">About</a>
-            <a href="contact.html">Contact</a>
-        </nav>
-        <div class="header-right">
-            <div class="search-wrapper">
-                <input type="text" id="headerSearch" placeholder="Tìm kiếm...">
-                <button class="btn-search-icon" onclick="toggleSearch()" title="Tìm kiếm">🔍</button>
-            </div>
-            <button class="btn-darkmode" onclick="toggleDarkMode()" id="btnDarkMode" title="Chế độ tối">🌙</button>
-            <a href="login.html" class="btn-dangnhap">Đăng nhập</a>
-            <a href="register.html" class="btn-dangky">Đăng ký</a>
-        </div>
-    </div>
-</header>
-
-
-<main>
-    <section class="section-card page-banner">
-        <h1 id="categoryTitle">Danh mục</h1>
-        <p id="categoryDesc">Khám phá các chủ đề phổ biến.</p>
-    </section>
-
-    <div class="card-row" id="categoryContent">
-        <section class="section-card empty-state">Đang tải danh mục...</section>
-    </div>
-
-    <section class="section-card">
-        <div class="phan-trang" id="phan-trang-category"></div>
-    </section>
-</main>
-
-
-<footer class="footer">
-    <nav class="footer-nav">
-        <a href="index.html">Home</a>
-        <a href="about.html">Giới thiệu</a>
-        <a href="faq.html">FAQ</a>
-        <a href="contact.html">Liên hệ</a>
-        <a href="categories.html">Danh mục</a>
-        <a href="admin-login.html">Admin</a>
-        <a href="#">Điều khoản</a>
-        <a href="#">Quyền riêng tư</a>
-    </nav>
-    <p class="footer-copy">© 2026 Blog Platform. All rights reserved.</p>
-</footer>
-
-    <script src="./asset/script/main.js"></script>
-    <script src="./asset/script/utils.js"></script>
-    <script src="./asset/script/categories.js"></script>
+    <main>
+        <section class="section-card page-banner">
+            <h1>Đang chuyển đến trang Tags...</h1>
+            <p>Nếu trình duyệt không tự chuyển, hãy bấm vào <a id="tagRedirectLink" href="tags.html">trang Tags</a>.</p>
+        </section>
+    </main>
+    <script>
+        document.getElementById("tagRedirectLink").href = "tags.html" + window.location.search + window.location.hash;
+    </script>
 </body>
 </html>
