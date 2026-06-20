@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Đăng nhập Quản trị viên - DevBlog</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght=400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="./asset/css/style-admin.css">
+</head>
+<body class="auth-page admin-theme"> <div class="auth-wrapper">
+        <div class="auth-card">
+            <div class="auth-header">
+                <a href="#" class="auth-logo">DevBlog Admin</a>
+                <p>Vui lòng đăng nhập để truy cập hệ thống quản lý.</p>
+            </div>
+
+            <form onsubmit="event.preventDefault(); alert('Đăng nhập Admin thành công!'); window.location.href='admin-dashboard.html';">
+                <div class="form-group">
+                    <label for="adminEmail">Email quản trị</label>
+                    <input type="email" id="adminEmail" placeholder="admin@devblog.com" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="adminPassword">Mật khẩu</label>
+                    <input type="password" id="adminPassword" placeholder="••••••••" required>
+                </div>
+
+                <button type="submit" class="btn-auth">Đăng nhập Admin</button>
+            </form>
+
+            <div class="auth-footer">
+                <a href="login.html" class="back-home">← Quay lại Đăng nhập người dùng</a>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

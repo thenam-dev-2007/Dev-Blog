@@ -3,296 +3,208 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin Dashboard</title>
-    <!-- CSS riêng cho admin, KHÔNG dùng style-client.css -->
+    <title>Hệ thống Quản trị - DevBlog</title>
     <link rel="stylesheet" href="./asset/css/style-admin.css">
 </head>
-<body>
+<body class="admin-page-body">
 
-<div class="admin-wrapper">
-
-    <!-- ===== SIDEBAR TRÁI ===== -->
-    <aside class="admin-sidebar">
-        <!-- Logo -->
-        <a class="sidebar-logo" href="index.html">
-            BLOG ADMIN
-            <span>Trang quản trị</span>
-        </a>
-
-        <!-- Nhóm Tổng quan -->
-        <p class="sidebar-group-title">Tổng quan</p>
-        <ul class="sidebar-menu">
-            <li>
-                <!-- Mặc định mở tab dashboard -->
-                <a href="#" class="active" onclick="moTab('dashboard', this); return false;">
-                    <span class="icon">📊</span>
-                    <span>Dashboard</span>
-                </a>
-            </li>
-        </ul>
-
-        <!-- Nhóm Quản lý -->
-        <p class="sidebar-group-title">Quản lý</p>
-        <ul class="sidebar-menu">
-            <li>
-                <a href="#" onclick="moTab('posts', this); return false;">
-                    <span class="icon">📝</span>
-                    <span>Bài viết</span>
-                </a>
-            </li>
-            <li>
-                <a href="#" onclick="moTab('users', this); return false;">
-                    <span class="icon">👥</span>
-                    <span>Người dùng</span>
-                </a>
-            </li>
-            <li>
-                <a href="#" onclick="moTab('qa', this); return false;">
-                    <span class="icon">❓</span>
-                    <span>Q&amp;A</span>
-                </a>
-            </li>
-        </ul>
-
-        <!-- Nhóm Khác -->
-        <p class="sidebar-group-title">Khác</p>
-        <ul class="sidebar-menu">
-            <li>
-                <a href="index.html">
-                    <span class="icon">🏠</span>
-                    <span>Về trang chủ</span>
-                </a>
-            </li>
-            <li>
-                <a href="login.html">
-                    <span class="icon">🚪</span>
-                    <span>Đăng xuất</span>
-                </a>
-            </li>
-        </ul>
-    </aside>
-
-    <!-- ===== NỘI DUNG PHẢI ===== -->
-    <div class="admin-content">
-
-        <!-- Thanh topbar -->
-        <div class="admin-topbar">
-            <h2 id="topbar-title">📊 Dashboard</h2>
-            <div class="topbar-right">
-                <span>Xin chào, <b>Admin</b></span>
-                <a href="index.html">← Xem trang chủ</a>
+    <div class="admin-container">
+        <aside class="admin-sidebar">
+            <div class="sidebar-brand">
+                <a href="index.html">DevBlog Admin</a>
             </div>
-        </div>
+            
+            <nav class="sidebar-menu">
+                <a href="#" class="menu-item active" data-target="dashboard-section">
+                    <svg class="menu-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="9"/><rect x="14" y="3" width="7" height="5"/><rect x="14" y="12" width="7" height="9"/><rect x="3" y="16" width="7" height="5"/></svg>
+                    Dashboard
+                </a>
+                <a href="#" class="menu-item" data-target="posts-section">
+                    <svg class="menu-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+                    Quản lý bài viết
+                </a>
+                <a href="#" class="menu-item" data-target="users-section">
+                    <svg class="menu-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                    Quản lý người dùng
+                </a>
+            </nav>
 
-        <div class="admin-main">
+            <div class="sidebar-footer">
+                <a href="admin-login.html" class="menu-item logout-item" onclick="alert('Đã đăng xuất khỏi tài khoản Quản trị viên!');">
+                    <svg class="menu-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9"/></svg>
+                    Đăng xuất
+                </a>
+            </div>
+        </aside>
 
-            <!-- ======================================
-                TAB 1: DASHBOARD
-            ====================================== -->
-            <div id="tab-dashboard" class="tab-content active">
+        <main class="admin-main">
+            
+            <section id="dashboard-section" class="admin-section active">
+                <div class="admin-header">
+                    <h2>Tổng quan hệ thống (Dashboard)</h2>
+                    <p>Cập nhật số liệu thực tế tính đến hôm nay năm 2026.</p>
+                </div>
 
-                <!-- 4 ô thống kê -->
-                <div class="stat-grid">
+                <div class="stats-grid">
                     <div class="stat-card">
-                        <div class="so" id="stat-posts">--</div>
-                        <div class="nhan">📝 Bài viết</div>
+                        <div class="stat-info">
+                            <h3>1,248</h3>
+                            <p>Tổng bài viết</p>
+                        </div>
                     </div>
                     <div class="stat-card">
-                        <div class="so" id="stat-users">--</div>
-                        <div class="nhan">👥 Người dùng</div>
+                        <div class="stat-info">
+                            <h3>452</h3>
+                            <p>Người dùng</p>
+                        </div>
                     </div>
                     <div class="stat-card">
-                        <div class="so" id="stat-qa">--</div>
-                        <div class="nhan">❓ Câu hỏi Q&A</div>
+                        <div class="stat-info">
+                            <h3>12.8k</h3>
+                            <p>Lượt yêu thích</p>
+                        </div>
                     </div>
                     <div class="stat-card">
-                        <div class="so" id="stat-comments">--</div>
-                        <div class="nhan">💬 Bình luận</div>
+                        <div class="stat-info">
+                            <h3>3,412</h3>
+                            <p>Bình luận</p>
+                        </div>
                     </div>
                 </div>
 
-                <!-- Bài viết gần đây -->
-                <div class="admin-card">
-                    <h3>📋 Bài viết gần đây</h3>
+                <div class="dashboard-details-grid">
+                    <div class="details-card">
+                        <h3>3 Bài viết mới nhất</h3>
+                        <ul class="details-list">
+                            <li>
+                                <strong>Hướng dẫn học Next.js 14 từ cơ bản</strong>
+                                <span>Bởi <em>HoangNV</em> • 10 phút trước</span>
+                            </li>
+                            <li>
+                                <strong>Cách tối ưu CSS tối giản cho dự án lớn</strong>
+                                <span>Bởi <em>Admin_Dev</em> • 2 giờ trước</span>
+                            </li>
+                            <li>
+                                <strong>Tại sao nên chọn học Python năm 2026?</strong>
+                                <span>Bởi <em>LinhDan</em> • Hôm qua</span>
+                            </li>
+                        </ul>
+                    </div>
+
+                    <div class="details-card">
+                        <h3>Tác giả tích cực nhất</h3>
+                        <ul class="details-list">
+                            <li><strong>MinhTuan_Tech</strong> <span>42 bài viết</span></li>
+                            <li><strong>HoangNV</strong> <span>35 bài viết</span></li>
+                            <li><strong>AnNguyen_Code</strong> <span>29 bài viết</span></li>
+                        </ul>
+                    </div>
+                </div>
+            </section>
+
+            <section id="posts-section" class="admin-section">
+                <div class="admin-header">
+                    <h2>Quản lý bài viết</h2>
+                    <p>Danh sách toàn bộ bài viết chia sẻ từ cộng đồng DevBlog.</p>
+                </div>
+
+                <div class="admin-table-responsive">
                     <table class="admin-table">
                         <thead>
                             <tr>
-                                <th>#</th>
-                                <th>Tiêu đề</th>
+                                <th>Tiêu đề bài viết</th>
                                 <th>Tác giả</th>
-                                <th>Ngày tạo</th>
-                                <th>Trạng thái</th>
+                                <th>Ngày đăng</th>
+                                <th style="text-align: center;">Hành động</th>
                             </tr>
                         </thead>
-                        <tbody id="dashboard-recent-posts">
-                            <!-- admin.js sẽ render vào đây -->
-                            <tr>
-                                <td colspan="5" style="text-align:center; color:#999; padding:20px;">Đang tải...</td>
+                        <tbody>
+                            <tr data-title="Hướng dẫn học Next.js 14 từ cơ bản" data-author="HoangNV" data-date="17/06/2026" data-thumbnail="https://images.unsplash.com/photo-1618477388954-7852f32655ec?w=600" data-content="Next.js 14 mang đến nhiều cải tiến vượt bậc với App Router, Server Actions giúp tối ưu hóa hiệu năng render dữ liệu từ phía máy chủ. Bài viết này hướng dẫn chi tiết cách khởi tạo cấu trúc thư mục chuẩn và fetch API tối ưu nhất...">
+                                <td><strong>Hướng dẫn học Next.js 14 từ cơ bản</strong></td>
+                                <td>HoangNV</td>
+                                <td>17/06/2026</td>
+                                <td style="text-align: center;">
+                                    <button class="btn-action-view">Xem</button>
+                                    <button class="btn-action-delete" onclick="if(confirm('Xóa bài viết này?')) this.closest('tr').remove();">Xóa</button>
+                                </td>
+                            </tr>
+                            <tr data-title="Cách tối ưu CSS tối giản cho dự án lớn" data-author="Admin_Dev" data-date="17/06/2026" data-thumbnail="https://images.unsplash.com/photo-1507238691740-187a5b1d37b8?w=600" data-content="Khi dự án mở rộng, dung lượng file CSS phình to là ác mộng của frontend dev. Sử dụng CSS Variables hiệu quả, áp dụng phương pháp BEM và cấu hình công cụ PurgeCSS loại bỏ class thừa sẽ giúp bạn giảm tới 70% dung lượng file thành phẩm.">
+                                <td><strong>Cách tối ưu CSS tối giản cho dự án lớn</strong></td>
+                                <td>Admin_Dev</td>
+                                <td>17/06/2026</td>
+                                <td style="text-align: center;">
+                                    <button class="btn-action-view">Xem</button>
+                                    <button class="btn-action-delete" onclick="if(confirm('Xóa bài viết này?')) this.closest('tr').remove();">Xóa</button>
+                                </td>
                             </tr>
                         </tbody>
                     </table>
                 </div>
+            </section>
 
-                <!-- Q&A chưa có trả lời -->
-                <div class="admin-card">
-                    <h3>⚠️ Câu hỏi chưa được trả lời</h3>
+            <section id="users-section" class="admin-section">
+                <div class="admin-header">
+                    <h2>Quản lý người dùng</h2>
+                    <p>Danh sách thành viên đăng ký trong hệ thống.</p>
+                </div>
+
+                <div class="admin-table-responsive">
                     <table class="admin-table">
                         <thead>
                             <tr>
-                                <th>#</th>
-                                <th>Câu hỏi</th>
-                                <th>Người hỏi</th>
-                                <th>Ngày đặt</th>
+                                <th>Tên người dùng</th>
+                                <th>Email</th>
+                                <th style="text-align: center;">Bài viết đã đăng</th>
+                                <th>Ngày tham gia</th>
+                                <th style="text-align: center;">Hành động</th>
                             </tr>
                         </thead>
-                        <tbody id="dashboard-unanswered-qa">
+                        <tbody id="userListTable">
                             <tr>
-                                <td colspan="4" style="text-align:center; color:#999; padding:20px;">Đang tải...</td>
+                                <td><strong>Nguyễn Văn Hoàng</strong></td>
+                                <td>hoangnv@gmail.com</td>
+                                <td style="text-align: center;"><span class="post-count-badge">35 bài</span></td>
+                                <td>12/01/2025</td>
+                                <td style="text-align: center;">
+                                    <button class="btn-action-delete btn-delete-user" data-name="Nguyễn Văn Hoàng">Xóa người dùng</button>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td><strong>Lê Minh Tuấn</strong></td>
+                                <td>tuanlm@gmail.com</td>
+                                <td style="text-align: center;"><span class="post-count-badge">42 bài</span></td>
+                                <td>05/03/2025</td>
+                                <td style="text-align: center;">
+                                    <button class="btn-action-delete btn-delete-user" data-name="Lê Minh Tuấn">Xóa người dùng</button>
+                                </td>
                             </tr>
                         </tbody>
                     </table>
                 </div>
+            </section>
+        </main>
+    </div>
 
-            </div>
-            <!-- end tab-dashboard -->
-
-
-            <!-- ======================================
-                 TAB 2: QUẢN LÝ BÀI VIẾT
-                 ====================================== -->
-            <div id="tab-posts" class="tab-content">
-
-                <!-- Form thêm / sửa bài viết -->
-                <div class="admin-card">
-                    <h3 id="form-post-title">➕ Thêm bài viết mới</h3>
-                    <form id="create-post-form" class="admin-form">
-                        <div class="form-row">
-                            <div class="form-group">
-                                <label for="post-title">Tiêu đề *</label>
-                                <input type="text" id="post-title" placeholder="Nhập tiêu đề bài viết">
-                            </div>
-                            <div class="form-group">
-                                <label for="post-thumbnail">Ảnh thumbnail (URL)</label>
-                                <input type="text" id="post-thumbnail" placeholder="https://...">
-                            </div>
-                        </div>
-                        <div class="form-group">
-                            <label for="post-tags">Tags (cách nhau bằng dấu phẩy)</label>
-                            <input type="text" id="post-tags" placeholder="vd: doi-song, suc-khoe, lgbt">
-                        </div>
-                        <div class="form-group">
-                            <label for="post-content">Nội dung *</label>
-                            <textarea id="post-content" placeholder="Nhập nội dung bài viết..."></textarea>
-                        </div>
-                        <div style="display:flex; gap:10px; flex-wrap:wrap;">
-                            <button type="button" id="submit-post-btn" class="btn-them">
-                                ➕ Tạo bài viết
-                            </button>
-                            <button type="button" onclick="huyFormPost()"
-                                style="padding:8px 16px; border:1px solid #ddd; border-radius:6px; cursor:pointer; background:white; font-size:0.875rem;">
-                                Hủy
-                            </button>
-                        </div>
-                    </form>
+    <div id="postDetailModal" class="admin-modal-overlay">
+        <div class="admin-modal-card">
+            <span class="admin-modal-close" id="closeModalBtn">&times;</span>
+            <div class="admin-modal-scroll-area">
+                <div class="modal-thumbnail-wrapper">
+                    <img src="" alt="Thumbnail bài viết" id="modalPostThumbnail" class="modal-preview-img">
                 </div>
-
-                <!-- Bảng danh sách bài viết -->
-                <div class="admin-card">
-                    <h3>📋 Danh sách bài viết</h3>
-                    <div class="table-toolbar">
-                        <input type="text" id="search-post"
-                               placeholder="🔍 Tìm theo tiêu đề..."
-                               oninput="timKiemBaiViet(this.value)">
-                        <span id="post-count" style="font-size:0.85rem; color:#999;"></span>
-                    </div>
-
-                    <div id="admin-posts">
-                        <p style="color:#999; text-align:center; padding:20px;">Đang tải...</p>
-                    </div>
-
-                    <!-- Phân trang -->
-                    <div class="phan-trang-admin" id="phan-trang-posts"></div>
+                <h2 id="modalPostTitle">Tiêu đề bài viết</h2>
+                <div class="admin-modal-meta">
+                    Tác giả: <strong id="modalPostAuthor"></strong> — Ngày đăng: <span id="modalPostDate"></span>
                 </div>
-
-            </div>
-            <!-- end tab-posts -->
-
-
-            <!-- ======================================
-                 TAB 3: QUẢN LÝ NGƯỜI DÙNG
-                 ====================================== -->
-            <div id="tab-users" class="tab-content">
-                <div class="admin-card">
-                    <h3>👥 Danh sách người dùng</h3>
-                    <div class="table-toolbar">
-                        <input type="text" id="search-user"
-                               placeholder="🔍 Tìm theo tên hoặc email..."
-                               oninput="timKiemUser(this.value)">
-                        <span id="user-count" style="font-size:0.85rem; color:#999;"></span>
-                    </div>
-
-                    <div id="admin-users">
-                        <p style="color:#999; text-align:center; padding:20px;">Đang tải...</p>
-                    </div>
-
-                    <!-- Phân trang -->
-                    <div class="phan-trang-admin" id="phan-trang-users"></div>
+                <div class="admin-modal-body" id="modalPostContent">
+                    Nội dung chi tiết...
                 </div>
             </div>
-            <!-- end tab-users -->
-
-
-            <!-- ======================================
-                TAB 4: QUẢN LÝ Q&A
-            ====================================== -->
-            <div id="tab-qa" class="tab-content">
-                <div class="admin-card">
-                    <h3>❓ Quản lý câu hỏi Q&amp;A</h3>
-                    <div class="table-toolbar">
-                        <input type="text" id="search-qa"
-                               placeholder="🔍 Tìm câu hỏi..."
-                               oninput="timKiemQA(this.value)">
-                        <!-- Lọc theo trạng thái -->
-                        <select id="filter-qa" onchange="loadAdminQA(1)"
-                                style="padding:8px 12px; border:1px solid #ddd; border-radius:6px; font-size:0.875rem; cursor:pointer; background:#f0f2f5;">
-                            <option value="">Tất cả</option>
-                            <option value="chua-tra-loi">Chưa trả lời</option>
-                            <option value="da-tra-loi">Đã trả lời</option>
-                        </select>
-                    </div>
-
-                    <div id="admin-qa">
-                        <p style="color:#999; text-align:center; padding:20px;">Đang tải...</p>
-                    </div>
-
-                    <!-- Phân trang -->
-                    <div class="phan-trang-admin" id="phan-trang-qa"></div>
-                </div>
-            </div>
-            <!-- end tab-qa -->
-
-        </div><!-- end admin-main -->
-    </div><!-- end admin-content -->
-</div><!-- end admin-wrapper -->
-
-
-<!-- ===== MODAL XÁC NHẬN XÓA ===== -->
-<!-- Hiện lên khi bấm nút Xóa bất kỳ -->
-<div class="modal-overlay" id="modal-xoa" style="display:none;">
-    <div class="modal-box">
-        <h3>⚠️ Xác nhận xóa</h3>
-        <p id="modal-message">Bạn có chắc muốn xóa mục này? Hành động này không thể hoàn tác.</p>
-        <div class="modal-actions">
-            <button class="btn-huy" onclick="dongModal()">Hủy</button>
-            <button class="btn-xac-nhan" id="btn-xac-nhan-xoa">Xóa</button>
         </div>
     </div>
-</div>
 
+    
 
-<script src="./asset/script/main.js"></script>
-<script src="./asset/script/utils.js"></script>
-<script src="./asset/script/admin.js"></script>
+    <script src="./asset/script/admin.js"></script>
 </body>
 </html>
-
