@@ -1,4 +1,4 @@
-const User = require("../../models/user.model");
+const User = require("../../models/user.model")
 const Post = require("../../models/post.model");
 const mongoose = require("mongoose");
 
@@ -6,8 +6,9 @@ module.exports.dashboard = async (req, res, next) => {
     try {
         const [totalUsers, statsResult, latestPosts, topAuthors] = await Promise.all([
             // chạy nhiều query cùng lúc (MongoDB xử lý song song)
+
             // Tổng số user
-            User.countDocuments({ isDeleted: false }),
+            User.countDocuments({role: "user", isActive: true}),
 
             // Thống kê bài viết, like, comment
             Post.aggregate([
@@ -124,10 +125,10 @@ module.exports.dashboard = async (req, res, next) => {
             message: "Lấy dữ liệu dashboard thành công",
             data: {
                 statistics: {
-                totalUsers,
-                totalPosts: stats.totalPosts,
-                totalLikes: stats.totalLikes,
-                totalComments: stats.totalComments,
+                    totalUsers,
+                    totalPosts: stats.totalPosts,
+                    totalLikes: stats.totalLikes,
+                    totalComments: stats.totalComments,
                 },
                 latestPosts,
                 topAuthors,

@@ -99,6 +99,8 @@ module.exports.logout = async (req, res, next) => {
             sameSite: "strict"
         });
 
+        await revokeToken(req.user._id, res);
+
         return res.status(200).json({
             success: true,
             message: "Đăng xuất thành công"

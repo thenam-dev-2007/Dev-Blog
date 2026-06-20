@@ -30,7 +30,7 @@
             </nav>
 
             <div class="sidebar-footer">
-                <a href="admin_login.html" class="menu-item logout-item" onclick="alert('Đã đăng xuất khỏi tài khoản Quản trị viên!');">
+                <a href="#" id="logoutBtn" class="menu-item logout-item">
                     <svg class="menu-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9"/></svg>
                     Đăng xuất
                 </a>
@@ -48,25 +48,25 @@
                 <div class="stats-grid">
                     <div class="stat-card">
                         <div class="stat-info">
-                            <h3>1,248</h3>
+                            <h3 id="totalPosts">0</h3>
                             <p>Tổng bài viết</p>
                         </div>
                     </div>
                     <div class="stat-card">
                         <div class="stat-info">
-                            <h3>452</h3>
+                            <h3 id="totalUsers">0</h3>
                             <p>Người dùng</p>
                         </div>
                     </div>
                     <div class="stat-card">
                         <div class="stat-info">
-                            <h3>12.8k</h3>
+                            <h3 id="totalLikes">0</h3>
                             <p>Lượt yêu thích</p>
                         </div>
                     </div>
                     <div class="stat-card">
                         <div class="stat-info">
-                            <h3>3,412</h3>
+                            <h3 id="totalComments">0</h3>
                             <p>Bình luận</p>
                         </div>
                     </div>
@@ -75,29 +75,12 @@
                 <div class="dashboard-details-grid">
                     <div class="details-card">
                         <h3>3 Bài viết mới nhất</h3>
-                        <ul class="details-list">
-                            <li>
-                                <strong>Hướng dẫn học Next.js 14 từ cơ bản</strong>
-                                <span>Bởi <em>HoangNV</em> • 10 phút trước</span>
-                            </li>
-                            <li>
-                                <strong>Cách tối ưu CSS tối giản cho dự án lớn</strong>
-                                <span>Bởi <em>Admin_Dev</em> • 2 giờ trước</span>
-                            </li>
-                            <li>
-                                <strong>Tại sao nên chọn học Python năm 2026?</strong>
-                                <span>Bởi <em>LinhDan</em> • Hôm qua</span>
-                            </li>
-                        </ul>
+                        <ul class="details-list" id="latestPosts"></ul>
                     </div>
 
                     <div class="details-card">
                         <h3>Tác giả tích cực nhất</h3>
-                        <ul class="details-list">
-                            <li><strong>MinhTuan_Tech</strong> <span>42 bài viết</span></li>
-                            <li><strong>HoangNV</strong> <span>35 bài viết</span></li>
-                            <li><strong>AnNguyen_Code</strong> <span>29 bài viết</span></li>
-                        </ul>
+                        <ul class="details-list" id="topAuthors"></ul>
                     </div>
                 </div>
             </section>
@@ -118,26 +101,7 @@
                                 <th style="text-align: center;">Hành động</th>
                             </tr>
                         </thead>
-                        <tbody>
-                            <tr data-title="Hướng dẫn học Next.js 14 từ cơ bản" data-author="HoangNV" data-date="17/06/2026" data-thumbnail="https://images.unsplash.com/photo-1618477388954-7852f32655ec?w=600" data-content="Next.js 14 mang đến nhiều cải tiến vượt bậc với App Router, Server Actions giúp tối ưu hóa hiệu năng render dữ liệu từ phía máy chủ. Bài viết này hướng dẫn chi tiết cách khởi tạo cấu trúc thư mục chuẩn và fetch API tối ưu nhất...">
-                                <td><strong>Hướng dẫn học Next.js 14 từ cơ bản</strong></td>
-                                <td>HoangNV</td>
-                                <td>17/06/2026</td>
-                                <td style="text-align: center;">
-                                    <button class="btn-action-view">Xem</button>
-                                    <button class="btn-action-delete" onclick="if(confirm('Xóa bài viết này?')) this.closest('tr').remove();">Xóa</button>
-                                </td>
-                            </tr>
-                            <tr data-title="Cách tối ưu CSS tối giản cho dự án lớn" data-author="Admin_Dev" data-date="17/06/2026" data-thumbnail="https://images.unsplash.com/photo-1507238691740-187a5b1d37b8?w=600" data-content="Khi dự án mở rộng, dung lượng file CSS phình to là ác mộng của frontend dev. Sử dụng CSS Variables hiệu quả, áp dụng phương pháp BEM và cấu hình công cụ PurgeCSS loại bỏ class thừa sẽ giúp bạn giảm tới 70% dung lượng file thành phẩm.">
-                                <td><strong>Cách tối ưu CSS tối giản cho dự án lớn</strong></td>
-                                <td>Admin_Dev</td>
-                                <td>17/06/2026</td>
-                                <td style="text-align: center;">
-                                    <button class="btn-action-view">Xem</button>
-                                    <button class="btn-action-delete" onclick="if(confirm('Xóa bài viết này?')) this.closest('tr').remove();">Xóa</button>
-                                </td>
-                            </tr>
-                        </tbody>
+                        <tbody id="postsTableBody"></tbody>
                     </table>
                 </div>
             </section>
@@ -154,31 +118,13 @@
                             <tr>
                                 <th>Tên người dùng</th>
                                 <th>Email</th>
+                                <th>Ngày sinh</th>
                                 <th style="text-align: center;">Bài viết đã đăng</th>
                                 <th>Ngày tham gia</th>
                                 <th style="text-align: center;">Hành động</th>
                             </tr>
                         </thead>
-                        <tbody id="userListTable">
-                            <tr>
-                                <td><strong>Nguyễn Văn Hoàng</strong></td>
-                                <td>hoangnv@gmail.com</td>
-                                <td style="text-align: center;"><span class="post-count-badge">35 bài</span></td>
-                                <td>12/01/2025</td>
-                                <td style="text-align: center;">
-                                    <button class="btn-action-delete btn-delete-user" data-name="Nguyễn Văn Hoàng">Xóa người dùng</button>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td><strong>Lê Minh Tuấn</strong></td>
-                                <td>tuanlm@gmail.com</td>
-                                <td style="text-align: center;"><span class="post-count-badge">42 bài</span></td>
-                                <td>05/03/2025</td>
-                                <td style="text-align: center;">
-                                    <button class="btn-action-delete btn-delete-user" data-name="Lê Minh Tuấn">Xóa người dùng</button>
-                                </td>
-                            </tr>
-                        </tbody>
+                        <tbody id="userListTable"></tbody>
                     </table>
                 </div>
             </section>
@@ -203,7 +149,6 @@
         </div>
     </div>
 
-    
     <script src="./asset/script/admin.js"></script>
 </body>
 </html>
