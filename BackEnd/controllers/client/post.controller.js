@@ -248,7 +248,7 @@ module.exports.updatePost = async (req, res, next) => {
     };
 
     const updatedPost = await Post.findByIdAndUpdate(id, updateData, {
-      new: true,
+      returnDocument: "after",
       runValidators: true,
     })
       .populate("author", "fullname email avatar")
@@ -310,7 +310,7 @@ module.exports.likePost = async (req, res, next) => {
         }
       },
       {
-        new: true
+        returnDocument: "after"
       }
     );
 
@@ -350,7 +350,7 @@ module.exports.unlikePost = async (req, res, next) => {
         }
       },
       {
-        new: true
+        returnDocument: "after"
       }
     );
 
@@ -401,7 +401,7 @@ module.exports.addComment = async (req, res, next) => {
         },
       },
       {
-        new: true,
+        returnDocument: "after",
         runValidators: true,
       }
     )
