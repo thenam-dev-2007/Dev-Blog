@@ -303,6 +303,8 @@ module.exports.refreshToken = async (req, res, next) => {
     // Cập nhật cookie với refresh token mới
     res.cookie("refreshToken", result.refreshToken, {
       httpOnly: true,
+      secure: false,
+      sameSite: "lax",
       maxAge: 7 * 24 * 60 * 60 * 1000,
     });
 

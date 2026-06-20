@@ -88,23 +88,93 @@ function redirectToLogin(message = "Phiên đăng nhập đã hết hạn. Vui l
   window.location.href = "login.html";
 }
 
+// ==================== REFRESH TOKEN ====================
+// Backend đã có refresh token ở cookie httpOnly.
+// Frontend không đọc trực tiếp cookie đó được, nên khi accessToken hết hạn
+// ta gọi /auth/refresh-token để backend kiểm tra cookie và trả accessToken mới.
+let refreshTokenPromise = null;
+
+function shouldAttemptRefresh(result, endpoint, options, token) {
+  if (!token || options.skipAuth || options._retry) return false;
+  if (String(endpoint).includes('/auth/refresh-token')) return false;
+
+  const message = String(result?.message || '').toLowerCase();
+  return (
+    result?.code === 401 &&
+    (
+      message.includes('hết hạn') ||
+      message.includes('không hợp lệ') ||
+      message.includes('token') ||
+      message.includes('phiên đăng nhập') ||
+      message.includes('access')
+    )
+  );
+}
+
+async function refreshAccessTokenFromCookie() {
+  if (refreshTokenPromise) return refreshTokenPromise;
+
+  refreshTokenPromise = (async () => {
+    const response = await fetch(`${API_BASE_URL}/auth/refresh-token`, {
+      method: 'POST',
+      credentials: 'include',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
+
+    const text = await response.text();
+    let result = {};
+
+    try {
+      result = text ? JSON.parse(text) : {};
+    } catch (_) {
+      result = { message: text || 'Response không phải JSON' };
+    }
+
+    const normalized = normalizeApiResult(result, response);
+
+    if (!response.ok || !normalized.success) {
+      throw new Error(normalized.message || 'Không thể làm mới access token');
+    }
+
+    const newAccessToken =
+      normalized.data?.accessToken ||
+      normalized.accessToken ||
+      normalized.token;
+
+    if (!newAccessToken) {
+      throw new Error('Backend refresh-token chưa trả accessToken mới');
+    }
+
+    setAccessToken(newAccessToken);
+    return newAccessToken;
+  })().finally(() => {
+    refreshTokenPromise = null;
+  });
+
+  return refreshTokenPromise;
+}
+
 // Hàm gọi API dùng chung.
 // options.skipAuth = true: không gửi Bearer token, dùng cho login/register/OTP.
+// Nếu accessToken hết hạn, apiCall sẽ tự gọi refresh-token rồi retry request cũ một lần.
 async function apiCall(endpoint, method = "GET", data = null, options = {}) {
   const url = endpoint.startsWith("http") ? endpoint : `${API_BASE_URL}${endpoint}`;
   const isFormData = typeof FormData !== "undefined" && data instanceof FormData;
 
+  const token = getAccessToken();
   const headers = {};
+
   if (!isFormData) {
     headers["Content-Type"] = "application/json";
   }
 
-  const token = getAccessToken();
   if (token && !options.skipAuth) {
     headers.Authorization = `Bearer ${token}`;
   }
 
-  const { skipAuth, ...fetchOptionOverrides } = options;
+  const { skipAuth, _retry, ...fetchOptionOverrides } = options;
   const fetchOptions = {
     method,
     credentials: "include",
@@ -132,8 +202,26 @@ async function apiCall(endpoint, method = "GET", data = null, options = {}) {
 
     const normalized = normalizeApiResult(result, response);
 
-    // Nếu token cũ/hỏng được gửi lên và backend báo lỗi xác thực,
-    // xóa token ngay để header/profile không còn dùng phiên đăng nhập lỗi.
+    // Access token hết hạn sau 15 phút: thử dùng refresh token trong cookie
+    // để lấy access token mới, rồi gọi lại request cũ một lần.
+    if (shouldAttemptRefresh(normalized, endpoint, options, token)) {
+      try {
+        await refreshAccessTokenFromCookie();
+        return apiCall(endpoint, method, data, { ...options, _retry: true });
+      } catch (refreshError) {
+        console.warn('Refresh token failed:', refreshError);
+        normalized.authInvalid = true;
+        normalized.message =
+          normalized.message ||
+          'Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.';
+        clearAuth();
+        updateHeaderAuthUI();
+        return normalized;
+      }
+    }
+
+    // Nếu đã retry refresh rồi mà backend vẫn báo lỗi xác thực,
+    // lúc này mới xóa phiên đăng nhập.
     if (token && !options.skipAuth && isAuthError(normalized)) {
       normalized.authInvalid = true;
       clearAuth();
