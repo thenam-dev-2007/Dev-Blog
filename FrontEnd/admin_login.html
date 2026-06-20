@@ -14,7 +14,9 @@
                 <p>Vui lòng đăng nhập để truy cập hệ thống quản lý.</p>
             </div>
 
-            <form onsubmit="event.preventDefault(); alert('Đăng nhập Admin thành công!'); window.location.href='admin-dashboard.html';">
+            <div id="admin-login-message"></div>
+
+            <form id="admin-login-form">
                 <div class="form-group">
                     <label for="adminEmail">Email quản trị</label>
                     <input type="email" id="adminEmail" placeholder="admin@devblog.com" required>
@@ -33,5 +35,8 @@
             </div>
         </div>
     </div>
+
+    <script src="./asset/script/utils.js"></script>
+    <script src="./asset/script/admin_login.js"></script>
 </body>
 </html>

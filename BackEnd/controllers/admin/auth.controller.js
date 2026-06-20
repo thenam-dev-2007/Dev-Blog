@@ -4,22 +4,17 @@ const { generateAccessToken, generateRefreshToken, refreshAccessToken } = requir
 
 module.exports.login = async (req, res, next) => {
     try {
-        // Lấy dữ liệu từ request body
         const { email, password } = req.body;
 
-        // Tìm user theo email
-        // .select("+password"): Lấy password (vì model đã set select: false cho field password)
-        const user = await User.findOne({ email: email.toLowerCase() }).select("+password"); // Thêm password vào kết quả query
-        
-        // Kiểm tra user có tồn tại không
+        const user = await User.findOne({ email: email.toLowerCase().trim() }).select("+password");
+
         if (!user) {
             return res.status(401).json({
                 success: false,
-                message: "Email hoặc mật khẩu không chính xác",
+                message: "Email hoặc mật khẩu không chính xác"
             });
         }
 
-        // Kiểm tra user đã xác nhận email chưa
         if (!user.isVerified) {
             return res.status(403).json({
                 success: false,
@@ -27,60 +22,63 @@ module.exports.login = async (req, res, next) => {
             });
         }
 
-        // Kiểm tra user có bị xóa không (soft delete)
         if (!user.isActive) {
-            return res.status(401).json({
+            return res.status(403).json({
                 success: false,
-                message: "Tài khoản này đã bị xóa",
+                message: "Tài khoản này đã bị vô hiệu hóa"
             });
         }
 
-        // So sánh password
-        // comparePassword là instance method được định nghĩa trong User model
-        // Nó dùng bcrypt.compare để so sánh password nhập vào với password hash trong DB
         const isPasswordValid = await user.comparePassword(password);
+
         if (!isPasswordValid) {
             return res.status(401).json({
                 success: false,
-                message: "Email hoặc mật khẩu không chính xác",
+                message: "Email hoặc mật khẩu không chính xác"
             });
         }
 
-        // Tạo JWT token
+        if (user.role !== "admin") {
+            return res.status(403).json({
+                success: false,
+                message: "Bạn không có quyền truy cập hệ thống quản trị"
+            });
+        }
+
         const accessToken = generateAccessToken(user);
         const refreshToken = await generateRefreshToken(user);
 
-        // Lưu refresh token vào cookie
-        res.cookie('refreshToken', refreshToken.token, {
+        res.cookie("refreshToken", refreshToken.token, {
             httpOnly: true,
-            secure: true,
-            sameSite: "strict",
+            secure: false,
+            sameSite: "lax",
             maxAge: 7 * 24 * 60 * 60 * 1000
         });
 
-        // Cập nhật thời gian đăng nhập cuối
-        user.lastLogin = new Date();
-        await user.save();
+        // Không cần save toàn document
+        await User.updateOne(
+            { _id: user._id },
+            { lastLogin: new Date() }
+        );
 
-        // Trả về response thành công
-        res.status(200).json({
+        return res.status(200).json({
             success: true,
             message: "Đăng nhập thành công",
             data: {
+                accessToken,
                 user: {
-                _id: user._id,
-                fullname: user.fullname,
-                email: user.email,
-                dateOfBirth: user.dateOfBirth,
-                avatar: user.avatar,
-                role: user.role,
-                },
-                accessToken
+                    _id: user._id,
+                    fullname: user.fullname,
+                    email: user.email,
+                    avatar: user.avatar,
+                    role: user.role,
+                    dateOfBirth: user.dateOfBirth,
+                    lastLogin: new Date()
+                }
             }
         });
     } 
     catch (error) {
-        // Chuyển cho error handler middleware
         next(error);
     }
 };
