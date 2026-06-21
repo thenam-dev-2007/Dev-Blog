@@ -146,6 +146,7 @@ const loadDashboard = async () => {
 };
 
 // Load Posts
+let postsData = [];
 const loadPosts = async () => {
     try {
         const res = await apiFetch(
@@ -157,6 +158,8 @@ const loadPosts = async () => {
         }
 
         const result = await res.json();
+        postsData = result.data;
+        console.log(postsData);
 
         const postsTableBody = document.getElementById("postsTableBody");
 
@@ -164,14 +167,7 @@ const loadPosts = async () => {
 
         result.data.forEach(post => {
             html += `
-                <tr
-                    data-id="${post._id}"
-                    data-title="${post.title || ""}"
-                    data-author="${post.author?.fullname || "Ẩn danh"}"
-                    data-date="${new Date(post.createdAt).toLocaleDateString("vi-VN")}"
-                    data-thumbnail="${post.thumbnail ? `http://127.0.0.1:3000${post.thumbnail}` : ""}"
-                    data-content="${post.content || ""}"
-                >
+                <tr data-id="${post._id}">
                     <td>
                         <strong>${post.title}</strong>
                     </td>
@@ -214,12 +210,21 @@ document.addEventListener("click", async (e) => {
     // XEM
     if (e.target.classList.contains("btn-action-view")) {
         const row = e.target.closest("tr");
-        document.getElementById("modalPostTitle").innerText = row.dataset.title;
-        document.getElementById("modalPostAuthor").innerText = row.dataset.author;
-        document.getElementById("modalPostDate").innerText = row.dataset.date;
-        document.getElementById("modalPostContent").innerText = row.dataset.content;
 
-        const thumbnail = row.dataset.thumbnail;
+        const post = postsData.find(
+            item => item._id === row.dataset.id
+        );
+        if (!post) {
+            alert("Không tìm thấy bài viết");
+            return;
+        }
+
+        document.getElementById("modalPostTitle").innerText = post.title;
+        document.getElementById("modalPostAuthor").innerText = post.author?.fullname || "Ẩn danh";
+        document.getElementById("modalPostDate").innerText = new Date(post.createdAt).toLocaleDateString("vi-VN");
+        document.getElementById("modalPostContent").innerText = post.content;
+
+        const thumbnail = post.thumbnail ? `http://127.0.0.1:3000${post.thumbnail}` : "";
         const img = document.getElementById("modalPostThumbnail");
         const wrapper = img.parentElement;
         if (thumbnail) {
@@ -294,7 +299,6 @@ const loadUsers = async () => {
         }
 
         const result = await res.json();
-        console.log(result);
 
         const userTable =
             document.getElementById("userListTable");

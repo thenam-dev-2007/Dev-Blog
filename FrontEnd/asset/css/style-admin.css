@@ -536,3 +536,7 @@ CSS CẬP NHẬT: THUMBNAIL POPUP & BADGE USER
     object-fit: cover; /* Giúp ảnh không bị méo, tự động co giãn */
     display: block;
 }
+
+.admin-modal-body {
+    white-space: pre-wrap;
+}

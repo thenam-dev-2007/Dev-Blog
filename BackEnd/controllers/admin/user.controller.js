@@ -23,33 +23,6 @@ module.exports.getAllUser = async (req, res, next) => {
     }
 };
 
-// [GET] - Lấy profile của user
-module.exports.getProfile = async (req, res, next) => {
-    try {
-        const user = req.targetUser;
-
-        const profileStatus = await getProfileStatus(user._id);
-
-        res.status(200).json({
-            success: true,
-            message: "Lấy thông tin profile thành công",
-            data: {
-                _id: user._id,
-                fullname: user.fullname,
-                avatar: user.avatar,
-                dateOfBirth: user.dateOfBirth,
-
-                totalPosts: profileStatus.totalPosts,
-                totalLikes: profileStatus.totalLikes,
-                totalComments: profileStatus.totalComments,
-            },
-        });
-    } 
-    catch (error) {
-        next(error);
-    }
-};
-
 // [DELETE] - Xóa tài khoản
 module.exports.deleteUser = async (req, res, next) => {
     try {

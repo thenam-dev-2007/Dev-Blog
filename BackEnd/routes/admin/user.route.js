@@ -8,8 +8,6 @@ const userMiddleware = require("../../middlewares/user.middleware.js");
 
 router.get("/", auth.authenticateToken, authorize.authorizeRoles("admin"), controller.getAllUser);
 
-router.get("/:id", auth.authenticateToken, authorize.authorizeRoles("admin"), userMiddleware.loadUser, controller.getProfile);
-
 router.delete("/:id", auth.authenticateToken, authorize.authorizeRoles("admin"), userMiddleware.loadUser, controller.deleteUser);
 
 module.exports = router;
