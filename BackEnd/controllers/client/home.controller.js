@@ -19,8 +19,7 @@ module.exports.home = async (req, res, next) => {
             .sort({ createdAt: -1 })
             .limit(objectPagination.limitItem)
             .skip(objectPagination.skip)
-            .populate("author", "fullname avatar")
-            .populate("comments.user", "fullname avatar")
+            .populate("author", "fullname createdAt")
             .lean();
 
         const topTags = await Post.aggregate([
@@ -69,46 +68,38 @@ module.exports.home = async (req, res, next) => {
             }
         ]);
 
-        const topAuthors = await Post.aggregate([
+        const featuredPosts = await Post.aggregate([
             {
                 $match: {
                     isDeleted: false
                 }
             },
             {
-                $group: {
-                    _id: "$author",
-                    totalPosts: {
-                        $sum: 1
+                $addFields: { // thêm trường mới
+                    totalLikes: {
+                        $size: "$likes"
                     }
                 }
             },
             {
                 $sort: {
-                    totalPosts: -1
+                    totalLikes: -1,
+                    createdAt: -1
                 }
             },
             {
-                $limit: 5
+                $limit: 4
             },
             {
                 $lookup: {
-                    from: "users",
-                    localField: "_id",
-                    foreignField: "_id",
-                    as: "author"
+                    from: "users", // Collection cần join tới.
+                    localField: "author", // Trường trong collection hiện tại.
+                    foreignField: "_id", // Trường bên collection users dùng để đối chiếu.
+                    as: "author" // Tên trường chứa kết quả sau khi join.
                 }
             },
             {
                 $unwind: "$author"
-            },
-            {
-                $project: {
-                    _id: "$author._id",
-                    fullname: "$author.fullname",
-                    avatar: "$author.avatar",
-                    totalPosts: "$totalPosts"
-                }
             }
         ]);
 
@@ -122,8 +113,8 @@ module.exports.home = async (req, res, next) => {
                 limit: objectPagination.limitItem
             },
             posts,
-            topTags,
-            topAuthors
+            featuredPosts,
+            topTags
         });
 
     } 
