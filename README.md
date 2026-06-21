@@ -1,1 +1,1 @@
-Blog Platform
+DEV BLOG
