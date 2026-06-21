@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="vi">
 <head>
     <meta charset="UTF-8">
@@ -54,6 +54,7 @@
                     <h2>Bài viết nổi bật</h2>
                     <p>Những nội dung có nhiều tương tác trong cộng đồng.</p>
                 </div>
+                <a href="articles.html?type=featured" class="button secondary btn-see-more">Xem tiếp →</a>
             </section>
             <div class="article-grid" id="featuredPosts">
                 <div class="section-card empty-state">Đang tải bài viết nổi bật...</div>
@@ -64,13 +65,16 @@
                     <h2>Bài viết mới nhất</h2>
                     <p>Cập nhật những chia sẻ vừa được đăng.</p>
                 </div>
-                <a href="create_post.html" class="button" id="homeWriteBtnSmall">➕ Đăng bài</a>
+                <div class="section-head-actions">
+                    <a href="articles.html?type=latest" class="button secondary btn-see-more">Xem tiếp →</a>
+                    <a href="create_post.html" class="button" id="homeWriteBtnSmall">➕ Đăng bài</a>
+                </div>
             </section>
             <div class="article-grid" id="latestPosts">
                 <div class="section-card empty-state">Đang tải bài viết...</div>
             </div>
-            <section class="section-card">
-                <div class="phan-trang" id="phan-trang-home"></div>
+            <section class="section-card home-preview-note">
+                <p>Trang chủ chỉ hiển thị 4 bài mới nhất. Bấm <b>Xem tiếp</b> để xem đầy đủ danh sách.</p>
             </section>
         </div>
 
