@@ -61,13 +61,8 @@ const refreshAccessToken = async () => {
 };
 
 // Fetch có tự refresh token
-const apiFetch = async (
-    url,
-    options = {}
-) => {
-
-    let accessToken =
-        localStorage.getItem("adminAccessToken");
+const apiFetch = async ( url, options = {} ) => {
+    let accessToken = localStorage.getItem("adminAccessToken");
 
     let response = await fetch(url, {
         ...options,
@@ -81,12 +76,8 @@ const apiFetch = async (
 
     // Access token hết hạn
     if (response.status === 401) {
-
         try {
-
-            accessToken =
-                await refreshAccessToken();
-
+            accessToken = await refreshAccessToken();
             response = await fetch(url, {
                 ...options,
                 credentials: "include",
@@ -97,23 +88,13 @@ const apiFetch = async (
                 }
             });
 
-        } catch (error) {
+        } 
+        catch (error) {
+            localStorage.removeItem("adminAccessToken");
+            localStorage.removeItem("adminUser");
 
-            localStorage.removeItem(
-                "adminAccessToken"
-            );
-
-            localStorage.removeItem(
-                "adminUser"
-            );
-
-            alert(
-                "Phiên đăng nhập đã hết hạn"
-            );
-
-            window.location.href =
-                "admin_login.html";
-
+            alert("Phiên đăng nhập đã hết hạn");
+            window.location.href = "admin_login.html";
             throw error;
         }
     }
@@ -134,17 +115,10 @@ const loadDashboard = async () => {
 
         const { data } = await res.json();
 
-        document.getElementById("totalPosts").textContent =
-            data.statistics.totalPosts;
-
-        document.getElementById("totalUsers").textContent =
-            data.statistics.totalUsers;
-
-        document.getElementById("totalLikes").textContent =
-            data.statistics.totalLikes;
-
-        document.getElementById("totalComments").textContent =
-            data.statistics.totalComments;
+        document.getElementById("totalPosts").textContent = data.statistics.totalPosts;
+        document.getElementById("totalUsers").textContent = data.statistics.totalUsers;
+        document.getElementById("totalLikes").textContent = data.statistics.totalLikes;
+        document.getElementById("totalComments").textContent = data.statistics.totalComments;
 
         document.getElementById("latestPosts").innerHTML =
             data.latestPosts.map(post => `
@@ -165,7 +139,8 @@ const loadDashboard = async () => {
                 </li>
             `).join("");
 
-    } catch (error) {
+    } 
+    catch (error) {
         console.error("Dashboard Error:", error);
     }
 };
@@ -183,8 +158,7 @@ const loadPosts = async () => {
 
         const result = await res.json();
 
-        const postsTableBody =
-            document.getElementById("postsTableBody");
+        const postsTableBody = document.getElementById("postsTableBody");
 
         let html = "";
 
@@ -239,32 +213,20 @@ document.addEventListener("click", async (e) => {
 
     // XEM
     if (e.target.classList.contains("btn-action-view")) {
-
         const row = e.target.closest("tr");
-
-        document.getElementById("modalPostTitle").innerText =
-            row.dataset.title;
-
-        document.getElementById("modalPostAuthor").innerText =
-            row.dataset.author;
-
-        document.getElementById("modalPostDate").innerText =
-            row.dataset.date;
-
-        document.getElementById("modalPostContent").innerText =
-            row.dataset.content;
+        document.getElementById("modalPostTitle").innerText = row.dataset.title;
+        document.getElementById("modalPostAuthor").innerText = row.dataset.author;
+        document.getElementById("modalPostDate").innerText = row.dataset.date;
+        document.getElementById("modalPostContent").innerText = row.dataset.content;
 
         const thumbnail = row.dataset.thumbnail;
-
-        const img =
-            document.getElementById("modalPostThumbnail");
-
+        const img = document.getElementById("modalPostThumbnail");
         const wrapper = img.parentElement;
-
         if (thumbnail) {
             img.src = thumbnail;
             wrapper.style.display = "block";
-        } else {
+        } 
+        else {
             wrapper.style.display = "none";
         }
 
@@ -291,16 +253,15 @@ document.addEventListener("click", async (e) => {
             );
 
             const result = await res.json();
-
             if (!result.success) {
                 throw new Error(result.message);
             }
 
             e.target.closest("tr").remove();
-
             alert("Xóa bài viết thành công");
 
-        } catch (error) {
+        } 
+        catch (error) {
             console.error(error);
             alert("Xóa bài viết thất bại");
         }
@@ -391,16 +352,13 @@ const loadUsers = async () => {
 
         userTable.innerHTML = html;
 
-    } catch (error) {
-        console.error(
-            "Load Users Error:",
-            error
-        );
+    } 
+    catch (error) {
+        console.error("Load Users Error:", error);
     }
 };
 
 document.addEventListener("click", async (e) => {
-
     if (!e.target.classList.contains("btn-delete-user")) {
         return;
     }
@@ -417,7 +375,6 @@ document.addEventListener("click", async (e) => {
     }
 
     try {
-
         const res = await apiFetch(
             `${API_BASE_URL}/users/${userId}`,
             {
@@ -426,16 +383,15 @@ document.addEventListener("click", async (e) => {
         );
 
         const result = await res.json();
-
         if (!result.success) {
             throw new Error(result.message);
         }
 
         e.target.closest("tr").remove();
-
         alert("Xóa người dùng thành công");
 
-    } catch (error) {
+    } 
+    catch (error) {
         console.error(error);
         alert("Xóa người dùng thất bại");
     }
