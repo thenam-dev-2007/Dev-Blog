@@ -1,3 +1,4 @@
+const HOME_PREVIEW_LIMIT = 4;
 let currentHomePage = 1;
 
 function updateHomeWriteLinks() {
@@ -63,7 +64,7 @@ function renderFeaturedPosts(posts) {
             const scoreA = getLikeCount(a) * 2 + getCommentCount(a);
             return scoreB - scoreA || new Date(b.createdAt || 0) - new Date(a.createdAt || 0);
         })
-        .slice(0, 6);
+        .slice(0, HOME_PREVIEW_LIMIT);
 
     renderPosts(featured, "featuredPosts");
 }
@@ -80,7 +81,7 @@ async function loadHomePage(page = 1) {
     updateHomeWriteLinks();
     showLoading("Đang tải bài viết...");
 
-    const result = await getPosts(page, 6);
+    const result = await getPosts(1, HOME_PREVIEW_LIMIT);
     hideLoading();
 
     if (!resultOk(result)) {
@@ -89,10 +90,9 @@ async function loadHomePage(page = 1) {
     }
 
     const posts = getPostsFromResponse(result);
-    const pagination = getPaginationFromResponse(result, page, 1);
-
-    renderPosts(posts, "latestPosts");
-    renderPhanTrang("phan-trang-home", pagination.currentPage, pagination.totalPage, loadHomePage);
+    renderPosts(posts.slice(0, HOME_PREVIEW_LIMIT), "latestPosts");
+    const pagination = document.getElementById("phan-trang-home");
+    if (pagination) pagination.innerHTML = "";
 }
 
 document.addEventListener("DOMContentLoaded", () => {

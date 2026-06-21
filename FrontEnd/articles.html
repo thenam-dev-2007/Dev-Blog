@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Danh sách bài viết - DEV BLOG</title>
+    <link rel="stylesheet" href="./asset/css/style-client.css">
+</head>
+<body>
+
+<header>
+    <div class="header-container">
+        <a class="logo" href="index.html">DEV BLOG</a>
+        <nav class="header-nav">
+            <a href="index.html">Home</a>
+            <a href="tags.html">Tags</a>
+            <a href="faq.html">FAQ</a>
+            <a href="about.html">About</a>
+            <a href="contact.html">Contact</a>
+        </nav>
+        <div class="header-right">
+            <div class="search-wrapper">
+                <input type="text" id="headerSearch" placeholder="Tìm kiếm...">
+                <button class="btn-search-icon" onclick="toggleSearch()" title="Tìm kiếm">🔍</button>
+            </div>
+            <button class="btn-darkmode" onclick="toggleDarkMode()" id="btnDarkMode" title="Chế độ tối">🌙</button>
+            <a href="login.html" class="btn-dangnhap">Đăng nhập</a>
+            <a href="register.html" class="btn-dangky">Đăng ký</a>
+        </div>
+    </div>
+</header>
+
+<main>
+    <section class="section-card page-banner article-list-banner">
+        <p class="eyebrow" id="articleListEyebrow">Danh sách bài viết</p>
+        <h1 id="articleListTitle">Bài viết</h1>
+        <p id="articleListDesc">Tổng hợp các bài viết được chọn từ cộng đồng DEV BLOG.</p>
+        <div class="listing-filter-actions">
+            <a href="articles.html?type=featured" class="button secondary" id="btnFeaturedList">Bài nổi bật</a>
+            <a href="articles.html?type=latest" class="button secondary" id="btnLatestList">Bài mới nhất</a>
+            <a href="create_post.html" class="button" id="articleListWriteBtn">✍️ Đăng bài</a>
+        </div>
+    </section>
+
+    <section class="section-card home-section-head no-margin">
+        <div>
+            <h2 id="articleListSubTitle">Danh sách bài viết</h2>
+            <p id="articleListSubDesc">Mỗi trang hiển thị 4 bài để đồng nhất với phân trang backend.</p>
+        </div>
+        <a href="index.html" class="button secondary">← Về trang chủ</a>
+    </section>
+
+    <div class="article-grid" id="articleList">
+        <div class="section-card empty-state">Đang tải bài viết...</div>
+    </div>
+
+    <section class="section-card">
+        <div class="phan-trang" id="phan-trang-articles"></div>
+    </section>
+</main>
+
+<footer class="footer">
+    <nav class="footer-nav">
+        <a href="index.html">Home</a>
+        <a href="about.html">Giới thiệu</a>
+        <a href="faq.html">FAQ</a>
+        <a href="contact.html">Liên hệ</a>
+        <a href="tags.html">Tags</a>
+        <a href="admin_login.html">Admin</a>
+        <a href="#">Điều khoản</a>
+        <a href="#">Quyền riêng tư</a>
+    </nav>
+    <p class="footer-copy">© 2026 DEV BLOG. All rights reserved.</p>
+</footer>
+
+<script src="./asset/script/main.js"></script>
+<script src="./asset/script/utils.js"></script>
+<script src="./asset/script/articles.js"></script>
+</body>
+</html>

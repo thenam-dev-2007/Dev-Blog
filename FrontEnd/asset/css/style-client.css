@@ -1295,3 +1295,56 @@ body.dark .avatar-dropdown {
     }
 }
 
+
+/* =====================
+   ARTICLE LIST / HOME PREVIEW
+   ===================== */
+.section-head-actions,
+.listing-filter-actions {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.btn-see-more {
+    white-space: nowrap;
+}
+
+.home-preview-note {
+    color: var(--mau-chu-nhat);
+    font-size: 0.92rem;
+    text-align: center;
+}
+
+.listing-filter-actions {
+    justify-content: center;
+    margin-top: 18px;
+}
+
+.listing-filter-actions .button.active-filter {
+    background-color: var(--mau-chinh);
+    color: #ffffff;
+    border-color: var(--mau-chinh);
+}
+
+.article-list-banner .eyebrow {
+    color: var(--mau-chinh);
+    font-weight: bold;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+}
+
+@media (max-width: 700px) {
+    .section-head-actions,
+    .listing-filter-actions {
+        width: 100%;
+        align-items: stretch;
+    }
+
+    .section-head-actions .button,
+    .listing-filter-actions .button {
+        width: 100%;
+        text-align: center;
+    }
+}
